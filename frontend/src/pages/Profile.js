@@ -87,10 +87,11 @@ const Profile = () => {
       )}
 
       {/* Hero / Cover */}
-      <div className="relative h-40 bg-gradient-to-r from-orange-700 via-orange-600 to-amber-500">
+      <div className="relative h-16 bg-gradient-to-r from-orange-700 via-orange-600 to-amber-500">
         <div className="absolute inset-0 bg-[#09090b]/30" />
+        <span className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 font-handwriting text-3xl text-white drop-shadow">CookMe</span>
         {isOwnProfile && (
-          <div className="absolute top-4 right-4 flex gap-2">
+          <div className="absolute top-1/2 -translate-y-1/2 right-4 flex gap-2">
             <button
               onClick={() => setShowLanguagePicker(true)}
               className="flex items-center gap-2 px-3 py-1.5 bg-zinc-900/80 hover:bg-zinc-800 rounded-lg text-sm text-zinc-300 transition-colors"
@@ -111,7 +112,7 @@ const Profile = () => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         {/* Profile card */}
-        <div className="-mt-16 mb-8">
+        <div className="mt-4 mb-8">
           <Card className="bg-zinc-900 border-zinc-800">
             <CardContent className="pt-6 pb-5">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
