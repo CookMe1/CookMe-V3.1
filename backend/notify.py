@@ -1,5 +1,5 @@
 """Email the admin when something is reported. Optional: set SMTP_HOST, SMTP_USER, SMTP_PASSWORD (and SMTP_FROM, SMTP_PORT).
-Without them the report still appears in the admin page and is written to the log."""
+Alerts go to ADMIN_NOTIFY_EMAIL if set, otherwise to ADMIN_EMAILS. Without them the report still appears in the admin page and is written to the log."""
 import logging
 import os
 import smtplib
@@ -16,7 +16,7 @@ def admin_emails() -> list:
 
 def _send(subject: str, body: str, raise_errors: bool = False):
     host = os.environ.get("SMTP_HOST")
-    to = admin_emails()
+    to = [e.strip() for e in os.environ.get("ADMIN_NOTIFY_EMAIL", "").split(",") if e.strip()] or admin_emails()
     if not host or not to:
         log.info("ADMIN ALERT (no SMTP configured): %s\n%s", subject, body)
         if raise_errors:
