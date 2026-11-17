@@ -27,7 +27,7 @@ for r in data:
 pruned = 0
 if "--prune" in sys.argv:
     keep = {r["recipe_id"] for r in data}
-    gone = [x["recipe_id"] for x in db.recipes.find({"user_id": "system_seeder"}, {"recipe_id": 1}) if x["recipe_id"] not in keep]
+    gone = [x["recipe_id"] for x in db.recipes.find({"user_id": "system_seeder", "released_from_queue": {"$ne": True}}, {"recipe_id": 1}) if x["recipe_id"] not in keep]
     pruned = len(gone)
     if apply and gone: db.recipes.delete_many({"recipe_id": {"$in": gone}, "user_id": "system_seeder"})
 print(("APPLIED" if apply else "DRY RUN") + f": {new} new, {upd} updated (of {len(data)})" + (f", {pruned} removed" if "--prune" in sys.argv else ""))

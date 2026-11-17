@@ -70,8 +70,18 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.exception("Index creation failed; continuing startup")
 
+    release_task = None
+    try:
+        import asyncio
+        from release_queue import release_loop
+        release_task = asyncio.create_task(release_loop(db))
+    except Exception:
+        logger.exception("Could not start the daily recipe release")
+
     yield
 
+    if release_task:
+        release_task.cancel()
     client.close()
     logger.info("Closed MongoDB connection")
 

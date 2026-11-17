@@ -32,3 +32,9 @@ def test_pasta_matches_spaghetti_and_needs_two_pantry_items():
     # a recipe that only uses one of three pantry items is not a match
     ok, *_ = _score_master(ings("Eggs", "Salt", "Oil"), groups, "most", 1)
     assert not ok
+
+
+def test_recipe_model_keeps_credit_fields():
+    from models import Recipe
+    for f in ("image_attribution", "source_license", "source_history_url", "source_url"):
+        assert f in Recipe.model_fields, f

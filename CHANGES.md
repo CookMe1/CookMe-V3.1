@@ -95,3 +95,16 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 ## Recipe counter
 - `GET /api/recipes/stats` returns `{total, mine}`. The dashboard shows "1,171 recipes to explore · N of your own" under the welcome line; the search page shows the number of matches.
 - Featured recipes can now pick recipes with the new local photos (before, only `http` image links were eligible).
+
+## Featured once a day + slow, steady recipe growth
+- Featured recipes: random but fixed for the whole day (changes at midnight UTC). Picks from the shared recipes plus your own; never other people's private recipes.
+- **Bug fixed:** the recipe model dropped `image_attribution`, so photographer credits never reached the recipe page. Added `image_attribution`, `image_source`, `source_license`, `source_history_url`.
+- **Staging pipeline** (nothing reaches the app until approved):
+  1. `python3 scripts/stage_wikibooks.py --limit 60` (test), then without `--limit` for everything. Writes `data/staging/wikibooks.json` + `wikibooks_review.csv`.
+  2. Open the CSV, set keep to y/n, save.
+  3. `python3 scripts/approve_staged.py` -> `wikibooks_approved.json`
+  4. `python3 scripts/fill_images.py --file data/staging/wikibooks_approved.json` (Pexels, ~190 per hour)
+  5. Commit + push; in Emergent pull, then `python scripts/queue_recipes.py data/staging/wikibooks_approved.json --apply`
+- **Daily release:** `backend/release_queue.py` runs inside the backend; the first check each day moves the next `RELEASE_PER_DAY` (default 10) recipes from the `recipe_queue` collection into the app. A server outage never causes a flood. `RELEASE_PER_DAY=0` pauses it.
+- `load_master_recipes.py --prune` never removes recipes released from the queue.
+- Wikibooks recipes show "Recipe from Wikibooks Cookbook · licensed CC BY-SA 4.0 · Authors"; credits card updated.

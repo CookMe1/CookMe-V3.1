@@ -20,6 +20,10 @@ class Recipe(BaseModel):
     cuisine: Optional[str] = None  # Country/cuisine type: Italian, Mexican, Indian, etc.
     nutrition: Optional[dict] = None
     source_url: Optional[str] = None  # Original URL if imported
+    source_license: Optional[str] = None  # e.g. "CC BY-SA 4.0"
+    source_history_url: Optional[str] = None  # authors/history page (CC BY-SA attribution)
+    image_attribution: Optional[str] = None  # e.g. "Photo by Ann on Pexels"
+    image_source: Optional[str] = None  # e.g. "ai-generated"
     likes_count: int = 0
     saves_count: int = 0
     hidden_by: List[str] = []  # List of user_ids who have "deleted" this recipe from their view

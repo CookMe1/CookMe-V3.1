@@ -1,6 +1,7 @@
 import React from 'react';
 
 const CC_BY = 'https://creativecommons.org/licenses/by/3.0/';
+const CC_BY_SA = 'https://creativecommons.org/licenses/by-sa/4.0/';
 
 // Works out where a recipe/photo came from so we can credit it (required by TheMealDB and Foodista's CC BY licence).
 export function sourceInfo(recipe) {
@@ -11,6 +12,7 @@ export function sourceInfo(recipe) {
   const info = { host, url, name: host, note: null, noteUrl: null, photo: null, photoUrl: null };
   if (host.includes('themealdb.com')) { info.name = 'TheMealDB'; info.url = 'https://www.themealdb.com'; }
   else if (host.includes('foodista.com')) { info.name = 'Foodista'; info.note = 'CC BY 3.0'; info.noteUrl = CC_BY; }
+  else if (host.includes('wikibooks.org')) { info.name = 'Wikibooks Cookbook'; info.note = 'CC BY-SA 4.0'; info.noteUrl = CC_BY_SA; info.historyUrl = recipe?.source_history_url || null; }
   else if (host.includes('youtube') || host.includes('youtu.be')) { info.name = 'YouTube'; }
 
   if (recipe?.image_attribution) {
@@ -37,6 +39,9 @@ const SourceCredit = ({ recipe }) => {
           <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-400 underline">{s.name}</a>
           {s.note && (
             <> · licensed <a href={s.noteUrl} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-400 underline">{s.note}</a></>
+          )}
+          {s.historyUrl && (
+            <> · <a href={s.historyUrl} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-400 underline">Authors</a></>
           )}
           {s.url && s.url !== `https://www.${s.host}` && s.host && !['TheMealDB'].includes(s.name) && (
             <> · <a href={recipe.source_url} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-400 underline">View original recipe</a></>

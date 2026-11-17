@@ -4,13 +4,13 @@
     Get a free key at https://www.pexels.com/api/ and set it:  export PEXELS_API_KEY=...
  2) Optional --ai: generate an image (needs ENABLE_AI_IMAGES=1 and the Emergent LLM key, i.e. run on Emergent).
  Images are saved to frontend/public/recipe-images/<recipe_id>.jpg and recipe['image'] is set to /recipe-images/<id>.jpg
- Usage:  python scripts/fill_images.py [--limit 50] [--ai] [--dry]
+ Usage:  python scripts/fill_images.py [--file data/staging/wikibooks_approved.json] [--limit 50] [--ai] [--dry]
 Photo choice is a best match for the dish name, so spot-check a few. AI ones are labelled 'AI-generated illustration'."""
 import json, os, sys, time
 from pathlib import Path
 import requests
 ROOT = Path(__file__).resolve().parent.parent
-F = ROOT/"data"/"master_recipes.json"
+F = ROOT/Path(sys.argv[sys.argv.index("--file") + 1]) if "--file" in sys.argv else ROOT/"data"/"master_recipes.json"
 OUT = ROOT/"frontend"/"public"/"recipe-images"
 KEY = os.environ.get("PEXELS_API_KEY", "")
 

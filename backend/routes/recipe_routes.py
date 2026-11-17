@@ -192,9 +192,10 @@ async def recipe_stats(request: Request):
 
 @router.get("/featured")
 async def get_featured_master(request: Request, count: int = 3):
-    """A random pick (different each visit) from the shared recipes plus the person's own, only ones with a photo.
+    """Today's pick: random but fixed for the whole day, from the shared recipes plus the person's own, only ones with a photo.
     Other people's private recipes are never shown."""
     import random
+    from datetime import date
     db = request.app.state.db
     user = await get_current_user(request, db)
     docs = await db.recipes.find(
@@ -202,10 +203,10 @@ async def get_featured_master(request: Request, count: int = 3):
          "image": {"$regex": "^(http|/recipe-images/|data:image/)"}},
         {"_id": 0, "recipe_id": 1},
     ).to_list(10000)
-    ids = [d["recipe_id"] for d in docs]
+    ids = sorted(d["recipe_id"] for d in docs)
     if not ids:
         return {"recipes": []}
-    picked = random.sample(ids, min(max(count, 1), 12, len(ids)))
+    picked = random.Random(f"{date.today().isoformat()}-{user['user_id']}").sample(ids, min(max(count, 1), 12, len(ids)))
     out = await db.recipes.find(
         {"recipe_id": {"$in": picked}},
         {"_id": 0, "recipe_id": 1, "title": 1, "image": 1, "prep_time": 1, "cook_time": 1, "servings": 1, "difficulty": 1, "description": 1},

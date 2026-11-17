@@ -245,7 +245,8 @@ const Profile = () => {
                 <ul className="text-sm text-zinc-400 space-y-1">
                   <li>Recipes and photos from <a className="text-orange-500 underline" href="https://www.themealdb.com" target="_blank" rel="noopener noreferrer">TheMealDB</a></li>
                   <li>Recipes from <a className="text-orange-500 underline" href="https://www.foodista.com" target="_blank" rel="noopener noreferrer">Foodista</a>, licensed <a className="text-orange-500 underline" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer">CC BY 3.0</a></li>
-                  <li>Photos from <a className="text-orange-500 underline" href="https://spoonacular.com" target="_blank" rel="noopener noreferrer">spoonacular</a></li>
+                  <li>Recipes from the <a className="text-orange-500 underline" href="https://en.wikibooks.org/wiki/Cookbook:Table_of_Contents" target="_blank" rel="noopener noreferrer">Wikibooks Cookbook</a>, licensed <a className="text-orange-500 underline" href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a></li>
+                  <li>Photos from <a className="text-orange-500 underline" href="https://www.pexels.com" target="_blank" rel="noopener noreferrer">Pexels</a> and <a className="text-orange-500 underline" href="https://spoonacular.com" target="_blank" rel="noopener noreferrer">spoonacular</a></li>
                   <li>Nutrition data from <a className="text-orange-500 underline" href="https://fdc.nal.usda.gov" target="_blank" rel="noopener noreferrer">USDA FoodData Central</a></li>
                   <li>Product data from <a className="text-orange-500 underline" href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a></li>
                 </ul>
