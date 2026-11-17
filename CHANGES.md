@@ -91,3 +91,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Meal plans: fixed doubled-backslash typos that stopped the "not a meal" filter matching chips/nuts/ideas; desserts such as "Rocky Road Dessert Bars" and caramels no longer count as dinner.
 - Recipe photos: removed 6 unused files, recompressed the largest (max 182 KB).
 - New tests: `tests/test_regressions.py`.
+
+## Recipe counter
+- `GET /api/recipes/stats` returns `{total, mine}`. The dashboard shows "1,171 recipes to explore · N of your own" under the welcome line; the search page shows the number of matches.
+- Featured recipes can now pick recipes with the new local photos (before, only `http` image links were eligible).

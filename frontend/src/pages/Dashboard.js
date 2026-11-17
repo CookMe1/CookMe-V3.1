@@ -14,6 +14,17 @@ const Dashboard = () => {
   const [recentRecipes, setRecentRecipes] = useState([]);
   const [loadingRecipes, setLoadingRecipes] = useState(true);
   const [featured, setFeatured] = useState([]);
+  const [stats, setStats] = useState(null);
+
+  // Total recipe counter
+  useEffect(() => {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    if (!token) return;
+    fetch(`${API_URL}/api/recipes/stats`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d) setStats(d); })
+      .catch(() => {});
+  }, []);
 
   // Featured today: a daily-stable pick from the shared master recipes
   useEffect(() => {
@@ -92,6 +103,11 @@ const Dashboard = () => {
               <span className="text-zinc-100">{user?.name?.split(' ')[0] || 'Friend'}</span>
             </h1>
             <p className="text-zinc-400 text-lg">Ready to cook something amazing?</p>
+            {stats && stats.total > 0 && (
+              <p className="text-orange-500 text-sm font-medium mt-2" data-testid="recipe-counter">
+                {stats.total.toLocaleString()} recipes to explore{stats.mine > 0 ? ` · ${stats.mine.toLocaleString()} of your own` : ''}
+              </p>
+            )}
           </div>
         </div>
       </div>

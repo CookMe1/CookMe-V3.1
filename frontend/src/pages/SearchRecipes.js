@@ -143,7 +143,7 @@ const SearchRecipes = () => {
           </div>
         ) : results.length > 0 ? (
           <>
-            <p className="text-sm text-zinc-500 mb-4" data-testid="result-count">{total} recipe{total === 1 ? '' : 's'}</p>
+            <p className="text-sm text-zinc-500 mb-4" data-testid="result-count">{total.toLocaleString()} recipe{total === 1 ? '' : 's'}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {results.map((r) => <RecipeCard key={r.recipe_id} recipe={r} />)}
             </div>

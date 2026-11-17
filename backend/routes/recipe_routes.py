@@ -180,6 +180,16 @@ async def search_recipes(
     return {"recipes": recipes, "total": total, "has_more": skip + limit < total}
 
 
+@router.get("/stats")
+async def recipe_stats(request: Request):
+    """Totals for the counters in the app: the shared collection, plus this person's own recipes."""
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    total = await db.recipes.count_documents({"user_id": "system_seeder"})
+    mine = await db.recipes.count_documents({"user_id": user["user_id"]})
+    return {"total": total, "mine": mine}
+
+
 @router.get("/featured")
 async def get_featured_master(request: Request, count: int = 3):
     """Daily-stable featured recipes from the shared master list (only ones with a real photo)."""
@@ -188,7 +198,7 @@ async def get_featured_master(request: Request, count: int = 3):
     db = request.app.state.db
     await get_current_user(request, db)
     docs = await db.recipes.find(
-        {"user_id": "system_seeder", "image": {"$regex": "^http"}}, {"_id": 0, "recipe_id": 1}
+        {"user_id": "system_seeder", "image": {"$regex": "^(http|/recipe-images/)"}}, {"_id": 0, "recipe_id": 1}
     ).to_list(5000)
     ids = sorted(d["recipe_id"] for d in docs)
     if not ids:
