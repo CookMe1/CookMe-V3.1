@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ShareRecipe from '../components/ShareRecipe';
 import Comments from '../components/Comments';
-import { Clock, Users, ChefHat, Heart, Bookmark, Share2, Minus, Plus, Printer, Loader2, Camera, ImageIcon, Trash2, Upload, AlertCircle, Mic, MicOff } from 'lucide-react';
+import { Clock, Users, ChefHat, Heart, Bookmark, Share2, Minus, Plus, Printer, Loader2, Camera, ImageIcon, Trash2, Upload, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
@@ -15,91 +15,6 @@ import { validateImageQuality, getRejectMessage, compressImage } from '../utils/
 import { useLanguage } from '../context/LanguageContext';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
-
-// ── Voice Button ──────────────────────────────────────────────────────────────
-const VoiceButton = ({ onResult, title = 'Speak to convert' }) => {
-  const [listening, setListening] = useState(false);
-  const recogRef = useRef(null);
-
-  const toggle = () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { toast.error('Voice not supported in this browser'); return; }
-    if (listening) { recogRef.current?.stop(); return; }
-    const rec = new SR();
-    rec.lang = 'en-US';
-    rec.interimResults = false;
-    rec.onstart = () => setListening(true);
-    rec.onresult = (e) => { onResult(e.results[0][0].transcript); setListening(false); };
-    rec.onerror = () => setListening(false);
-    rec.onend = () => setListening(false);
-    recogRef.current = rec;
-    rec.start();
-  };
-
-  return (
-    <button onClick={toggle} title={title}
-      className={`p-2 rounded-lg transition-colors ${listening ? 'bg-red-600 text-white animate-pulse' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}>
-      {listening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-    </button>
-  );
-};
-
-// ── Unit Converter ────────────────────────────────────────────────────────────
-const UnitConverter = () => {
-  const [input, setInput] = useState('');
-  const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const convert = async (text) => {
-    const query = text || input;
-    if (!query.trim()) return;
-    setInput(query);
-    setLoading(true);
-    try {
-      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-      // Use the existing calculate-nutrition endpoint pattern — but call Claude directly via a simple fetch
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 100,
-          system: 'You are a cooking unit converter. Reply with ONLY the converted result, e.g. "2 cups = 480 ml" or "100g flour ≈ ¾ cup". No explanation.',
-          messages: [{ role: 'user', content: query }],
-        }),
-      });
-      const data = await res.json();
-      setResult(data.content?.[0]?.text || 'Could not convert');
-    } catch {
-      toast.error('Conversion failed');
-    }
-    setLoading(false);
-  };
-
-  return (
-    <Card className="bg-zinc-900 border-zinc-800 p-4 mt-6">
-      <h3 className="font-semibold text-zinc-100 mb-3 text-sm">⚖️ Unit Converter</h3>
-      <div className="flex gap-2">
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && convert()}
-          placeholder="e.g. 200g flour to cups"
-          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:border-orange-500"
-        />
-        <VoiceButton onResult={v => convert(v)} title="Say a conversion" />
-        <Button onClick={() => convert()} disabled={loading} size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
-          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Go'}
-        </Button>
-      </div>
-      {result && (
-        <div className="mt-3 px-3 py-2 bg-zinc-800 rounded-lg text-sm text-green-400 font-medium">
-          {result}
-        </div>
-      )}
-    </Card>
-  );
-};
 
 const RecipeDetail = () => {
   const { id } = useParams();
@@ -880,9 +795,6 @@ const RecipeDetail = () => {
         {(recipe.visibility === 'public' || recipe.user_id === 'system_seeder') && (
           <Comments recipeId={recipe.recipe_id} isOwner={!!currentUser && recipe.user_id === currentUser.user_id} />
         )}
-
-        {/* Unit Converter */}
-        <UnitConverter />
 
         {/* Similar Recipes from Community DB */}
         {(loadingSimilar || similarRecipes.length > 0) && (

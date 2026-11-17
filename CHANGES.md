@@ -142,3 +142,6 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 
 ## First start on an empty database
 - `backend/seed_master.py`: when the backend starts and there are **no** master recipes, it loads `data/master_recipes.json` in the background (so the live site's empty database gets the library automatically). Never re-adds recipes you deleted, never touches user data. `AUTO_SEED_MASTER=0` switches it off. Updates later still go through `scripts/load_master_recipes.py`.
+
+## Removed the unit converter
+- Removed the "Unit Converter" box (and its voice button) from the bottom of the recipe page: ingredient amounts already scale and convert with the servings and unit settings. (It also called an AI service directly from the browser with no key, so it never worked.)
