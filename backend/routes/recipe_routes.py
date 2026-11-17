@@ -7,6 +7,7 @@ from typing import List, Optional
 import uuid
 from models import Recipe, RecipeCreate, RecipeExtractRequest, RecipeUpdate
 from auth import get_current_user
+import content_filter
 import public_sharing as ps
 import os
 from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
@@ -390,6 +391,11 @@ async def publish_recipe(recipe_id: str, request: Request):
     if body.get("consent") is not True or body.get("terms_version") != ps.TERMS_VERSION:
         raise HTTPException(status_code=400, detail="You need to agree to the sharing terms to make a recipe public")
     issues = await ps.full_check(db, recipe)
+    caption = re.sub(r"\s+", " ", str(body.get("caption") or "")).strip()
+    if len(caption) > 200:
+        raise HTTPException(status_code=400, detail="Keep your note under 200 characters")
+    for p in content_filter.problems(caption)[:1]:
+        issues.append({"field": "caption", "message": "Your note: " + p["message"]})
     now = datetime.now(timezone.utc)
     if issues:
         await db.recipes.update_one({"recipe_id": recipe_id}, {"$set": {
@@ -408,7 +414,7 @@ async def publish_recipe(recipe_id: str, request: Request):
         tags, cuisine = recipe.get("tags", []), recipe.get("cuisine")
     await db.recipes.update_one({"recipe_id": recipe_id}, {"$set": {
         "visibility": "public", "publish_status": "public", "publish_issues": [], "public_since": now,
-        "public_author": author or "CookMe community", "tags": tags, "cuisine": cuisine, "updated_at": now}})
+        "public_author": author or "CookMe community", "share_caption": caption or None, "tags": tags, "cuisine": cuisine, "updated_at": now}})
     return {"status": "public", "issues": []}
 
 

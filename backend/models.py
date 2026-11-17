@@ -28,6 +28,7 @@ class Recipe(BaseModel):
     publish_status: Optional[str] = None  # None, "needs_changes", "public"
     publish_issues: List[dict] = []  # what to fix before it can go public
     public_author: Optional[str] = None  # name shown on a public recipe
+    share_caption: Optional[str] = None  # short note shown with the recipe on the Social page
     likes_count: int = 0
     saves_count: int = 0
     hidden_by: List[str] = []  # List of user_ids who have "deleted" this recipe from their view

@@ -136,3 +136,6 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - **Admin queue** (`/admin`): the reported profile (name, email, recipes, recent comments), the full recipe (photo, ingredients, method) or the comment, every reporter's reason/details. Buttons: Reinstate/Keep it (restores everything), Delete (recipe/comment), Delete & block account (erases the person's content and blocks that email from logging in again).
 - **Email alert**: optional. Set `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD` (+ `SMTP_FROM`, `SMTP_PORT`, `APP_URL`) and each report is emailed to `ADMIN_EMAILS`. Without SMTP the alert is only in the queue and the server log.
 - **Abuse guards**: max 5 reports per user per day, one open report per target, admins can't be reported/locked, and a reporter whose reports are dismissed 3 times can no longer report.
+
+## Share to Social
+- The owner button on a recipe is now **Share to Social** (was "Share publicly"): optional note (max 200 chars, run through the contact-info/profanity filter), consent, our checks, then the recipe appears in **Shared by members** on the Social page with the note. **Remove from Social** takes it back down.

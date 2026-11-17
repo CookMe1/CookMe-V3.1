@@ -31,6 +31,7 @@ const MemberRecipes = () => {
               <div className="p-3">
                 <p className="font-semibold text-zinc-100 text-sm line-clamp-2">{r.title}</p>
                 <p className="text-xs text-zinc-500 mt-1">by {r.public_author || 'CookMe community'}</p>
+                {r.share_caption && <p className="text-xs text-zinc-300 mt-1 line-clamp-2 italic">“{r.share_caption}”</p>}
                 <p className="text-xs text-zinc-500 mt-1 inline-flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {r.comment_count || 0}</p>
               </div>
             </Card>

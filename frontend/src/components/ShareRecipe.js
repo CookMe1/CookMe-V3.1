@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Globe, Lock, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Users, Lock, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -19,6 +20,8 @@ const ShareRecipe = ({ recipe, onChange }) => {
   const [consent, setConsent] = useState(false);
   const [showName, setShowName] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [caption, setCaption] = useState('');
+  const navigate = useNavigate();
   const isPublic = recipe.visibility === 'public';
 
   const load = useCallback(async () => {
@@ -40,12 +43,12 @@ const ShareRecipe = ({ recipe, onChange }) => {
     try {
       const res = await fetch(`${API_URL}/api/recipes/${recipe.recipe_id}/publish`, {
         method: 'POST', headers: authHeaders(),
-        body: JSON.stringify({ consent: true, terms_version: terms.version, show_name: showName }),
+        body: JSON.stringify({ consent: true, terms_version: terms.version, show_name: showName, caption }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Failed');
       if (data.status === 'public') {
-        toast.success('Your recipe is now public. Thank you for sharing!');
+        toast.success('Shared to Social!', { action: { label: 'View', onClick: () => navigate('/social') } });
         setOpen(false); onChange && onChange();
       } else {
         setCheck({ ready: false, issues: data.issues });
@@ -73,15 +76,15 @@ const ShareRecipe = ({ recipe, onChange }) => {
       {isPublic ? (
         <>
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-600/20 text-green-400 text-sm font-medium">
-            <Globe className="w-4 h-4" /> Public
+            <Users className="w-4 h-4" /> Shared on Social
           </span>
           <Button variant="outline" size="sm" onClick={makePrivate} disabled={busy} className="border-zinc-700 text-zinc-300 hover:bg-zinc-800" data-testid="make-private-btn">
-            <Lock className="w-4 h-4 mr-2" /> Make private
+            <Lock className="w-4 h-4 mr-2" /> Remove from Social
           </Button>
         </>
       ) : (
         <Button size="sm" onClick={() => setOpen(true)} className="bg-orange-600 hover:bg-orange-700 text-white" data-testid="share-publicly-btn">
-          <Globe className="w-4 h-4 mr-2" /> Share publicly
+          <Users className="w-4 h-4 mr-2" /> Share to Social
         </Button>
       )}
       {!isPublic && recipe.publish_status === 'needs_changes' && (
@@ -91,9 +94,9 @@ const ShareRecipe = ({ recipe, onChange }) => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Share this recipe publicly</DialogTitle>
+            <DialogTitle>Share to Social</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              We check every recipe before it goes public, so everyone gets a recipe they can cook from.
+              Your recipe will appear on the Social page for other CookMe members. We check every recipe first, so everyone gets one they can cook from.
             </DialogDescription>
           </DialogHeader>
 
@@ -117,6 +120,9 @@ const ShareRecipe = ({ recipe, onChange }) => {
                 </div>
               )}
 
+              <Textarea value={caption} onChange={e => setCaption(e.target.value)} maxLength={200} rows={2}
+                placeholder="Say something about it (optional), e.g. “My nan’s Sunday soup”" className="bg-zinc-950 border-zinc-800" data-testid="share-caption" />
+
               <label className="flex items-start gap-3 text-sm text-zinc-300 cursor-pointer">
                 <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} className="mt-1 accent-orange-500" data-testid="consent-checkbox" />
                 <span>{terms.text}</span>
@@ -127,7 +133,7 @@ const ShareRecipe = ({ recipe, onChange }) => {
               </label>
 
               <Button onClick={publish} disabled={busy || !consent || !check.ready} className="w-full bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-40" data-testid="publish-btn">
-                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Make public'}
+                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Share to Social'}
               </Button>
             </div>
           )}

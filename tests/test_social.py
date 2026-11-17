@@ -97,3 +97,14 @@ def test_export_and_delete_account(env):
     current["u"] = ME
     assert env.get(f"/api/social/recipes/{rid}/comments").json()["count"] == 0   # their comment and the replies under it are gone
     assert env.get(f"/api/recipes/{rid}").status_code == 200                     # other people's data untouched
+
+def test_share_to_social_with_note(env):
+    rid = env.post("/api/recipes", json=good()).json()["recipe_id"]
+    body = {"consent": True, "terms_version": ps.TERMS_VERSION}
+    bad = env.post(f"/api/recipes/{rid}/publish", json={**body, "caption": "call me 07700 900123"}).json()
+    assert bad["status"] == "needs_changes" and any(i["field"] == "caption" for i in bad["issues"])
+    ok = env.post(f"/api/recipes/{rid}/publish", json={**body, "caption": "My nan's Sunday soup"}).json()
+    assert ok["status"] == "public"
+    current["u"] = OTHER
+    feed = env.get("/api/social/feed").json()["recipes"]
+    assert feed[0]["share_caption"] == "My nan's Sunday soup"
