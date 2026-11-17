@@ -140,6 +140,27 @@ async def get_master_recipes(request: Request, search: Optional[str] = None):
     return recipes
 
 # Get user's favorite recipes
+@router.get("/featured")
+async def get_featured_master(request: Request, count: int = 3):
+    """Daily-stable featured recipes from the shared master list (only ones with a real photo)."""
+    import random
+    from datetime import date
+    db = request.app.state.db
+    await get_current_user(request, db)
+    docs = await db.recipes.find(
+        {"user_id": "system_seeder", "image": {"$regex": "^http"}}, {"_id": 0, "recipe_id": 1}
+    ).to_list(5000)
+    ids = sorted(d["recipe_id"] for d in docs)
+    if not ids:
+        return {"recipes": []}
+    picked = random.Random(date.today().isoformat()).sample(ids, min(max(count, 1), 12, len(ids)))
+    out = await db.recipes.find(
+        {"recipe_id": {"$in": picked}},
+        {"_id": 0, "recipe_id": 1, "title": 1, "image": 1, "prep_time": 1, "cook_time": 1, "servings": 1, "difficulty": 1, "description": 1},
+    ).to_list(len(picked))
+    out.sort(key=lambda r: picked.index(r["recipe_id"]))
+    return {"recipes": out}
+
 @router.get("/favorites")
 async def get_favorite_recipes(request: Request):
     db = request.app.state.db

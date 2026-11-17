@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, BookOpen, Package, ShoppingCart, Camera, Upload, X, Check, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -26,6 +26,13 @@ const BottomNavigation = ({ showNav = true }) => {
   const [analysisStatus, setAnalysisStatus] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
   const [validationError, setValidationError] = useState(null);
+
+  // Lets other pages (e.g. Pantry) open the same camera/scan flow
+  useEffect(() => {
+    const open = () => setShowCameraModal(true);
+    window.addEventListener('cookme:open-camera', open);
+    return () => window.removeEventListener('cookme:open-camera', open);
+  }, []);
 
   // Don't show during loading or if not authenticated or explicitly hidden
   if (loading || !isAuthenticated || !showNav) return null;

@@ -88,6 +88,11 @@ const Login = () => {
     },
   ];
 
+  // Only providers listed in REACT_APP_LOGIN_PROVIDERS are shown (default: Google only).
+  // To re-enable others later: REACT_APP_LOGIN_PROVIDERS=google,facebook,apple,twitter,instagram
+  const enabled = (process.env.REACT_APP_LOGIN_PROVIDERS || 'google').split(',').map(x => x.trim());
+  const visibleProviders = providers.filter(p => enabled.includes(p.id));
+
   return (
     <div className="min-h-screen bg-[#09090b] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background */}
@@ -114,7 +119,7 @@ const Login = () => {
 
         {/* Social login buttons */}
         <div className="space-y-3">
-          {providers.map((p) => (
+          {visibleProviders.map((p) => (
             <button
               key={p.id}
               onClick={() => handleLogin(p.id, p.fn)}

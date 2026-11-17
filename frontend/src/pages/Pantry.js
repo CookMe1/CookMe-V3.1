@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, AlertCircle, Package, Sparkles, Search, Minus, Loader2, X, ChevronDown, Globe, Edit3, Check, ChefHat, Clock, Users, Star, ExternalLink, Utensils, ShoppingCart, Mic, MicOff } from 'lucide-react';
+import { Plus, Trash2, AlertCircle, Package, Sparkles, Search, Minus, Loader2, X, ChevronDown, Globe, Edit3, Check, ChefHat, Clock, Users, Star, ExternalLink, Utensils, ShoppingCart, Mic, MicOff, Camera } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -938,6 +938,14 @@ const Pantry = () => {
               My Pantry
             </h1>
             <p className="text-zinc-400 mt-2">Track ingredients • Supports all languages</p>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('cookme:open-camera'))}
+              className="mt-4 inline-flex items-center gap-2 px-4 h-11 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-medium"
+              data-testid="pantry-scan-btn"
+            >
+              <Camera className="w-4 h-4" /> Scan ingredients
+            </button>
           </div>
         </div>
       </div>

@@ -28,8 +28,8 @@ const QuickRecipes = () => {
           })
         ]);
         const communityData = communityRes.ok ? await communityRes.json() : { recipes: [] };
-        const userData = userRes.ok ? await userRes.json() : { recipes: [] };
-        const userQuick = (userData.recipes || []).filter(r =>
+        const userData = userRes.ok ? await userRes.json() : [];
+        const userQuick = (Array.isArray(userData) ? userData : (userData.recipes || [])).filter(r =>
           r.category === 'quick' ||
           r.tags?.some(t => ['quick','fast','easy','30 min','15 min','20 min'].includes(t.toLowerCase())) ||
           (r.prep_time && parseInt(r.prep_time) <= 30 && parseInt(r.prep_time) > 0)

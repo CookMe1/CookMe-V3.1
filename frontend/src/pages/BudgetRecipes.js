@@ -32,10 +32,10 @@ const BudgetRecipes = () => {
         ]);
 
         const communityData = communityRes.ok ? await communityRes.json() : { recipes: [] };
-        const userData = userRes.ok ? await userRes.json() : { recipes: [] };
+        const userData = userRes.ok ? await userRes.json() : [];
 
         // Combine: user's budget recipes first, then community
-        const userBudget = (userData.recipes || []).filter(r =>
+        const userBudget = (Array.isArray(userData) ? userData : (userData.recipes || [])).filter(r =>
           r.category === 'budget' || r.tags?.some(t => t.toLowerCase().includes('budget') || t.toLowerCase().includes('cheap'))
         );
         const combined = [...userBudget, ...(communityData.recipes || [])];

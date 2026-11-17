@@ -28,8 +28,8 @@ const InstapotRecipes = () => {
           })
         ]);
         const communityData = communityRes.ok ? await communityRes.json() : { recipes: [] };
-        const userData = userRes.ok ? await userRes.json() : { recipes: [] };
-        const userInstapot = (userData.recipes || []).filter(r =>
+        const userData = userRes.ok ? await userRes.json() : [];
+        const userInstapot = (Array.isArray(userData) ? userData : (userData.recipes || [])).filter(r =>
           r.category === 'instapot' ||
           r.tags?.some(t => ['instant pot','instapot','one pot','pressure cooker','slow cooker','crockpot'].includes(t.toLowerCase()))
         );

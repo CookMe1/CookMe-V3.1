@@ -32,3 +32,13 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - `scripts/build_master_recipes.py`: how the file was built from the export (not needed to run the app).
 - New endpoint `GET /api/recipes/type/{quick|student|budget|instapot|airfryer}`; Quick, Student, Budget and One-pot pages now use it.
 - Master file also keeps the user-imported recipes (ownership and all user fields removed); embedded photos are kept.
+
+## Fixes round 2
+- Featured Today now uses real master recipes (new `GET /api/recipes/featured`, stable per day) and opens the recipe; removed the made-up sample list.
+- Dashboard: removed duplicate logo and "New Recipe" button; category cards link to the real pages (no fake counts); added Air Fryer page.
+- Fixed type pages and dashboard reading the wrong shape from `/api/recipes` (it returns a list).
+- Pantry: "Scan ingredients" button (same camera flow as the mobile bar).
+- Login shows Google only by default; set `REACT_APP_LOGIN_PROVIDERS=google,facebook,apple,twitter,instagram` to bring the others back.
+- Removed tests that called login routes that don't exist; added offline `tests/test_master_recipes.py`.
+- Clean `.gitignore` (blocks .env and export files).
+- Remaining build warnings are harmless "missing dependency" hints in effects.

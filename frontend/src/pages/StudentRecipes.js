@@ -30,8 +30,8 @@ const StudentRecipes = () => {
           })
         ]);
         const communityData = communityRes.ok ? await communityRes.json() : { recipes: [] };
-        const userData = userRes.ok ? await userRes.json() : { recipes: [] };
-        const userStudent = (userData.recipes || []).filter(r =>
+        const userData = userRes.ok ? await userRes.json() : [];
+        const userStudent = (Array.isArray(userData) ? userData : (userData.recipes || [])).filter(r =>
           r.category === 'student' ||
           r.tags?.some(t => ['student','easy','beginner','simple','budget'].includes(t.toLowerCase()))
         );

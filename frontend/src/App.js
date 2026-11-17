@@ -25,6 +25,7 @@ import Social from './pages/Social';
 import Profile from './pages/Profile';
 import BudgetRecipes from './pages/BudgetRecipes';
 import StudentRecipes from './pages/StudentRecipes';
+import AirFryerRecipes from './pages/AirFryerRecipes';
 import InstapotRecipes from './pages/InstapotRecipes';
 import QuickRecipes from './pages/QuickRecipes';
 import Cookbooks from './pages/Cookbooks';
@@ -201,6 +202,14 @@ function AppRouter() {
         <ProtectedRoute>
           <Navigation />
           <InstapotRecipes />
+          <BottomNavigation />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/airfryer" element={
+        <ProtectedRoute>
+          <Navigation />
+          <AirFryerRecipes />
           <BottomNavigation />
         </ProtectedRoute>
       } />
