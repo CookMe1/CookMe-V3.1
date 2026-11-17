@@ -14,11 +14,13 @@ def admin_emails() -> list:
     return [e.strip().lower() for e in os.environ.get("ADMIN_EMAILS", "").split(",") if e.strip()]
 
 
-def _send(subject: str, body: str):
+def _send(subject: str, body: str, raise_errors: bool = False):
     host = os.environ.get("SMTP_HOST")
     to = admin_emails()
     if not host or not to:
         log.info("ADMIN ALERT (no SMTP configured): %s\n%s", subject, body)
+        if raise_errors:
+            raise RuntimeError("Email isn't set up: SMTP_HOST or ADMIN_EMAILS is missing")
         return
     msg = EmailMessage()
     msg["Subject"], msg["To"] = subject, ", ".join(to)
@@ -32,6 +34,8 @@ def _send(subject: str, body: str):
             s.send_message(msg)
     except Exception as e:  # never let an email problem break a report
         log.warning("Could not send admin alert: %s", e)
+        if raise_errors:
+            raise
 
 
 async def alert_admin(subject: str, body: str):
@@ -39,3 +43,7 @@ async def alert_admin(subject: str, body: str):
     if link:
         body += f"\n\nReview it here: {link}/admin"
     await run_in_threadpool(_send, subject, body)
+
+
+async def send_test():
+    await run_in_threadpool(_send, "CookMe test email", "If you can read this, report alerts will reach you.", True)

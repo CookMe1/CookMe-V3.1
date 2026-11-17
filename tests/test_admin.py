@@ -131,3 +131,10 @@ def test_real_auth_check_blocks_locked_accounts():
         return out
     r = anyio.run(run)
     assert r["blocked"] == (403, {"code": "account_under_review"}) and r["me"] == "under_review"
+
+def test_test_email_reports_missing_setup(env, monkeypatch):
+    monkeypatch.delenv("SMTP_HOST", raising=False)
+    as_(BOSS)
+    r = env.post("/api/admin/test-email").json()
+    assert r["sent"] is False and "SMTP_HOST" in r["error"]
+    as_(ME); assert env.post("/api/admin/test-email").status_code == 403

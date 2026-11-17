@@ -67,6 +67,15 @@ const Admin = () => {
   if (authLoading) return null;
   if (!user?.is_admin) return <Navigate to="/dashboard" replace />;
 
+  const sendTest = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/test-email`, { method: 'POST', headers: headers() });
+      const body = await res.json();
+      if (body.sent) toast.success('Test email sent. Check your inbox (and spam).');
+      else toast.error(`Email failed: ${body.error || 'unknown error'}`);
+    } catch (e) { toast.error('Could not reach the server.'); }
+  };
+
   const act = async (item, action, confirmText) => {
     if (confirmText && !window.confirm(confirmText)) return;
     setBusy(item.target_id + action);
@@ -82,7 +91,8 @@ const Admin = () => {
       <div className="max-w-3xl mx-auto px-4 pt-20">
         <Link to="/profile" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 mb-4"><ArrowLeft className="w-4 h-4" /> Back</Link>
         <h1 className="font-display text-3xl font-bold flex items-center gap-2 mb-1"><ShieldCheck className="w-7 h-7 text-orange-500" /> Review queue</h1>
-        <p className="text-zinc-500 text-sm mb-6">Reported accounts are locked and reported recipes are taken down until you decide.</p>
+        <p className="text-zinc-500 text-sm mb-2">Reported accounts are locked and reported recipes are taken down until you decide.</p>
+        <button onClick={sendTest} className="text-xs text-orange-400 underline mb-6" data-testid="test-email-btn">Send me a test email</button>
 
         {!data ? <Loader2 className="w-6 h-6 animate-spin text-zinc-500" /> : data.items.length === 0 ? (
           <p className="text-zinc-400" data-testid="admin-empty">Nothing to review. 🎉</p>

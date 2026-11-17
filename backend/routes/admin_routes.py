@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 import account_ops
+import notify
 from auth import require_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -130,3 +131,14 @@ async def resolve(data: Resolve, request: Request):
                 await account_ops.ban_user(db, c["user_id"])
                 await _close_reports(db, "user", c["user_id"], "upheld")
     return {"message": "Done"}
+
+
+@router.post("/test-email")
+async def test_email(request: Request):
+    db = request.app.state.db
+    await require_admin(request, db)
+    try:
+        await notify.send_test()
+    except Exception as e:
+        return {"sent": False, "error": str(e)[:300]}
+    return {"sent": True}
