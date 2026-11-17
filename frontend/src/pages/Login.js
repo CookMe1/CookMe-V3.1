@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { AUTH0_ENABLED, startAuth0Login } from '../components/Auth0Bridge';
 
 const Login = () => {
   const {
@@ -86,11 +87,22 @@ const Login = () => {
       bg: 'bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F77737] hover:opacity-90',
       text: 'text-white',
     },
+    ...(AUTH0_ENABLED ? [{
+      id: 'email',
+      label: 'Continue with email',
+      fn: startAuth0Login,
+      icon: (
+        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" />
+        </svg>
+      ),
+      bg: 'bg-orange-500 hover:bg-orange-600',
+      text: 'text-white',
+    }] : []),
   ];
-
   // Only providers listed in REACT_APP_LOGIN_PROVIDERS are shown (default: Google only).
   // To re-enable others later: REACT_APP_LOGIN_PROVIDERS=google,facebook,apple,twitter,instagram
-  const enabled = (process.env.REACT_APP_LOGIN_PROVIDERS || 'google').split(',').map(x => x.trim());
+  const enabled = (process.env.REACT_APP_LOGIN_PROVIDERS || 'google').split(',').map(x => x.trim()).concat(AUTH0_ENABLED ? ['email'] : []);
   const visibleProviders = providers.filter(p => enabled.includes(p.id));
 
   return (

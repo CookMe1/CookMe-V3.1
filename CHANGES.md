@@ -72,3 +72,11 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - `scripts/check_images.py` now flags missing, dead, tiny, stock and repeated images (`--fix` blanks them).
 - `scripts/fill_images.py` fills blanks from Pexels (free key) and optionally AI (`--ai`, on Emergent). Run both on a machine with internet, then commit `frontend/public/recipe-images/` + the JSON.
 - Meal plans: dinners need 6+ ingredients (or a main-course tag); sides, dips and snacks (e.g. Padron peppers) are excluded.
+
+## Email login (Auth0)
+- Login page gets a "Continue with email" button when these are set (otherwise it stays hidden and nothing changes):
+  - Frontend env: `REACT_APP_AUTH0_DOMAIN`, `REACT_APP_AUTH0_CLIENT_ID`
+  - Backend env: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`
+- Flow: Auth0's own page handles sign-up/password/reset. CookMe receives a signed ID token, `POST /api/auth/auth0/callback` checks signature, issuer, audience and expiry, then logs the person in like Google does. No passwords stored by CookMe.
+- Unverified emails are refused, so nobody can take over an existing account by signing up with someone else's address.
+- New dependency: `@auth0/auth0-react` (run `yarn install` after pulling). Tests: `tests/test_auth0.py`.

@@ -8,6 +8,8 @@ import { Toaster } from './components/ui/sonner';
 import Navigation from './components/Navigation';
 import BottomNavigation from './components/BottomNavigation';
 // eslint-disable-next-line no-unused-vars
+import Auth0Bridge from './components/Auth0Bridge';
+// eslint-disable-next-line no-unused-vars
 import AdBanner from './components/AdBanner';
 import ProtectedRoute from './components/ProtectedRoute';
 import LanguagePicker from './components/LanguagePicker';
@@ -254,6 +256,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Auth0Bridge>
         <LanguageProvider>
           <AppProvider>
             <div className="App min-h-screen bg-[#09090b]">
@@ -264,6 +267,7 @@ function App() {
             </div>
           </AppProvider>
         </LanguageProvider>
+        </Auth0Bridge>
       </AuthProvider>
     </BrowserRouter>
   );

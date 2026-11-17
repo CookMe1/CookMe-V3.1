@@ -16,6 +16,10 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from datetime import datetime, timedelta, timezone
 import httpx
 import logging
+import os
+import jwt
+from jwt import PyJWKClient
+from starlette.concurrency import run_in_threadpool
 
 from auth import create_access_token, get_current_user, generate_user_id
 
@@ -126,6 +130,58 @@ async def google_callback(request: Request, response: Response):
     )
     user_response["access_token"] = access_token
     return user_response
+
+
+# ── Email / password and more (via Auth0) ─────────────────────────────────────
+# Needs two env vars on the server: AUTH0_DOMAIN (e.g. dev-abc123.eu.auth0.com) and AUTH0_CLIENT_ID.
+# The browser logs in on Auth0's own page and sends us the signed ID token; we verify it here.
+# No passwords ever touch CookMe.
+
+_auth0_jwks = {}
+
+
+def _auth0_settings():
+    domain = (os.environ.get("AUTH0_DOMAIN") or "").strip().replace("https://", "").strip("/")
+    client_id = (os.environ.get("AUTH0_CLIENT_ID") or "").strip()
+    return domain, client_id
+
+
+def verify_auth0_id_token(token: str) -> dict:
+    """Check the signature, issuer, audience and expiry of an Auth0 ID token. Returns its claims."""
+    domain, client_id = _auth0_settings()
+    if not domain or not client_id:
+        raise HTTPException(status_code=503, detail="Email login is not set up yet")
+    jwks = _auth0_jwks.setdefault(domain, PyJWKClient(f"https://{domain}/.well-known/jwks.json"))
+    try:
+        key = jwks.get_signing_key_from_jwt(token).key
+        return jwt.decode(token, key, algorithms=["RS256"], audience=client_id, issuer=f"https://{domain}/")
+    except Exception as e:
+        logger.warning(f"Auth0 token rejected: {e}")
+        raise HTTPException(status_code=401, detail="Invalid login token")
+
+
+@router.post("/auth0/callback")
+async def auth0_callback(request: Request, response: Response):
+    db = request.app.state.db
+    body = await request.json()
+    id_token = body.get("id_token")
+    if not id_token:
+        raise HTTPException(status_code=400, detail="ID token required")
+
+    claims = await run_in_threadpool(verify_auth0_id_token, id_token)
+    email = (claims.get("email") or "").lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="No email on this account")
+    # Never link an unverified email to an existing CookMe account (stops account takeover).
+    if not claims.get("email_verified"):
+        raise HTTPException(status_code=403, detail="Please verify your email first (check your inbox), then log in again")
+
+    user_doc = await _upsert_oauth_user(db, email, claims.get("name"), claims.get("picture"), "auth0")
+    access_token = create_access_token(data={"sub": user_doc["user_id"]})
+    user_response = await db.users.find_one({"user_id": user_doc["user_id"]}, {"_id": 0})
+    user_response["access_token"] = access_token
+    return user_response
+
 
 
 # ── Facebook / Instagram OAuth ────────────────────────────────────────────────
