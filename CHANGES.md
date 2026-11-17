@@ -85,3 +85,9 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - `backend/recipe_cleaner.py` + `scripts/clean_recipes.py`: drops label steps ("step 1", "2", "▢"), strips step numbers, splits one-paragraph methods into readable steps, fixes amounts ("1.0 cup" -> "1 cup", "White"+"Rice" -> "White Rice").
 - Applied to `data/master_recipes.json`: 990 recipes tidied, 23 too thin to cook from moved to `data/master_recipes_rejected.json` (1,180 kept).
 - `scripts/load_master_recipes.py --apply --prune` also removes master recipes that are no longer in the file (never touches user recipes).
+
+## Checkup fixes
+- Pantry suggestions now rank by how many of your pantry items a recipe uses (and need 2+ when you have 2+), with synonyms ("pasta" covers spaghetti/penne, "cheese" covers cheddar/feta, etc.). Before, a 1-item omelette could outrank chicken-and-rice dishes.
+- Meal plans: fixed doubled-backslash typos that stopped the "not a meal" filter matching chips/nuts/ideas; desserts such as "Rocky Road Dessert Bars" and caramels no longer count as dinner.
+- Recipe photos: removed 6 unused files, recompressed the largest (max 182 KB).
+- New tests: `tests/test_regressions.py`.

@@ -126,6 +126,39 @@ def _tokens(name: str) -> frozenset:
     return frozenset(w.rstrip("s") if len(w) > 3 else w for w in words if w not in _NOISE)
 
 
+# A general pantry word also covers its common specific forms in recipes.
+_GROUPS = {
+    "pasta": ["spaghetti", "penne", "fusilli", "linguine", "fettuccine", "tagliatelle", "macaroni", "rigatoni", "lasagne", "lasagna", "farfalle", "orzo"],
+    "rice": ["basmati", "jasmine", "arborio", "risotto"],
+    "cheese": ["cheddar", "mozzarella", "parmesan", "feta", "halloumi", "gruyere", "ricotta", "mascarpone", "pecorino", "gouda", "brie", "parmigiano"],
+    "mince": ["ground beef", "ground pork", "ground lamb", "ground turkey"],
+    "beef": ["steak", "brisket", "sirloin", "ribeye"],
+    "chicken": ["drumstick", "thigh", "wing"],
+    "bread": ["baguette", "ciabatta", "sourdough", "bun", "roll", "pitta", "pita"],
+    "beans": ["chickpea", "kidney bean", "black bean", "cannellini", "lentil", "haricot", "butter bean"],
+    "pepper": ["bell pepper", "capsicum"],
+    "tomato": ["passata", "tomatoes"],
+    "potato": ["potatoes", "new potato"],
+    "milk": ["cream", "buttermilk"],
+    "egg": ["eggs"],
+}
+
+
+def _pantry_groups(pantry_names):
+    """One group per pantry item: its own words plus any specific forms it stands for."""
+    groups = []
+    for n in pantry_names:
+        base = _tokens(n)
+        if not base:
+            continue
+        g = [base]
+        for word, alts in _GROUPS.items():
+            if word in {w.rstrip("s") for w in base} or word in base:
+                g += [t for t in (_tokens(a) for a in alts) if t]
+        groups.append(g)
+    return groups
+
+
 def _score_master(recipe_ings, pantry_token_sets, match_type, extra):
     """Word-level match: pantry 'chicken' covers 'chicken breast'; salt/water/oil count as always on hand."""
     names = []
@@ -134,15 +167,18 @@ def _score_master(recipe_ings, pantry_token_sets, match_type, extra):
         if n and n.strip():
             names.append(n.strip())
     if not names:
-        return False, 0, 0, 0
+        return False, 0, 0, 0, 0
     matched = 0
+    used = set()   # which of the person's pantry items this recipe actually uses
     for n in names:
         if n.lower() in _STAPLES:
             matched += 1
             continue
         t = _tokens(n)
-        if t and any(p and (p <= t or t <= p) for p in pantry_token_sets):
+        hit = [i for i, grp in enumerate(pantry_token_sets) if t and any(p <= t or t <= p for p in grp)]
+        if hit:
             matched += 1
+            used.update(hit)
     total = len(names)
     missing = total - matched
     pct = round(matched / total * 100)
@@ -153,7 +189,9 @@ def _score_master(recipe_ings, pantry_token_sets, match_type, extra):
     else:
         ok = pct >= 30
     real = matched - sum(1 for n in names if n.lower() in _STAPLES)
-    return (ok and real > 0), pct, matched, missing
+    # with 2+ pantry items, a recipe has to use at least 2 of them (a 1-item omelette is not a "match" for chicken+rice+onion)
+    enough = len(used) >= min(2, len(pantry_token_sets))
+    return (ok and real > 0 and enough), pct, matched, missing, len(used)
 
 # ── Suggest meal ──────────────────────────────────────────────────────────────
 
@@ -229,13 +267,13 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
     # 1b. Shared master recipes — pure Python, free
     master_matches = []
     try:
-        pantry_token_sets = [t for t in (_tokens(n) for n in pantry_lookup) if t]
+        pantry_token_sets = _pantry_groups(pantry_lookup)
         async for recipe in db.recipes.find(
             {"user_id": "system_seeder"},
             {"_id": 0, "recipe_id": 1, "title": 1, "description": 1, "image": 1, "prep_time": 1, "cook_time": 1,
              "difficulty": 1, "servings": 1, "ingredients": 1, "tags": 1},
         ):
-            ok, pct, matched, missing = _score_master(recipe.get("ingredients", []), pantry_token_sets, mt, extra)
+            ok, pct, matched, missing, used = _score_master(recipe.get("ingredients", []), pantry_token_sets, mt, extra)
             if ok:
                 master_matches.append({
                     "recipe_id": recipe["recipe_id"],
@@ -251,10 +289,11 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
                     "total_ingredients": matched + missing,
                     "missing_ingredients": missing,
                     "source": "master",
+                    "pantry_items_used": used,
                     "ingredients": recipe.get("ingredients", []),
                     "tags": recipe.get("tags", []),
                 })
-        master_matches.sort(key=lambda x: (-x["match_percentage"], x["missing_ingredients"]))
+        master_matches.sort(key=lambda x: (-x["pantry_items_used"], -x["match_percentage"], x["missing_ingredients"]))
         master_matches = master_matches[:8]
     except Exception as e:
         logger.info(f"Master recipe search error: {e}")
