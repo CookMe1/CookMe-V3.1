@@ -113,6 +113,48 @@ def _score(recipe_ing_names, pantry_names, match_type, extra):
     return (ok and len(matched) > 0), pct, len(matched), missing
 
 
+
+# ── Fuzzy matching for the shared master recipes ──────────────
+_STAPLES = {"salt", "water", "pepper", "black pepper", "oil", "olive oil", "vegetable oil", "cooking oil", "ice"}
+_NOISE = {"fresh", "chopped", "large", "small", "medium", "ground", "dried", "finely", "sliced", "diced", "minced",
+          "boneless", "skinless", "whole", "frozen", "canned", "to", "taste", "of", "and", "or", "the", "a", "cut", "into",
+          "pieces", "plus", "extra", "for", "serving", "optional", "cup", "cups", "tbsp", "tsp", "g", "kg", "ml"}
+
+
+def _tokens(name: str) -> frozenset:
+    words = re.findall(r"[a-z]+", normalise_ingredient(name.lower()))
+    return frozenset(w.rstrip("s") if len(w) > 3 else w for w in words if w not in _NOISE)
+
+
+def _score_master(recipe_ings, pantry_token_sets, match_type, extra):
+    """Word-level match: pantry 'chicken' covers 'chicken breast'; salt/water/oil count as always on hand."""
+    names = []
+    for ing in recipe_ings:
+        n = ing.get("item", ing.get("name", "")) if isinstance(ing, dict) else str(ing)
+        if n and n.strip():
+            names.append(n.strip())
+    if not names:
+        return False, 0, 0, 0
+    matched = 0
+    for n in names:
+        if n.lower() in _STAPLES:
+            matched += 1
+            continue
+        t = _tokens(n)
+        if t and any(p and (p <= t or t <= p) for p in pantry_token_sets):
+            matched += 1
+    total = len(names)
+    missing = total - matched
+    pct = round(matched / total * 100)
+    if match_type == "all":
+        ok = missing <= extra
+    elif match_type == "most":
+        ok = pct >= 70 or missing <= extra
+    else:
+        ok = pct >= 30
+    real = matched - sum(1 for n in names if n.lower() in _STAPLES)
+    return (ok and real > 0), pct, matched, missing
+
 # ── Suggest meal ──────────────────────────────────────────────────────────────
 
 @router.post("/suggest-meal")
@@ -120,8 +162,9 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
     """
     Priority order (cheapest first):
       1. User's saved recipes  — pure Python, always free
+      1b. Shared master recipes — pure Python, always free
       2. Community recipe DB   — MongoDB query, always free
-      3. AI generation         — only when DB has < 3 matches, cached 1 hour
+      3. AI generation         — only when there are < 3 matches in total, cached 1 hour
     """
     db = request.app.state.db
     user = await get_current_user(request, db)
@@ -182,6 +225,39 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
             })
     matched_saved.sort(key=lambda x: x["match_percentage"], reverse=True)
 
+    # 1b. Shared master recipes — pure Python, free
+    master_matches = []
+    try:
+        pantry_token_sets = [t for t in (_tokens(n) for n in pantry_lookup) if t]
+        async for recipe in db.recipes.find(
+            {"user_id": "system_seeder"},
+            {"_id": 0, "recipe_id": 1, "title": 1, "description": 1, "image": 1, "prep_time": 1, "cook_time": 1,
+             "difficulty": 1, "servings": 1, "ingredients": 1, "tags": 1},
+        ):
+            ok, pct, matched, missing = _score_master(recipe.get("ingredients", []), pantry_token_sets, mt, extra)
+            if ok:
+                master_matches.append({
+                    "recipe_id": recipe["recipe_id"],
+                    "title": recipe.get("title"),
+                    "description": recipe.get("description", ""),
+                    "image": recipe.get("image") or "",
+                    "prep_time": recipe.get("prep_time", ""),
+                    "cook_time": recipe.get("cook_time", ""),
+                    "difficulty": recipe.get("difficulty", "Medium"),
+                    "servings": recipe.get("servings", 4),
+                    "match_percentage": pct,
+                    "matched_ingredients": matched,
+                    "total_ingredients": matched + missing,
+                    "missing_ingredients": missing,
+                    "source": "master",
+                    "ingredients": recipe.get("ingredients", []),
+                    "tags": recipe.get("tags", []),
+                })
+        master_matches.sort(key=lambda x: (-x["match_percentage"], x["missing_ingredients"]))
+        master_matches = master_matches[:8]
+    except Exception as e:
+        logger.info(f"Master recipe search error: {e}")
+
     # 2. Community recipe DB
     community_matches = []
     try:
@@ -221,7 +297,7 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
 
     # 3. AI — only if not enough DB results
     ai_suggestions = []
-    if (len(matched_saved) + len(community_matches)) < 3:
+    if (len(matched_saved) + len(master_matches) + len(community_matches)) < 3:
         fingerprint = hashlib.sha256(
             ("|".join(sorted(pantry_names)) + f"|{mt}|{extra}").encode()
         ).hexdigest()[:24]
@@ -301,7 +377,7 @@ Make the recipes practical and delicious. Include clear, actionable steps."""
 
     return {
         "pantry_items": pantry_names,
-        "saved_recipe_matches": matched_saved[:5],
+        "saved_recipe_matches": matched_saved[:5] + master_matches,
         "community_recipe_matches": community_matches,
         "ai_suggestions": ai_suggestions,
         "match_criteria": {"type": mt, "extra_ingredients_allowed": extra},

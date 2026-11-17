@@ -230,6 +230,16 @@ const Dashboard = () => {
           </section>
         )}
 
+        {!loadingRecipes && featured.length === 0 && recentRecipes.length === 0 && (
+          <section className="py-12 text-center" data-testid="dashboard-empty">
+            <p className="text-zinc-300 font-medium">No recipes yet</p>
+            <p className="text-zinc-500 text-sm mt-1">Add your first recipe or browse a category below.</p>
+            <Link to="/add-recipe" className="inline-block mt-4 px-5 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium">
+              Add a recipe
+            </Link>
+          </section>
+        )}
+
         {/* Categories Section */}
         <section className="py-12 border-t border-zinc-800/50">
           <h2 className="font-display text-2xl md:text-3xl font-semibold text-zinc-100 mb-8">

@@ -939,6 +939,9 @@ If already in English, provide common variations and spellings."""
 async def generate_recipe_image(request: Request):
     db = request.app.state.db
     await get_current_user(request, db)
+    # AI image generation costs credits per image; off unless ENABLE_AI_IMAGES=1 is set.
+    if os.environ.get("ENABLE_AI_IMAGES") != "1":
+        return {"success": False, "image": None, "disabled": True}
     
     body = await request.json()
     title = body.get("title", "")

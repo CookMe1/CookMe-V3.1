@@ -186,30 +186,7 @@ const BottomNavigation = ({ showNav = true }) => {
             if (data.is_food_photo || data.uploaded_image) {
               recipeImage = data.uploaded_image || compressedImage;
             } else {
-              // It's a recipe card/text - generate an AI image
-              setAnalysisStatus('Generating recipe image...');
-              try {
-                const imgResponse = await fetch(`${API_URL}/api/recipes/generate-image`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                  },
-                  body: JSON.stringify({ 
-                    title: data.title, 
-                    description: data.description 
-                  })
-                });
-                
-                if (imgResponse.ok) {
-                  const imgData = await imgResponse.json();
-                  if (imgData.success && imgData.image) {
-                    recipeImage = imgData.image;
-                  }
-                }
-              } catch (imgErr) {
-                console.log('AI image generation failed');
-              }
+              // Recipe card/text photo: no AI image (saves credits); the recipe shows the placeholder image
             }
             
             setAnalysisStatus('Saving recipe...');

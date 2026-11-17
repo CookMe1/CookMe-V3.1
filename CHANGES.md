@@ -42,3 +42,9 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Removed tests that called login routes that don't exist; added offline `tests/test_master_recipes.py`.
 - Clean `.gitignore` (blocks .env and export files).
 - Remaining build warnings are harmless "missing dependency" hints in effects.
+
+## Fewer AI calls
+- Pantry "suggest a meal" now matches against the shared master recipes first (word-level match, salt/oil/water treated as on hand); AI only runs if fewer than 3 matches in total.
+- Aisle lookup table expanded to ~400 names (whole-word matching) - covers ~93% of master-recipe ingredients without AI.
+- AI image generation is off unless `ENABLE_AI_IMAGES=1`; scanned recipe cards no longer trigger it.
+- Dashboard empty state.
