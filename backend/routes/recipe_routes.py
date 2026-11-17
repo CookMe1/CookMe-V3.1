@@ -5,8 +5,9 @@ from fastapi import APIRouter, HTTPException, Request
 from datetime import datetime, timezone
 from typing import List, Optional
 import uuid
-from models import Recipe, RecipeCreate, RecipeExtractRequest
+from models import Recipe, RecipeCreate, RecipeExtractRequest, RecipeUpdate
 from auth import get_current_user
+import public_sharing as ps
 import os
 from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
 from cache import get_cache, set_cache, nutrition_key, url_import_key, youtube_key, recipe_fingerprint, TTL_NUTRITION, TTL_URL_IMPORT, TTL_YOUTUBE
@@ -85,7 +86,7 @@ async def get_recipes(
     for recipe in recipes:
         recipe["is_favorited"] = user["user_id"] in recipe.get("favorited_by", [])
     
-    return recipes
+    return [ps.mask_owner(r, user["user_id"]) for r in recipes]
 
 # Get master list of all recipes (includes hidden ones)
 @router.get("/master/all")
@@ -93,13 +94,14 @@ async def get_master_recipes(request: Request, search: Optional[str] = None):
     db = request.app.state.db
     user = await get_current_user(request, db)
     
-    query = {}
+    # Shared recipes plus this person's own. Never other people's private recipes.
+    query = {"$or": [*ps.SHARED["$or"], {"user_id": user["user_id"]}]}
     if search:
-        query["$or"] = [
+        query = {"$and": [query, {"$or": [
             {"title": {"$regex": search, "$options": "i"}},
             {"description": {"$regex": search, "$options": "i"}},
             {"tags": {"$regex": search, "$options": "i"}}
-        ]
+        ]}]}
     
     # Use projection for faster loading
     projection = {
@@ -158,7 +160,7 @@ async def search_recipes(
     db = request.app.state.db
     user = await get_current_user(request, db)
     limit = min(max(limit, 1), 60)
-    and_q = [{"$or": [{"user_id": "system_seeder"}, {"user_id": user["user_id"], "hidden_by": {"$ne": user["user_id"]}}]}]
+    and_q = [ps.shared_or_own(user["user_id"])]
     for word in (q or "").split()[:6]:
         w = _re.escape(word)
         and_q.append({"$or": [{"title": {"$regex": w, "$options": "i"}},
@@ -177,7 +179,7 @@ async def search_recipes(
             "difficulty": 1, "servings": 1, "tags": 1, "cuisine": 1, "user_id": 1}
     total = await db.recipes.count_documents(query)
     recipes = await db.recipes.find(query, proj).sort("title", 1).skip(skip).limit(limit).to_list(limit)
-    return {"recipes": recipes, "total": total, "has_more": skip + limit < total}
+    return {"recipes": [ps.mask_owner(r, user["user_id"]) for r in recipes], "total": total, "has_more": skip + limit < total}
 
 
 @router.get("/stats")
@@ -185,7 +187,7 @@ async def recipe_stats(request: Request):
     """Totals for the counters in the app: the shared collection, plus this person's own recipes."""
     db = request.app.state.db
     user = await get_current_user(request, db)
-    total = await db.recipes.count_documents({"user_id": "system_seeder"})
+    total = await db.recipes.count_documents(ps.SHARED)
     mine = await db.recipes.count_documents({"user_id": user["user_id"]})
     return {"total": total, "mine": mine}
 
@@ -199,8 +201,7 @@ async def get_featured_master(request: Request, count: int = 3):
     db = request.app.state.db
     user = await get_current_user(request, db)
     docs = await db.recipes.find(
-        {"user_id": {"$in": ["system_seeder", user["user_id"]]}, "hidden_by": {"$ne": user["user_id"]},
-         "image": {"$regex": "^(http|/recipe-images/|data:image/)"}},
+        {"$and": [ps.shared_or_own(user["user_id"]), {"image": {"$regex": "^(http|/recipe-images/|data:image/)"}}]},
         {"_id": 0, "recipe_id": 1},
     ).to_list(10000)
     ids = sorted(d["recipe_id"] for d in docs)
@@ -320,13 +321,105 @@ async def get_gallery_images(recipe_id: str, request: Request):
 @router.get("/{recipe_id}", response_model=Recipe)
 async def get_recipe(recipe_id: str, request: Request):
     db = request.app.state.db
-    await get_current_user(request, db)
+    user = await get_current_user(request, db)
     
     recipe = await db.recipes.find_one({"recipe_id": recipe_id}, {"_id": 0})
-    if not recipe:
+    # Private recipes can only be opened by their owner
+    if not recipe or not (recipe.get("user_id") in ("system_seeder", user["user_id"]) or recipe.get("visibility") == "public"):
         raise HTTPException(status_code=404, detail="Recipe not found")
     
+    return ps.mask_owner(recipe, user["user_id"])
+
+
+# ── Edit your own recipe ──────────────────────────────────────────────────────
+
+async def _own_recipe(db, user, recipe_id):
+    recipe = await db.recipes.find_one({"recipe_id": recipe_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
     return recipe
+
+
+@router.put("/{recipe_id}", response_model=Recipe)
+async def update_recipe(recipe_id: str, changes: RecipeUpdate, request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    recipe = await _own_recipe(db, user, recipe_id)
+    fields = {k: v for k, v in changes.dict().items() if v is not None}
+    if not fields:
+        return recipe
+    fields["updated_at"] = datetime.now(timezone.utc)
+    recipe.update(fields)
+    # Editing a public recipe puts it back through the checks; if it no longer passes it goes back to private
+    if recipe.get("visibility") == "public":
+        issues = await ps.full_check(db, recipe)
+        if issues:
+            fields.update({"visibility": "private", "publish_status": "needs_changes", "publish_issues": issues})
+            recipe.update(fields)
+    await db.recipes.update_one({"recipe_id": recipe_id}, {"$set": fields})
+    return recipe
+
+
+# ── Making a recipe public ────────────────────────────────────────────────────
+
+@router.get("/terms/public-sharing")
+async def public_sharing_terms(request: Request):
+    await get_current_user(request, request.app.state.db)
+    return {"version": ps.TERMS_VERSION, "text": ps.CONSENT_TEXT}
+
+
+@router.get("/{recipe_id}/publish-check")
+async def publish_check(recipe_id: str, request: Request):
+    """What still needs fixing before this recipe can go public (nothing is changed)."""
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    recipe = await _own_recipe(db, user, recipe_id)
+    issues = await ps.full_check(db, recipe)
+    return {"ready": not issues, "issues": issues, "visibility": recipe.get("visibility") or "private",
+            "publish_status": recipe.get("publish_status")}
+
+
+@router.post("/{recipe_id}/publish")
+async def publish_recipe(recipe_id: str, request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    body = await request.json()
+    recipe = await _own_recipe(db, user, recipe_id)
+    if body.get("consent") is not True or body.get("terms_version") != ps.TERMS_VERSION:
+        raise HTTPException(status_code=400, detail="You need to agree to the sharing terms to make a recipe public")
+    issues = await ps.full_check(db, recipe)
+    now = datetime.now(timezone.utc)
+    if issues:
+        await db.recipes.update_one({"recipe_id": recipe_id}, {"$set": {
+            "visibility": "private", "publish_status": "needs_changes", "publish_issues": issues, "updated_at": now}})
+        return {"status": "needs_changes", "issues": issues}
+    # Passed: keep the proof of consent, then publish
+    await db.recipe_consents.insert_one({
+        "user_id": user["user_id"], "recipe_id": recipe_id, "terms_version": ps.TERMS_VERSION,
+        "consent_text_sha256": ps.CONSENT_HASH, "show_name": bool(body.get("show_name", True)), "consented_at": now, "action": "publish"})
+    author = (user.get("name") or "").strip() if body.get("show_name", True) else ""
+    try:
+        from recipe_tagger import auto_tag
+        auto = auto_tag(recipe)
+        tags, cuisine = auto["tags"], recipe.get("cuisine") or auto["cuisine"]
+    except Exception:
+        tags, cuisine = recipe.get("tags", []), recipe.get("cuisine")
+    await db.recipes.update_one({"recipe_id": recipe_id}, {"$set": {
+        "visibility": "public", "publish_status": "public", "publish_issues": [], "public_since": now,
+        "public_author": author or "CookMe community", "tags": tags, "cuisine": cuisine, "updated_at": now}})
+    return {"status": "public", "issues": []}
+
+
+@router.post("/{recipe_id}/unpublish")
+async def unpublish_recipe(recipe_id: str, request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    await _own_recipe(db, user, recipe_id)
+    now = datetime.now(timezone.utc)
+    await db.recipes.update_one({"recipe_id": recipe_id}, {"$set": {
+        "visibility": "private", "publish_status": None, "publish_issues": [], "updated_at": now}})
+    await db.recipe_consents.insert_one({"user_id": user["user_id"], "recipe_id": recipe_id, "action": "unpublish", "consented_at": now})
+    return {"status": "private"}
 
 # Soft delete recipe (hide from user's view but keep in master database)
 @router.delete("/{recipe_id}")
@@ -1080,21 +1173,21 @@ The image should be:
 async def get_recipes_by_cooking_type(cooking_type: str, request: Request, limit: int = 60, skip: int = 0):
     """Shared master recipes for a cooking type: quick, student, budget, instapot, airfryer."""
     db = request.app.state.db
-    await get_current_user(request, db)
+    user = await get_current_user(request, db)
     tags = {"quick": ["quick"], "student": ["student"], "budget": ["budget"],
             "instapot": ["instant pot", "pressure cooker", "slow cooker", "one pot"], "airfryer": ["air fryer"]}.get(cooking_type)
     if not tags:
         raise HTTPException(status_code=404, detail="Unknown cooking type")
-    q = {"user_id": "system_seeder", "tags": {"$in": tags}}
+    q = {"$and": [ps.SHARED, {"tags": {"$in": tags}}]}
     recipes = await db.recipes.find(q, {"_id": 0}).sort("title", 1).skip(skip).limit(min(limit, 200)).to_list(min(limit, 200))
-    return {"recipes": recipes, "total": await db.recipes.count_documents(q)}
+    return {"recipes": [ps.mask_owner(r, user["user_id"]) for r in recipes], "total": await db.recipes.count_documents(q)}
 
 @router.get("/category/{category}")
 async def get_recipes_by_category(category: str, request: Request):
     db = request.app.state.db
-    await get_current_user(request, db)
+    user = await get_current_user(request, db)
     
-    recipes = await db.recipes.find({"category": category}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    recipes = await db.recipes.find({"$and": [ps.shared_or_own(user["user_id"]), {"category": category}]}, {"_id": 0}).sort("created_at", -1).to_list(50)
     return recipes
 
 # Like/Unlike recipe

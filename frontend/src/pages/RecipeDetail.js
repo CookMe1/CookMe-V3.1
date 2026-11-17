@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import ShareRecipe from '../components/ShareRecipe';
 import { Clock, Users, ChefHat, Heart, Bookmark, Share2, Minus, Plus, Printer, Loader2, Camera, ImageIcon, Trash2, Upload, AlertCircle, Mic, MicOff } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -101,6 +103,7 @@ const UnitConverter = () => {
 const RecipeDetail = () => {
   const { id } = useParams();
   const { checkSeasonal } = useLanguage();
+  const { user: currentUser } = useAuth();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [servings, setServings] = useState(4);
@@ -570,6 +573,14 @@ const RecipeDetail = () => {
               {recipe.title}
             </h1>
             <p className="text-zinc-300 mb-6 max-w-2xl">{recipe.description}</p>
+            {currentUser && recipe.user_id === currentUser.user_id && (
+              <div className="flex flex-wrap items-center gap-3 mb-6" data-testid="owner-actions">
+                <Link to={`/recipe/${recipe.recipe_id}/edit`} className="inline-flex items-center px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-sm font-medium" data-testid="edit-recipe-btn">
+                  Edit
+                </Link>
+                <ShareRecipe recipe={recipe} onChange={fetchRecipe} />
+              </div>
+            )}
             
             <div className="flex flex-wrap items-center gap-6 text-zinc-400">
               <span className="flex items-center gap-2">

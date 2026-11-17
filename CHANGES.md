@@ -108,3 +108,12 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - **Daily release:** `backend/release_queue.py` runs inside the backend; the first check each day moves the next `RELEASE_PER_DAY` (default 10) recipes from the `recipe_queue` collection into the app. A server outage never causes a flood. `RELEASE_PER_DAY=0` pauses it.
 - `load_master_recipes.py --prune` never removes recipes released from the queue.
 - Wikibooks recipes show "Recipe from Wikibooks Cookbook · licensed CC BY-SA 4.0 · Authors"; credits card updated.
+
+## Public recipe sharing + privacy fixes
+- Owners can "Share publicly" from their recipe page. They must tick a consent box (free, non-exclusive licence to show it in CookMe); consent is stored in `recipe_consents` with a hash of the exact wording.
+- Recipes go through automated checks (title, description, 3+ ingredients, 2+ steps, time, own photo, no links/contact details, no blocked words, no duplicate titles). Failures return to the owner as "needs changes" with a list; they fix it in the new Edit page (`/recipe/:id/edit`) and resubmit.
+- Imported-from-web recipes cannot be made public. Editing a public recipe re-runs the checks; failing ones go back to private.
+- Owners can make a recipe private again at any time. Public recipes show "shared by" (or "CookMe community").
+- Privacy fixes: `GET /recipes/{id}`, `/category/{category}` and `/master/all` used to expose other users' private recipes; now only owner / master / public. Owner ids and favourites are masked on others' recipes.
+- Pantry search, meal planner, featured and counters include public recipes.
+- NOT legal advice: have a lawyer review the consent text, and add Terms/Privacy pages and a report/takedown button.

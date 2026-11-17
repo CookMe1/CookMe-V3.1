@@ -167,7 +167,7 @@ async def generate_ai_meal_plan(data: AIGenerateRequest, request: Request):
     try:
         from meal_plan_builder import build_plan
         pool = await db.recipes.find(
-            {"$or": [{"user_id": "system_seeder"}, {"user_id": user["user_id"], "hidden_by": {"$ne": user["user_id"]}}]},
+            {"$or": [{"user_id": "system_seeder"}, {"visibility": "public"}, {"user_id": user["user_id"], "hidden_by": {"$ne": user["user_id"]}}]},
             {"_id": 0, "recipe_id": 1, "title": 1, "image": 1, "tags": 1, "cuisine": 1, "category": 1, "ingredients": 1},
         ).to_list(3000)
         built = build_plan(key, pool, pantry_names, data.cuisine_preferences or [], data.dietary_restrictions or [], seed=uuid.uuid4().hex)

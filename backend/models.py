@@ -24,6 +24,10 @@ class Recipe(BaseModel):
     source_history_url: Optional[str] = None  # authors/history page (CC BY-SA attribution)
     image_attribution: Optional[str] = None  # e.g. "Photo by Ann on Pexels"
     image_source: Optional[str] = None  # e.g. "ai-generated"
+    visibility: Optional[str] = None  # None/"private" or "public"
+    publish_status: Optional[str] = None  # None, "needs_changes", "public"
+    publish_issues: List[dict] = []  # what to fix before it can go public
+    public_author: Optional[str] = None  # name shown on a public recipe
     likes_count: int = 0
     saves_count: int = 0
     hidden_by: List[str] = []  # List of user_ids who have "deleted" this recipe from their view
@@ -67,3 +71,22 @@ class RecipeExtractRequest(BaseModel):
     recipe_url: Optional[str] = None
 
 
+
+
+class RecipeUpdate(BaseModel):
+    """Fields a person can change on their own recipe (everything optional)."""
+    title: Optional[str] = None
+    description: Optional[str] = None
+    image: Optional[str] = None
+    prep_time: Optional[str] = None
+    cook_time: Optional[str] = None
+    servings: Optional[int] = None
+    difficulty: Optional[str] = None
+    ingredients: Optional[List[dict]] = None
+    steps: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    category: Optional[str] = None
+    cuisine: Optional[str] = None
+
+    class Config:
+        extra = "ignore"

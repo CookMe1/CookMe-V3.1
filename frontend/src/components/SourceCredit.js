@@ -29,7 +29,8 @@ export function sourceInfo(recipe) {
 
 const SourceCredit = ({ recipe }) => {
   const s = sourceInfo(recipe);
-  if (!s.name && !s.photo) return null;
+  const sharedBy = recipe?.visibility === 'public' && recipe?.public_author ? recipe.public_author : null;
+  if (!s.name && !s.photo && !sharedBy) return null;
   return (
     <div className="mt-8 pt-8 border-t border-zinc-800" data-testid="source-credit">
       <h3 className="font-semibold text-zinc-100 mb-3">Source</h3>
@@ -47,6 +48,9 @@ const SourceCredit = ({ recipe }) => {
             <> · <a href={recipe.source_url} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-400 underline">View original recipe</a></>
           )}
         </p>
+      )}
+      {sharedBy && !s.name && (
+        <p className="text-sm text-zinc-400">Recipe shared by <span className="text-zinc-200">{sharedBy}</span> with the CookMe community</p>
       )}
       {s.photo && (
         <p className="text-xs text-zinc-500 mt-1">

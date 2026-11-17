@@ -269,7 +269,7 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
     try:
         pantry_token_sets = _pantry_groups(pantry_lookup)
         async for recipe in db.recipes.find(
-            {"user_id": "system_seeder"},
+            {"$or": [{"user_id": "system_seeder"}, {"visibility": "public"}]},
             {"_id": 0, "recipe_id": 1, "title": 1, "description": 1, "image": 1, "prep_time": 1, "cook_time": 1,
              "difficulty": 1, "servings": 1, "ingredients": 1, "tags": 1},
         ):

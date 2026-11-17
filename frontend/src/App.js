@@ -21,6 +21,7 @@ import Dashboard from './pages/Dashboard';
 import Recipes from './pages/Recipes';
 import RecipeDetail from './pages/RecipeDetail';
 import AddRecipe from './pages/AddRecipe';
+import EditRecipe from './pages/EditRecipe';
 import MealPlanner from './pages/MealPlanner';
 import ShoppingList from './pages/ShoppingList';
 import Pantry from './pages/Pantry';
@@ -126,6 +127,14 @@ function AppRouter() {
         <ProtectedRoute>
           <Navigation />
           <RecipeDetail />
+          <BottomNavigation />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/recipe/:id/edit" element={
+        <ProtectedRoute>
+          <Navigation />
+          <EditRecipe />
           <BottomNavigation />
         </ProtectedRoute>
       } />
