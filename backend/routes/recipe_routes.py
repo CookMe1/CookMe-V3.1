@@ -140,6 +140,46 @@ async def get_master_recipes(request: Request, search: Optional[str] = None):
     return recipes
 
 # Get user's favorite recipes
+@router.get("/search")
+async def search_recipes(
+    request: Request,
+    q: Optional[str] = None,
+    ingredients: Optional[str] = None,
+    diet: Optional[str] = None,
+    cuisine: Optional[str] = None,
+    quick: bool = False,
+    limit: int = 24,
+    skip: int = 0,
+):
+    """Search the shared master recipes plus the user's own.
+    q = words in title/description/tags; ingredients = comma list, ALL must appear; diet = vegetarian|vegan;
+    quick = only recipes tagged quick (under ~30 min)."""
+    import re as _re
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    limit = min(max(limit, 1), 60)
+    and_q = [{"$or": [{"user_id": "system_seeder"}, {"user_id": user["user_id"], "hidden_by": {"$ne": user["user_id"]}}]}]
+    for word in (q or "").split()[:6]:
+        w = _re.escape(word)
+        and_q.append({"$or": [{"title": {"$regex": w, "$options": "i"}},
+                              {"description": {"$regex": w, "$options": "i"}},
+                              {"tags": {"$regex": w, "$options": "i"}}]})
+    for ing in [i.strip() for i in (ingredients or "").split(",") if i.strip()][:8]:
+        and_q.append({"ingredients": {"$elemMatch": {"item": {"$regex": _re.escape(ing), "$options": "i"}}}})
+    if diet in ("vegetarian", "vegan"):
+        and_q.append({"tags": diet})
+    if cuisine:
+        and_q.append({"cuisine": {"$regex": "^" + _re.escape(cuisine.replace(" ", "_")) + "$", "$options": "i"}})
+    if quick:
+        and_q.append({"tags": "quick"})
+    query = {"$and": and_q}
+    proj = {"_id": 0, "recipe_id": 1, "title": 1, "description": 1, "image": 1, "prep_time": 1, "cook_time": 1,
+            "difficulty": 1, "servings": 1, "tags": 1, "cuisine": 1, "user_id": 1}
+    total = await db.recipes.count_documents(query)
+    recipes = await db.recipes.find(query, proj).sort("title", 1).skip(skip).limit(limit).to_list(limit)
+    return {"recipes": recipes, "total": total, "has_more": skip + limit < total}
+
+
 @router.get("/featured")
 async def get_featured_master(request: Request, count: int = 3):
     """Daily-stable featured recipes from the shared master list (only ones with a real photo)."""

@@ -27,6 +27,40 @@ def types(r):
     if (n_ing <= 9 and n_steps <= 7 and not dessert and re.search(CHEAP, ing) and not re.search(EXPENSIVE, ing+" "+t)):
         out += ["student","budget","easy","cheap"]
     return out
+
+MEAT = r"beef|pork|lamb|chicken|turkey|duck|goose|bacon|\bham\b|sausage|chorizo|mince|steak|veal|prosciutto|pancetta|salami|gelatine|gelatin|lard|suet|anchov|fish|salmon|tuna|cod|haddock|prawn|shrimp|crab|lobster|mussel|squid|oyster|sardine|mackerel|trout|bass|venison|rabbit|liver|kidney|oxtail|brisket|ribs?\b|gammon|pilchard|clam|scallop|monkfish"
+DAIRY = r"milk|butter|cheese|cream|yogh?urt|ghee|buttermilk|custard|parmesan|feta|mozzarella|halloumi|ricotta|mascarpone|cheddar|paneer|whey|creme fraiche|condensed"
+EGGHONEY = r"\begg|mayonnaise|honey|aioli"
+GLUTEN = r"flour|bread|pasta|noodle|spaghetti|couscous|barley|bulgur|semolina|breadcrumb|panko|pastry|biscuit|wheat|soy sauce|beer|tortilla|naan|pitta|pita|lasagn|macaroni|orzo|cake|dough|\brye\b|seitan|cracker|bun\b|rolls?\b|pizza|dumpling|wonton"
+CUISINES = ["italian","mexican","indian","chinese","thai","japanese","french","spanish","greek","american","british","mediterranean","middle_eastern","korean","vietnamese","turkish","moroccan","german","caribbean","african","irish","polish","portuguese","russian"]
+TITLE_CUISINE = {"italian": r"pasta|pizza|risotto|lasagn|carbonara|tiramisu|gnocchi|bruschetta|parmigiana", "mexican": r"taco|burrito|enchilada|quesadilla|guacamole|fajita|nacho|salsa",
+  "indian": r"curry|masala|tikka|biryani|dal\b|daal|paneer|korma|naan|samosa|tandoori|bhaji", "chinese": r"stir[- ]fry|chow mein|kung pao|wonton|dumpling|sweet and sour|\bchinese",
+  "japanese": r"sushi|ramen|teriyaki|tempura|miso|katsu|udon", "thai": r"\bthai|pad thai|tom yum|satay", "french": r"\bfrench|ratatouille|crepe|croissant|quiche|gratin|confit|cassoulet",
+  "greek": r"\bgreek|moussaka|souvlaki|tzatziki|gyro", "spanish": r"paella|tortilla espa|gazpacho|chorizo|tapas|patatas bravas", "middle_eastern": r"hummus|falafel|shawarma|shakshuka|tahini|kebab|baklava|tagine"}
+
+
+def diet_tags(r):
+    text = (r["title"] + " " + ings(r)).lower()
+    out = []
+    veg = not re.search(MEAT, text)
+    if veg: out.append("vegetarian")
+    dairy = bool(re.search(DAIRY, text))
+    if veg and not dairy and not re.search(EGGHONEY, text): out.append("vegan")
+    # gluten-free / dairy-free are NOT tagged: guessing from ingredient lists is unsafe for allergies.
+    return out
+
+
+def infer_cuisine(r):
+    c = (r.get("cuisine") or "").strip().lower().replace(" ", "_")
+    if c: return c
+    tags = {t.lower().replace(" ", "_") for t in r.get("tags") or [] if isinstance(t, str)}
+    for k in CUISINES:
+        if k in tags: return k
+    if "asian" in tags: return "asian"
+    for k, pat in TITLE_CUISINE.items():
+        if re.search(pat, r["title"].lower()): return k
+    return ""
+
 def clean_image(u):
     if isinstance(u,str) and u.startswith("data:image/") and len(u) < 1_500_000: return u  # user-uploaded photo, kept
     if not u or not isinstance(u,str) or not u.startswith("http"): return None
@@ -47,13 +81,16 @@ def main():
         if not d["image"]: rep["no image (will show app placeholder)"]+=1
         for f in ("created_at","updated_at"):
             v=d.get(f); d[f]=v["$date"] if isinstance(v,dict) else v
-        d["tags"] = sorted(set(x for x in (d.get("tags") or []) if isinstance(x,str)) | set(types(r)))
+        base = set(x for x in (d.get("tags") or []) if isinstance(x,str)) - {"vegetarian", "Vegetarian", "vegan", "Vegan"}
+        d["tags"] = sorted(base | set(types(r)) | set(diet_tags(r)))
+        d["cuisine"] = infer_cuisine(r)
         d["user_id"]="system_seeder"; d["likes_count"]=0; d["saves_count"]=0
         d["favorited_by"]=[]; d["hidden_by"]=[]; d["gallery_images"]=[]
         out.append(d)
     json.dump(out, open(dst,"w",encoding="utf-8"), ensure_ascii=False)
     print(f"kept {len(out)} recipes -> {dst}")
     for k,v in rep.items(): print(f"  {k}: {v}")
-    c = collections.Counter(t for d in out for t in d["tags"] if t in ("quick","student","one pot","instant pot","slow cooker","air fryer"))
-    print("cooking types:", dict(c))
+    c = collections.Counter(t for d in out for t in d["tags"] if t in ("quick","student","one pot","instant pot","slow cooker","air fryer","vegetarian","vegan"))
+    print("cooking types and diets:", dict(c))
+    print("with cuisine:", sum(1 for d in out if d["cuisine"]), "of", len(out))
 if __name__=="__main__": main()

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { CATEGORIES } from '../constants/categories';
-import { Home, BookOpen, Calendar, ShoppingCart, Package, Users, User, Plus, Menu, X, LogOut } from 'lucide-react';
+import { Search, Home, BookOpen, Calendar, ShoppingCart, Package, Users, User, Plus, Menu, X, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '../context/AuthContext';
 
@@ -13,6 +13,7 @@ const Navigation = () => {
   const navItems = [
     { path: '/dashboard', label: 'Home', icon: Home },
     { path: '/recipes', label: 'Recipes', icon: BookOpen },
+    { path: '/search', label: 'Search', icon: Search },
     { path: '/meal-planner', label: 'Planner', icon: Calendar },
     { path: '/shopping-list', label: 'Shopping', icon: ShoppingCart },
     { path: '/pantry', label: 'Pantry', icon: Package },

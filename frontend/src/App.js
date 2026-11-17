@@ -26,6 +26,7 @@ import Profile from './pages/Profile';
 import BudgetRecipes from './pages/BudgetRecipes';
 import StudentRecipes from './pages/StudentRecipes';
 import AirFryerRecipes from './pages/AirFryerRecipes';
+import SearchRecipes from './pages/SearchRecipes';
 import InstapotRecipes from './pages/InstapotRecipes';
 import QuickRecipes from './pages/QuickRecipes';
 import Cookbooks from './pages/Cookbooks';
@@ -202,6 +203,14 @@ function AppRouter() {
         <ProtectedRoute>
           <Navigation />
           <InstapotRecipes />
+          <BottomNavigation />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/search" element={
+        <ProtectedRoute>
+          <Navigation />
+          <SearchRecipes />
           <BottomNavigation />
         </ProtectedRoute>
       } />

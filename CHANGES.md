@@ -48,3 +48,10 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Aisle lookup table expanded to ~400 names (whole-word matching) - covers ~93% of master-recipe ingredients without AI.
 - AI image generation is off unless `ENABLE_AI_IMAGES=1`; scanned recipe cards no longer trigger it.
 - Dashboard empty state.
+
+## Search, units, cooking mode
+- New Search page (`/search`, "Search" in the top bar): name, ingredients you want (all must match), vegetarian/vegan, cuisine, under 30 min. Backed by `GET /api/recipes/search`.
+- Master file now has vegetarian/vegan tags (worked out from ingredients) and cuisine for about half the recipes. Gluten-free and dairy-free are deliberately NOT tagged (unsafe to guess).
+- Recipe page: Original / Metric / US unit toggle (local conversion, no AI), remembered per device.
+- Recipe page: "Start cooking" opens full-screen cooking mode: big text, step by step, timers detected from the step text, screen kept awake.
+- After pulling, re-run `python scripts/load_master_recipes.py --apply` to add the new tags.

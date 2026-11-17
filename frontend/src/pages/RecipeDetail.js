@@ -4,6 +4,8 @@ import { Clock, Users, ChefHat, Heart, Bookmark, Share2, Minus, Plus, Printer, L
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
+import CookingMode from '../components/CookingMode';
+import { convertAmount } from '../utils/units';
 import { validateImageQuality, getRejectMessage, compressImage } from '../utils/imageValidator';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -102,6 +104,8 @@ const RecipeDetail = () => {
   const [servings, setServings] = useState(4);
   const [originalServings, setOriginalServings] = useState(4);
   const [activeTab, setActiveTab] = useState('ingredients');
+  const [units, setUnits] = useState(() => { try { return localStorage.getItem('units') || 'original'; } catch (e) { return 'original'; } });
+  const [cooking, setCooking] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [nutrition, setNutrition] = useState(null);
@@ -481,8 +485,16 @@ const RecipeDetail = () => {
   const steps = recipe.steps || [];
   const scaledNutrition = getScaledNutrition();
 
+  const cookingIngredients = ingredients.map((ing) => ({
+    name: ing.item || (typeof ing === 'string' ? ing : ''),
+    amount: ing.amount ? scaleAmount(convertAmount(ing.amount, units)) : '',
+  }));
+
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24 md:pb-0">
+      {cooking && (
+        <CookingMode title={recipe.title} steps={steps} ingredients={cookingIngredients} onClose={() => setCooking(false)} />
+      )}
       {/* Hero Image */}
       <div className="relative h-[50vh] min-h-[400px]">
         <img 
@@ -612,6 +624,17 @@ const RecipeDetail = () => {
               >
                 <Plus className="w-5 h-5 text-zinc-300" />
               </button>
+              <div className="flex rounded-lg overflow-hidden border border-zinc-700 text-sm" data-testid="units-toggle">
+                {[['original', 'Original'], ['metric', 'Metric'], ['us', 'US']].map(([v, label]) => (
+                  <button
+                    key={v}
+                    onClick={() => { setUnits(v); try { localStorage.setItem('units', v); } catch (e) { /* ignore */ } }}
+                    className={`px-3 py-2 ${units === v ? 'bg-orange-600 text-white' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <Button
                 variant="outline"
                 onClick={() => window.print()}
@@ -715,7 +738,7 @@ const RecipeDetail = () => {
                     )}
                     {ing.amount && (
                       <span className="text-orange-500 font-medium shrink-0" data-testid={`amount-${index}`}>
-                        {scaleAmount(ing.amount)}
+                        {scaleAmount(convertAmount(ing.amount, units))}
                       </span>
                     )}
                   </div>
@@ -729,6 +752,11 @@ const RecipeDetail = () => {
 
         {activeTab === 'instructions' && (
           <div className="space-y-4" data-testid="instructions-list">
+            {steps.length > 0 && (
+              <Button onClick={() => setCooking(true)} className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold" data-testid="start-cooking">
+                Start cooking
+              </Button>
+            )}
             {steps.length > 0 ? (
               steps.map((step, index) => (
                 <div
