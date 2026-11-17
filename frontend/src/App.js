@@ -7,6 +7,7 @@ import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { Toaster } from './components/ui/sonner';
 import Navigation from './components/Navigation';
 import BottomNavigation from './components/BottomNavigation';
+// eslint-disable-next-line no-unused-vars
 import AdBanner from './components/AdBanner';
 import ProtectedRoute from './components/ProtectedRoute';
 import LanguagePicker from './components/LanguagePicker';
@@ -32,6 +33,7 @@ import QuickRecipes from './pages/QuickRecipes';
 import Cookbooks from './pages/Cookbooks';
 
 // Show language picker on first launch, then dietary defaults prompt if relevant
+// eslint-disable-next-line no-unused-vars
 const FirstLaunchFlow = () => {
   const { isAuthenticated } = useAuth();
   const { dietaryDefaults } = useLanguage();
@@ -254,11 +256,11 @@ function App() {
       <AuthProvider>
         <LanguageProvider>
           <AppProvider>
-            <div className="App min-h-screen bg-[#09090b] pb-[60px]">
+            <div className="App min-h-screen bg-[#09090b]">
               <AppRouter />
-              <FirstLaunchFlow />
+              {/* First-launch language/dietary prompt switched off for now: <FirstLaunchFlow /> */}
               <Toaster />
-              <AdBanner />
+              {/* Ad banner switched off for now: <AdBanner /> */}
             </div>
           </AppProvider>
         </LanguageProvider>
