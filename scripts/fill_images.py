@@ -40,16 +40,25 @@ def ai_image(title):
 if __name__ == "__main__":
     data = json.load(open(F, encoding="utf-8")); OUT.mkdir(parents=True, exist_ok=True)
     todo = [r for r in data if not r.get("image")]; lim = int(arg("--limit", len(todo)))
-    done = 0
+    done = 0; searches = 0; MAX = 190   # Pexels free key allows ~200 searches/hour
+    def save():
+        if "--dry" not in sys.argv: json.dump(data, open(F, "w", encoding="utf-8"), ensure_ascii=False)
     for r in todo[:lim]:
+        if KEY and searches >= MAX and "--ai" not in sys.argv:
+            print(f"Reached the hourly Pexels limit. Progress saved. Run the same command again in 1 hour."); break
         dest = OUT/f"{r['recipe_id']}.jpg"; img = None; credit = None
         try:
             if KEY:
+                searches += 1
                 url, credit = pexels(r["title"])
                 if url: img = requests.get(url, timeout=30).content
             if img is None and "--ai" in sys.argv and os.environ.get("ENABLE_AI_IMAGES") == "1":
                 img = ai_image(r["title"]); credit = "AI-generated illustration"
                 r["image_source"] = "ai-generated"
+        except requests.HTTPError as e:
+            if e.response is not None and e.response.status_code == 429:
+                print("Pexels says too many requests. Progress saved. Run the same command again in 1 hour."); break
+            print("  skip", r["title"], e); continue
         except Exception as e:
             print("  skip", r["title"], e); continue
         if not img: print("  no match:", r["title"]); continue
@@ -57,5 +66,7 @@ if __name__ == "__main__":
         if "--dry" not in sys.argv:
             dest.write_bytes(img); r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r["image_attribution"] = credit
         done += 1; time.sleep(0.4)
-    if "--dry" not in sys.argv: json.dump(data, open(F, "w", encoding="utf-8"), ensure_ascii=False)
-    print(f"filled {done} of {len(todo)} missing")
+        if done % 10 == 0: save()
+    save()
+    left = sum(1 for r in data if not r.get("image"))
+    print(f"filled {done} this run; {left} recipes still have no image")
