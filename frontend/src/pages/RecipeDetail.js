@@ -8,6 +8,9 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
 import CookingMode from '../components/CookingMode';
+import CookingOptions from '../components/CookingOptions';
+import useCookingSetup from '../hooks/useCookingSetup';
+import { stepCooksProtein, showTemp, fmtLabel } from '../utils/cookingTools';
 import SourceCredit from '../components/SourceCredit';
 import { convertAmount } from '../utils/units';
 import { PLACEHOLDER_IMAGE, onImageError } from '../utils/placeholder';
@@ -27,6 +30,8 @@ const RecipeDetail = () => {
   const [activeTab, setActiveTab] = useState('ingredients');
   const [units, setUnits] = useState(() => { try { return localStorage.getItem('units') || 'original'; } catch (e) { return 'original'; } });
   const [cooking, setCooking] = useState(false);
+  const [showSetup, setShowSetup] = useState(false);
+  const setup = useCookingSetup(recipe);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [nutrition, setNutrition] = useState(null);
@@ -414,7 +419,7 @@ const RecipeDetail = () => {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24 md:pb-0">
       {cooking && (
-        <CookingMode title={recipe.title} steps={steps} ingredients={cookingIngredients} onClose={() => setCooking(false)} />
+        <CookingMode title={recipe.title} steps={steps} ingredients={cookingIngredients} setup={setup} onClose={() => setCooking(false)} />
       )}
       {/* Hero Image */}
       <div className="relative h-[50vh] min-h-[400px]">
@@ -679,6 +684,22 @@ const RecipeDetail = () => {
 
         {activeTab === 'instructions' && (
           <div className="space-y-4" data-testid="instructions-list">
+            {setup.available && (
+              <div data-testid="cooking-setup-card">
+                <button
+                  onClick={() => setShowSetup((v) => !v)}
+                  className="w-full flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-left"
+                  data-testid="toggle-cooking-setup"
+                >
+                  <span className="text-sm text-zinc-200">
+                    <span className="font-semibold">Cooking setup</span>
+                    <span className="text-zinc-500"> · {setup.type ? `${setup.type.name}, ${setup.method === 'airfryer' ? 'air fryer' : setup.method}` : 'air fryer option'}</span>
+                  </span>
+                  <span className="text-orange-400 text-sm">{showSetup ? 'Hide' : 'Customise'}</span>
+                </button>
+                {showSetup && <div className="mt-3"><CookingOptions setup={setup} /></div>}
+              </div>
+            )}
             {steps.length > 0 && (
               <Button onClick={() => setCooking(true)} className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white font-semibold" data-testid="start-cooking">
                 Start cooking
@@ -693,7 +714,20 @@ const RecipeDetail = () => {
                   <div className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-bold text-white">{index + 1}</span>
                   </div>
-                  <p className="text-zinc-300 pt-1">{step}</p>
+                  <div className="pt-1">
+                    <p className="text-zinc-300">{step}</p>
+                    {setup.plan && stepCooksProtein(step, setup.type) && (
+                      <p className="mt-2 text-xs text-orange-300" data-testid="step-plan-note">
+                        Your plan: {setup.plan.stages.map((s) => `${fmtLabel(s.seconds)}${s.perSide ? ' per side' : ''}`).join(' + ')}
+                        {setup.plan.tempC && !setup.plan.heat.includes('Oven') ? ` at ${showTemp(setup.plan.tempC)}` : ''}, until {showTemp(setup.plan.internalC)} in the centre
+                      </p>
+                    )}
+                    {setup.afOn && setup.afSteps[index] && !(setup.plan && stepCooksProtein(step, setup.type)) && (
+                      <p className="mt-2 text-xs text-orange-300" data-testid="step-af-note">
+                        🍟 Air fryer: {showTemp(setup.afSteps[index].tempC)}{setup.afSteps[index].kind === 'cook' ? `, ${fmtLabel(setup.afSteps[index].seconds)}` : ' (preheat 3 min)'}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (
