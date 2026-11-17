@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Home, BookOpen, Package, ShoppingCart, Camera, Upload, X, Check, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
@@ -13,6 +14,7 @@ const BottomNavigation = ({ showNav = true }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { loading, isAuthenticated } = useAuth();
+  const { language } = useLanguage();
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const [showCameraModal, setShowCameraModal] = useState(false);
@@ -171,7 +173,7 @@ const BottomNavigation = ({ showNav = true }) => {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ image_data: compressedImage })
+            body: JSON.stringify({ image_data: compressedImage, language: language?.name || 'English' })
           });
 
           if (!response.ok) throw new Error('Analysis failed');

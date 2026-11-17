@@ -55,3 +55,9 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Recipe page: Original / Metric / US unit toggle (local conversion, no AI), remembered per device.
 - Recipe page: "Start cooking" opens full-screen cooking mode: big text, step by step, timers detected from the step text, screen kept awake.
 - After pulling, re-run `python scripts/load_master_recipes.py --apply` to add the new tags.
+
+## Nutrition (USDA), dictionary, automatic tagging, photo language
+- **USDA nutrition (free, offline):** run `python scripts/build_usda_table.py` ONCE (needs internet) to create `data/nutrition_usda.json`. Nutrition then uses it first, then Open Food Facts/Edamam, then AI. Until the file exists the app behaves as before. Also fixed OFF sodium (grams -> mg).
+- **Our own ingredient dictionary** (161 ingredients x English/Spanish/French/German/Italian/Portuguese) - `data/ingredient_dictionary.json`, edit and regenerate with `scripts/build_ingredient_dictionary.py`. `translate-ingredient`, nutrition and pantry matching use it before AI. Please have a native speaker check the entries.
+- **Automatic tagging** (`backend/recipe_tagger.py`): every saved recipe gets cooking-type, vegetarian/vegan tags and a cuisine, free. Backfill existing recipes with `python scripts/retag_recipes.py --apply`.
+- **Photo scan language:** the app language is sent with the photo so a recipe card in another language comes back translated into the user's language.

@@ -5,61 +5,9 @@ import json, re, sys, collections
 SEEDED = {"system_seeder", "daily_import"}
 KEEP = ["recipe_id","title","description","image","prep_time","cook_time","servings","difficulty","ingredients","steps",
         "tags","category","cuisine","nutrition","source_url","diet_type","created_at","updated_at"]
-EXPENSIVE = r"lamb|salmon|prawn|shrimp|lobster|steak|sirloin|fillet|scallop|crab|duck|veal|saffron|truffle|monkfish|venison|brandy|champagne|wine|oyster|mussel|squid|tuna steak"
-CHEAP = r"pasta|spaghetti|noodle|rice|egg|potato|bean|lentil|chickpea|bread|oat|tuna|cabbage|carrot|onion|tomato|pea|sausage|mince|chicken thigh|flour|cheese"
-SLOW = r"overnight|marinate for (?:at least )?\d+ hours|\b\d+ hours?\b|slow[- ]cook|chill for|refrigerate for"
-def text(r): return (r.get("title","")+" "+" ".join(map(str,r.get("steps") or []))).lower()
-def ings(r): return " ".join(str(i.get("item","")) for i in r.get("ingredients") or [] if isinstance(i,dict)).lower()
-def types(r):
-    t, s, ing = r["title"].lower(), text(r), ings(r)
-    n_ing, n_steps = len(r.get("ingredients") or []), len(r.get("steps") or [])
-    tags = set(x.lower() for x in r.get("tags") or [] if isinstance(x,str))
-    dessert = (r.get("category")=="dessert") or bool(tags & {"dessert","desert","cake","pudding","pie","baking","sweet"}) or bool(re.search(r"cake|pudding|curd|delight|cookie|brownie|tart\b|pie\b|fudge|ice cream|mousse|cobbler|crumble|biscuit|muffin|candy", t))
-    out = []
-    if re.search(r"instant pot|instapot|pressure cooker", s): out += ["instant pot","pressure cooker"]
-    if re.search(r"slow cooker|crock ?pot", s): out += ["slow cooker","crockpot"]
-    if re.search(r"air ?fr(y|i)er", s): out += ["air fryer"]
-    if re.search(r"one[- ]pot|one pan|one-pan|sheet pan|traybake|tray bake|\bstew\b|casserole|chilli|chili|risotto|hotpot|\bsoup\b|pilaf|paella", t) or "instant pot" in out or "slow cooker" in out:
-        out += ["one pot"]
-    quick = (re.search(r"\b(quick|fast|speedy|15[- ]min|20[- ]min|30[- ]min)", t) or
-             (n_ing <= 9 and n_steps <= 5 and not dessert and not re.search(r"soup|stew|roast|braise|casserole|bake|pie|hotpot", t))) and not re.search(SLOW, s)
-    if quick: out += ["quick","30 min"]
-    if (n_ing <= 9 and n_steps <= 7 and not dessert and re.search(CHEAP, ing) and not re.search(EXPENSIVE, ing+" "+t)):
-        out += ["student","budget","easy","cheap"]
-    return out
-
-MEAT = r"beef|pork|lamb|chicken|turkey|duck|goose|bacon|\bham\b|sausage|chorizo|mince|steak|veal|prosciutto|pancetta|salami|gelatine|gelatin|lard|suet|anchov|fish|salmon|tuna|cod|haddock|prawn|shrimp|crab|lobster|mussel|squid|oyster|sardine|mackerel|trout|bass|venison|rabbit|liver|kidney|oxtail|brisket|ribs?\b|gammon|pilchard|clam|scallop|monkfish"
-DAIRY = r"milk|butter|cheese|cream|yogh?urt|ghee|buttermilk|custard|parmesan|feta|mozzarella|halloumi|ricotta|mascarpone|cheddar|paneer|whey|creme fraiche|condensed"
-EGGHONEY = r"\begg|mayonnaise|honey|aioli"
-GLUTEN = r"flour|bread|pasta|noodle|spaghetti|couscous|barley|bulgur|semolina|breadcrumb|panko|pastry|biscuit|wheat|soy sauce|beer|tortilla|naan|pitta|pita|lasagn|macaroni|orzo|cake|dough|\brye\b|seitan|cracker|bun\b|rolls?\b|pizza|dumpling|wonton"
-CUISINES = ["italian","mexican","indian","chinese","thai","japanese","french","spanish","greek","american","british","mediterranean","middle_eastern","korean","vietnamese","turkish","moroccan","german","caribbean","african","irish","polish","portuguese","russian"]
-TITLE_CUISINE = {"italian": r"pasta|pizza|risotto|lasagn|carbonara|tiramisu|gnocchi|bruschetta|parmigiana", "mexican": r"taco|burrito|enchilada|quesadilla|guacamole|fajita|nacho|salsa",
-  "indian": r"curry|masala|tikka|biryani|dal\b|daal|paneer|korma|naan|samosa|tandoori|bhaji", "chinese": r"stir[- ]fry|chow mein|kung pao|wonton|dumpling|sweet and sour|\bchinese",
-  "japanese": r"sushi|ramen|teriyaki|tempura|miso|katsu|udon", "thai": r"\bthai|pad thai|tom yum|satay", "french": r"\bfrench|ratatouille|crepe|croissant|quiche|gratin|confit|cassoulet",
-  "greek": r"\bgreek|moussaka|souvlaki|tzatziki|gyro", "spanish": r"paella|tortilla espa|gazpacho|chorizo|tapas|patatas bravas", "middle_eastern": r"hummus|falafel|shawarma|shakshuka|tahini|kebab|baklava|tagine"}
-
-
-def diet_tags(r):
-    text = (r["title"] + " " + ings(r)).lower()
-    out = []
-    veg = not re.search(MEAT, text)
-    if veg: out.append("vegetarian")
-    dairy = bool(re.search(DAIRY, text))
-    if veg and not dairy and not re.search(EGGHONEY, text): out.append("vegan")
-    # gluten-free / dairy-free are NOT tagged: guessing from ingredient lists is unsafe for allergies.
-    return out
-
-
-def infer_cuisine(r):
-    c = (r.get("cuisine") or "").strip().lower().replace(" ", "_")
-    if c: return c
-    tags = {t.lower().replace(" ", "_") for t in r.get("tags") or [] if isinstance(t, str)}
-    for k in CUISINES:
-        if k in tags: return k
-    if "asian" in tags: return "asian"
-    for k, pat in TITLE_CUISINE.items():
-        if re.search(pat, r["title"].lower()): return k
-    return ""
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "backend"))
+from recipe_tagger import types, diet_tags, infer_cuisine, ings  # noqa: E402
 
 def clean_image(u):
     if isinstance(u,str) and u.startswith("data:image/") and len(u) < 1_500_000: return u  # user-uploaded photo, kept

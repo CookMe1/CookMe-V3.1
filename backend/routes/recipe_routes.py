@@ -361,11 +361,22 @@ async def create_recipe(recipe_data: RecipeCreate, request: Request):
     # with proper image analysis API, not text-based LLM checks
     
     recipe_id = f"recipe_{uuid.uuid4().hex[:12]}"
-    
+
+    # Automatic free tagging: cooking type, vegetarian/vegan, cuisine (keeps anything the user/importer already set)
+    payload = recipe_data.dict()
+    try:
+        from recipe_tagger import auto_tag
+        auto = auto_tag(payload)
+        payload["tags"] = auto["tags"]
+        if not payload.get("cuisine") and auto["cuisine"]:
+            payload["cuisine"] = auto["cuisine"]
+    except Exception as e:
+        logger.info(f"auto-tag skipped: {e}")
+
     recipe_doc = {
         "recipe_id": recipe_id,
         "user_id": user["user_id"],
-        **recipe_data.dict(),
+        **payload,
         "uploader_id": user["user_id"],
         "uploader_name": user.get("name", "Anonymous"),
         "likes_count": 0,
@@ -746,7 +757,13 @@ async def analyze_photo(request: Request):
             system_message="You are a cooking assistant that analyzes food photos. You can read text from images including recipe cards, cookbook pages, and handwritten recipes. Extract all visible text accurately."
         ).with_model("openai", "gpt-4o-mini")
         
-        prompt = """Carefully analyze this image. Look for ANY text visible in the image.
+        target_lang = str(body.get("language") or "English")[:30]
+        lang_rule = (
+            f"\n\nLANGUAGE: Write the title, description, ingredient names and steps in {target_lang}. "
+            f"If the text in the image is in another language, translate it into {target_lang} (keep the numbers and units). "
+            "Keep the JSON keys exactly as shown below in English.\n"
+        )
+        prompt = lang_rule + """Carefully analyze this image. Look for ANY text visible in the image.
 
 If you see a RECIPE (written recipe, cookbook page, recipe card, screenshot of a recipe):
 - READ ALL THE TEXT carefully including the title, ingredients list, and cooking instructions
@@ -924,7 +941,23 @@ async def translate_ingredient(request: Request):
     
     if not ingredient_name:
         raise HTTPException(status_code=400, detail="Ingredient name required")
-    
+
+    # Our own dictionary first (free, instant). AI is only used for words it doesn't know.
+    from ingredient_dictionary import lookup as _dict_lookup, alternatives as _dict_alts, LANGS as _LANGS
+    from cache import lookup_aisle as _lookup_aisle
+    hit = _dict_lookup(ingredient_name)
+    if hit:
+        english = hit["concept"]["en"]
+        return {
+            "original": ingredient_name,
+            "detected_language": _LANGS.get(hit["language"], "English"),
+            "english_name": english,
+            "alternatives": _dict_alts(hit["concept"], exclude_lang=hit["language"]),
+            "category": _lookup_aisle(english) or "Other",
+            "description": "",
+            "source": "dictionary",
+        }
+
     try:
         import json
         import re

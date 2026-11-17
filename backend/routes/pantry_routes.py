@@ -178,7 +178,8 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
 
     pantry_names = [item["name"].lower() for item in pantry_items]
     # Normalise regional names to canonical English (courgette→zucchini etc.)
-    pantry_names_normalised = [normalise_ingredient(n) for n in pantry_names]
+    from ingredient_dictionary import to_english as _to_english
+    pantry_names_normalised = [normalise_ingredient(_to_english(n) or n) for n in pantry_names]
     # Use union of both — original names AND normalised for maximum match coverage
     pantry_lookup = list(set(pantry_names + pantry_names_normalised))
     mt = suggestion_request.match_type

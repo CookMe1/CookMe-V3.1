@@ -52,7 +52,8 @@ def test_vegetarian_and_vegan_tags_are_safe():
         if "vegetarian" in r["tags"]:
             assert not meat.search(text), r["title"]
         if "vegan" in r["tags"]:
-            assert not dairy_egg.search(text), r["title"]
+            plant = re.sub(r"coconut (?:milk|cream|butter)|(?:almond|soy|soya|oat|rice|cashew|hazelnut|plant|nut)[- ](?:milk|butter|cream)|peanut butter|cocoa butter|butternut|vegan (?:butter|cheese|cream)", " ", text, flags=re.I)
+            assert not dairy_egg.search(plant), r["title"]
 
 
 def test_no_unsafe_allergy_tags():

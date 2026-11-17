@@ -1,0 +1,2987 @@
+[
+{
+"en": "chicken",
+"es": [
+"pollo"
+],
+"fr": [
+"poulet"
+],
+"de": [
+"hähnchen",
+"huhn"
+],
+"it": [
+"pollo"
+],
+"pt": [
+"frango",
+"galinha"
+]
+},
+{
+"en": "chicken breast",
+"es": [
+"pechuga de pollo"
+],
+"fr": [
+"blanc de poulet"
+],
+"de": [
+"hähnchenbrust"
+],
+"it": [
+"petto di pollo"
+],
+"pt": [
+"peito de frango"
+]
+},
+{
+"en": "beef",
+"es": [
+"ternera",
+"carne de vaca",
+"res"
+],
+"fr": [
+"boeuf",
+"bœuf"
+],
+"de": [
+"rindfleisch"
+],
+"it": [
+"manzo"
+],
+"pt": [
+"carne de vaca",
+"vaca"
+]
+},
+{
+"en": "ground beef",
+"es": [
+"carne picada de ternera",
+"carne molida"
+],
+"fr": [
+"boeuf haché"
+],
+"de": [
+"hackfleisch",
+"rinderhack"
+],
+"it": [
+"carne macinata di manzo"
+],
+"pt": [
+"carne picada de vaca"
+]
+},
+{
+"en": "pork",
+"es": [
+"cerdo"
+],
+"fr": [
+"porc"
+],
+"de": [
+"schweinefleisch"
+],
+"it": [
+"maiale"
+],
+"pt": [
+"porco",
+"carne de porco"
+]
+},
+{
+"en": "lamb",
+"es": [
+"cordero"
+],
+"fr": [
+"agneau"
+],
+"de": [
+"lamm"
+],
+"it": [
+"agnello"
+],
+"pt": [
+"borrego",
+"cordeiro"
+]
+},
+{
+"en": "turkey",
+"es": [
+"pavo"
+],
+"fr": [
+"dinde"
+],
+"de": [
+"pute",
+"truthahn"
+],
+"it": [
+"tacchino"
+],
+"pt": [
+"peru"
+]
+},
+{
+"en": "duck",
+"es": [
+"pato"
+],
+"fr": [
+"canard"
+],
+"de": [
+"ente"
+],
+"it": [
+"anatra"
+],
+"pt": [
+"pato"
+]
+},
+{
+"en": "bacon",
+"es": [
+"beicon",
+"panceta"
+],
+"fr": [
+"lard",
+"bacon"
+],
+"de": [
+"speck",
+"bacon"
+],
+"it": [
+"pancetta"
+],
+"pt": [
+"bacon",
+"toucinho"
+]
+},
+{
+"en": "ham",
+"es": [
+"jamón"
+],
+"fr": [
+"jambon"
+],
+"de": [
+"schinken"
+],
+"it": [
+"prosciutto cotto"
+],
+"pt": [
+"fiambre",
+"presunto"
+]
+},
+{
+"en": "sausage",
+"es": [
+"salchicha"
+],
+"fr": [
+"saucisse"
+],
+"de": [
+"wurst"
+],
+"it": [
+"salsiccia"
+],
+"pt": [
+"salsicha"
+]
+},
+{
+"en": "chorizo",
+"es": [
+"chorizo"
+],
+"fr": [
+"chorizo"
+],
+"de": [
+"chorizo"
+],
+"it": [
+"chorizo"
+],
+"pt": [
+"chouriço"
+]
+},
+{
+"en": "egg",
+"es": [
+"huevo"
+],
+"fr": [
+"oeuf",
+"œuf"
+],
+"de": [
+"ei"
+],
+"it": [
+"uovo"
+],
+"pt": [
+"ovo"
+]
+},
+{
+"en": "eggs",
+"es": [
+"huevos"
+],
+"fr": [
+"oeufs",
+"œufs"
+],
+"de": [
+"eier"
+],
+"it": [
+"uova"
+],
+"pt": [
+"ovos"
+]
+},
+{
+"en": "salmon",
+"es": [
+"salmón"
+],
+"fr": [
+"saumon"
+],
+"de": [
+"lachs"
+],
+"it": [
+"salmone"
+],
+"pt": [
+"salmão"
+]
+},
+{
+"en": "tuna",
+"es": [
+"atún"
+],
+"fr": [
+"thon"
+],
+"de": [
+"thunfisch"
+],
+"it": [
+"tonno"
+],
+"pt": [
+"atum"
+]
+},
+{
+"en": "cod",
+"es": [
+"bacalao"
+],
+"fr": [
+"morue",
+"cabillaud"
+],
+"de": [
+"kabeljau"
+],
+"it": [
+"merluzzo",
+"baccalà"
+],
+"pt": [
+"bacalhau"
+]
+},
+{
+"en": "shrimp",
+"es": [
+"gamba",
+"camarón"
+],
+"fr": [
+"crevette"
+],
+"de": [
+"garnele"
+],
+"it": [
+"gambero"
+],
+"pt": [
+"camarão"
+]
+},
+{
+"en": "prawns",
+"es": [
+"gambas",
+"langostinos"
+],
+"fr": [
+"crevettes",
+"gambas"
+],
+"de": [
+"garnelen"
+],
+"it": [
+"gamberoni"
+],
+"pt": [
+"gambas"
+]
+},
+{
+"en": "mussels",
+"es": [
+"mejillones"
+],
+"fr": [
+"moules"
+],
+"de": [
+"muscheln",
+"miesmuscheln"
+],
+"it": [
+"cozze"
+],
+"pt": [
+"mexilhões"
+]
+},
+{
+"en": "squid",
+"es": [
+"calamar"
+],
+"fr": [
+"calmar"
+],
+"de": [
+"tintenfisch",
+"kalmar"
+],
+"it": [
+"calamaro"
+],
+"pt": [
+"lula"
+]
+},
+{
+"en": "anchovies",
+"es": [
+"anchoas"
+],
+"fr": [
+"anchois"
+],
+"de": [
+"sardellen"
+],
+"it": [
+"acciughe"
+],
+"pt": [
+"anchovas"
+]
+},
+{
+"en": "milk",
+"es": [
+"leche"
+],
+"fr": [
+"lait"
+],
+"de": [
+"milch"
+],
+"it": [
+"latte"
+],
+"pt": [
+"leite"
+]
+},
+{
+"en": "butter",
+"es": [
+"mantequilla"
+],
+"fr": [
+"beurre"
+],
+"de": [
+"butter"
+],
+"it": [
+"burro"
+],
+"pt": [
+"manteiga"
+]
+},
+{
+"en": "cream",
+"es": [
+"nata"
+],
+"fr": [
+"crème"
+],
+"de": [
+"sahne"
+],
+"it": [
+"panna"
+],
+"pt": [
+"natas"
+]
+},
+{
+"en": "double cream",
+"es": [
+"nata para montar"
+],
+"fr": [
+"crème fraîche épaisse",
+"crème entière"
+],
+"de": [
+"schlagsahne"
+],
+"it": [
+"panna da montare"
+],
+"pt": [
+"natas para bater"
+]
+},
+{
+"en": "yogurt",
+"es": [
+"yogur"
+],
+"fr": [
+"yaourt",
+"yogourt"
+],
+"de": [
+"joghurt"
+],
+"it": [
+"yogurt"
+],
+"pt": [
+"iogurte"
+]
+},
+{
+"en": "cheese",
+"es": [
+"queso"
+],
+"fr": [
+"fromage"
+],
+"de": [
+"käse"
+],
+"it": [
+"formaggio"
+],
+"pt": [
+"queijo"
+]
+},
+{
+"en": "cheddar",
+"es": [
+"queso cheddar"
+],
+"fr": [
+"cheddar"
+],
+"de": [
+"cheddar"
+],
+"it": [
+"cheddar"
+],
+"pt": [
+"queijo cheddar"
+]
+},
+{
+"en": "mozzarella",
+"es": [
+"mozzarella"
+],
+"fr": [
+"mozzarella"
+],
+"de": [
+"mozzarella"
+],
+"it": [
+"mozzarella"
+],
+"pt": [
+"mozzarela"
+]
+},
+{
+"en": "parmesan",
+"es": [
+"parmesano"
+],
+"fr": [
+"parmesan"
+],
+"de": [
+"parmesan"
+],
+"it": [
+"parmigiano"
+],
+"pt": [
+"parmesão"
+]
+},
+{
+"en": "feta",
+"es": [
+"queso feta"
+],
+"fr": [
+"feta"
+],
+"de": [
+"feta",
+"fetakäse"
+],
+"it": [
+"feta"
+],
+"pt": [
+"queijo feta"
+]
+},
+{
+"en": "goat cheese",
+"es": [
+"queso de cabra"
+],
+"fr": [
+"fromage de chèvre"
+],
+"de": [
+"ziegenkäse"
+],
+"it": [
+"formaggio di capra"
+],
+"pt": [
+"queijo de cabra"
+]
+},
+{
+"en": "cream cheese",
+"es": [
+"queso crema"
+],
+"fr": [
+"fromage à la crème"
+],
+"de": [
+"frischkäse"
+],
+"it": [
+"formaggio spalmabile"
+],
+"pt": [
+"queijo creme"
+]
+},
+{
+"en": "tomato",
+"es": [
+"tomate"
+],
+"fr": [
+"tomate"
+],
+"de": [
+"tomate"
+],
+"it": [
+"pomodoro"
+],
+"pt": [
+"tomate"
+]
+},
+{
+"en": "onion",
+"es": [
+"cebolla"
+],
+"fr": [
+"oignon"
+],
+"de": [
+"zwiebel"
+],
+"it": [
+"cipolla"
+],
+"pt": [
+"cebola"
+]
+},
+{
+"en": "red onion",
+"es": [
+"cebolla roja",
+"cebolla morada"
+],
+"fr": [
+"oignon rouge"
+],
+"de": [
+"rote zwiebel"
+],
+"it": [
+"cipolla rossa"
+],
+"pt": [
+"cebola roxa"
+]
+},
+{
+"en": "garlic",
+"es": [
+"ajo"
+],
+"fr": [
+"ail"
+],
+"de": [
+"knoblauch"
+],
+"it": [
+"aglio"
+],
+"pt": [
+"alho"
+]
+},
+{
+"en": "potato",
+"es": [
+"patata",
+"papa"
+],
+"fr": [
+"pomme de terre"
+],
+"de": [
+"kartoffel"
+],
+"it": [
+"patata"
+],
+"pt": [
+"batata"
+]
+},
+{
+"en": "sweet potato",
+"es": [
+"boniato",
+"batata"
+],
+"fr": [
+"patate douce"
+],
+"de": [
+"süßkartoffel"
+],
+"it": [
+"patata dolce"
+],
+"pt": [
+"batata-doce"
+]
+},
+{
+"en": "carrot",
+"es": [
+"zanahoria"
+],
+"fr": [
+"carotte"
+],
+"de": [
+"karotte",
+"möhre"
+],
+"it": [
+"carota"
+],
+"pt": [
+"cenoura"
+]
+},
+{
+"en": "celery",
+"es": [
+"apio"
+],
+"fr": [
+"céleri"
+],
+"de": [
+"sellerie"
+],
+"it": [
+"sedano"
+],
+"pt": [
+"aipo"
+]
+},
+{
+"en": "cucumber",
+"es": [
+"pepino"
+],
+"fr": [
+"concombre"
+],
+"de": [
+"gurke"
+],
+"it": [
+"cetriolo"
+],
+"pt": [
+"pepino"
+]
+},
+{
+"en": "lettuce",
+"es": [
+"lechuga"
+],
+"fr": [
+"laitue"
+],
+"de": [
+"salat",
+"kopfsalat"
+],
+"it": [
+"lattuga"
+],
+"pt": [
+"alface"
+]
+},
+{
+"en": "spinach",
+"es": [
+"espinacas"
+],
+"fr": [
+"épinards"
+],
+"de": [
+"spinat"
+],
+"it": [
+"spinaci"
+],
+"pt": [
+"espinafres"
+]
+},
+{
+"en": "broccoli",
+"es": [
+"brócoli"
+],
+"fr": [
+"brocoli"
+],
+"de": [
+"brokkoli"
+],
+"it": [
+"broccoli"
+],
+"pt": [
+"brócolos"
+]
+},
+{
+"en": "cauliflower",
+"es": [
+"coliflor"
+],
+"fr": [
+"chou-fleur"
+],
+"de": [
+"blumenkohl"
+],
+"it": [
+"cavolfiore"
+],
+"pt": [
+"couve-flor"
+]
+},
+{
+"en": "cabbage",
+"es": [
+"repollo",
+"col"
+],
+"fr": [
+"chou"
+],
+"de": [
+"kohl",
+"weißkohl"
+],
+"it": [
+"cavolo"
+],
+"pt": [
+"couve",
+"repolho"
+]
+},
+{
+"en": "kale",
+"es": [
+"col rizada"
+],
+"fr": [
+"chou frisé"
+],
+"de": [
+"grünkohl"
+],
+"it": [
+"cavolo nero",
+"cavolo riccio"
+],
+"pt": [
+"couve galega"
+]
+},
+{
+"en": "zucchini",
+"es": [
+"calabacín"
+],
+"fr": [
+"courgette"
+],
+"de": [
+"zucchini"
+],
+"it": [
+"zucchina"
+],
+"pt": [
+"curgete",
+"courgette"
+]
+},
+{
+"en": "eggplant",
+"es": [
+"berenjena"
+],
+"fr": [
+"aubergine"
+],
+"de": [
+"aubergine"
+],
+"it": [
+"melanzana"
+],
+"pt": [
+"beringela"
+]
+},
+{
+"en": "bell pepper",
+"es": [
+"pimiento"
+],
+"fr": [
+"poivron"
+],
+"de": [
+"paprika",
+"paprikaschote"
+],
+"it": [
+"peperone"
+],
+"pt": [
+"pimento"
+]
+},
+{
+"en": "chili",
+"es": [
+"guindilla",
+"chile"
+],
+"fr": [
+"piment"
+],
+"de": [
+"chili"
+],
+"it": [
+"peperoncino"
+],
+"pt": [
+"piri-piri",
+"malagueta"
+]
+},
+{
+"en": "mushrooms",
+"es": [
+"champiñones",
+"setas"
+],
+"fr": [
+"champignons"
+],
+"de": [
+"pilze",
+"champignons"
+],
+"it": [
+"funghi"
+],
+"pt": [
+"cogumelos"
+]
+},
+{
+"en": "peas",
+"es": [
+"guisantes"
+],
+"fr": [
+"petits pois",
+"pois"
+],
+"de": [
+"erbsen"
+],
+"it": [
+"piselli"
+],
+"pt": [
+"ervilhas"
+]
+},
+{
+"en": "green beans",
+"es": [
+"judías verdes"
+],
+"fr": [
+"haricots verts"
+],
+"de": [
+"grüne bohnen"
+],
+"it": [
+"fagiolini"
+],
+"pt": [
+"feijão verde"
+]
+},
+{
+"en": "corn",
+"es": [
+"maíz"
+],
+"fr": [
+"maïs"
+],
+"de": [
+"mais"
+],
+"it": [
+"mais"
+],
+"pt": [
+"milho"
+]
+},
+{
+"en": "leek",
+"es": [
+"puerro"
+],
+"fr": [
+"poireau"
+],
+"de": [
+"lauch",
+"porree"
+],
+"it": [
+"porro"
+],
+"pt": [
+"alho-porro"
+]
+},
+{
+"en": "asparagus",
+"es": [
+"espárragos"
+],
+"fr": [
+"asperges"
+],
+"de": [
+"spargel"
+],
+"it": [
+"asparagi"
+],
+"pt": [
+"espargos"
+]
+},
+{
+"en": "beetroot",
+"es": [
+"remolacha"
+],
+"fr": [
+"betterave"
+],
+"de": [
+"rote bete"
+],
+"it": [
+"barbabietola"
+],
+"pt": [
+"beterraba"
+]
+},
+{
+"en": "pumpkin",
+"es": [
+"calabaza"
+],
+"fr": [
+"citrouille",
+"potiron"
+],
+"de": [
+"kürbis"
+],
+"it": [
+"zucca"
+],
+"pt": [
+"abóbora"
+]
+},
+{
+"en": "spring onion",
+"es": [
+"cebolleta"
+],
+"fr": [
+"oignon vert",
+"ciboule"
+],
+"de": [
+"frühlingszwiebel"
+],
+"it": [
+"cipollotto"
+],
+"pt": [
+"cebolinha"
+]
+},
+{
+"en": "shallot",
+"es": [
+"chalota",
+"escalonia"
+],
+"fr": [
+"échalote"
+],
+"de": [
+"schalotte"
+],
+"it": [
+"scalogno"
+],
+"pt": [
+"chalota",
+"echalota"
+]
+},
+{
+"en": "ginger",
+"es": [
+"jengibre"
+],
+"fr": [
+"gingembre"
+],
+"de": [
+"ingwer"
+],
+"it": [
+"zenzero"
+],
+"pt": [
+"gengibre"
+]
+},
+{
+"en": "avocado",
+"es": [
+"aguacate"
+],
+"fr": [
+"avocat"
+],
+"de": [
+"avocado"
+],
+"it": [
+"avocado"
+],
+"pt": [
+"abacate"
+]
+},
+{
+"en": "lemon",
+"es": [
+"limón"
+],
+"fr": [
+"citron"
+],
+"de": [
+"zitrone"
+],
+"it": [
+"limone"
+],
+"pt": [
+"limão"
+]
+},
+{
+"en": "lime",
+"es": [
+"lima"
+],
+"fr": [
+"citron vert"
+],
+"de": [
+"limette"
+],
+"it": [
+"lime"
+],
+"pt": [
+"lima"
+]
+},
+{
+"en": "orange",
+"es": [
+"naranja"
+],
+"fr": [
+"orange"
+],
+"de": [
+"orange"
+],
+"it": [
+"arancia"
+],
+"pt": [
+"laranja"
+]
+},
+{
+"en": "apple",
+"es": [
+"manzana"
+],
+"fr": [
+"pomme"
+],
+"de": [
+"apfel"
+],
+"it": [
+"mela"
+],
+"pt": [
+"maçã"
+]
+},
+{
+"en": "banana",
+"es": [
+"plátano",
+"banana"
+],
+"fr": [
+"banane"
+],
+"de": [
+"banane"
+],
+"it": [
+"banana"
+],
+"pt": [
+"banana"
+]
+},
+{
+"en": "strawberries",
+"es": [
+"fresas"
+],
+"fr": [
+"fraises"
+],
+"de": [
+"erdbeeren"
+],
+"it": [
+"fragole"
+],
+"pt": [
+"morangos"
+]
+},
+{
+"en": "blueberries",
+"es": [
+"arándanos"
+],
+"fr": [
+"myrtilles"
+],
+"de": [
+"heidelbeeren"
+],
+"it": [
+"mirtilli"
+],
+"pt": [
+"mirtilos"
+]
+},
+{
+"en": "raspberries",
+"es": [
+"frambuesas"
+],
+"fr": [
+"framboises"
+],
+"de": [
+"himbeeren"
+],
+"it": [
+"lamponi"
+],
+"pt": [
+"framboesas"
+]
+},
+{
+"en": "grapes",
+"es": [
+"uvas"
+],
+"fr": [
+"raisin"
+],
+"de": [
+"trauben"
+],
+"it": [
+"uva"
+],
+"pt": [
+"uvas"
+]
+},
+{
+"en": "pineapple",
+"es": [
+"piña"
+],
+"fr": [
+"ananas"
+],
+"de": [
+"ananas"
+],
+"it": [
+"ananas"
+],
+"pt": [
+"ananás"
+]
+},
+{
+"en": "mango",
+"es": [
+"mango"
+],
+"fr": [
+"mangue"
+],
+"de": [
+"mango"
+],
+"it": [
+"mango"
+],
+"pt": [
+"manga"
+]
+},
+{
+"en": "coconut",
+"es": [
+"coco"
+],
+"fr": [
+"noix de coco"
+],
+"de": [
+"kokosnuss"
+],
+"it": [
+"cocco"
+],
+"pt": [
+"coco"
+]
+},
+{
+"en": "raisins",
+"es": [
+"pasas"
+],
+"fr": [
+"raisins secs"
+],
+"de": [
+"rosinen"
+],
+"it": [
+"uvetta"
+],
+"pt": [
+"passas"
+]
+},
+{
+"en": "dates",
+"es": [
+"dátiles"
+],
+"fr": [
+"dattes"
+],
+"de": [
+"datteln"
+],
+"it": [
+"datteri"
+],
+"pt": [
+"tâmaras"
+]
+},
+{
+"en": "almonds",
+"es": [
+"almendras"
+],
+"fr": [
+"amandes"
+],
+"de": [
+"mandeln"
+],
+"it": [
+"mandorle"
+],
+"pt": [
+"amêndoas"
+]
+},
+{
+"en": "walnuts",
+"es": [
+"nueces"
+],
+"fr": [
+"noix"
+],
+"de": [
+"walnüsse"
+],
+"it": [
+"noci"
+],
+"pt": [
+"nozes"
+]
+},
+{
+"en": "peanuts",
+"es": [
+"cacahuetes"
+],
+"fr": [
+"cacahuètes"
+],
+"de": [
+"erdnüsse"
+],
+"it": [
+"arachidi"
+],
+"pt": [
+"amendoins"
+]
+},
+{
+"en": "hazelnuts",
+"es": [
+"avellanas"
+],
+"fr": [
+"noisettes"
+],
+"de": [
+"haselnüsse"
+],
+"it": [
+"nocciole"
+],
+"pt": [
+"avelãs"
+]
+},
+{
+"en": "pine nuts",
+"es": [
+"piñones"
+],
+"fr": [
+"pignons"
+],
+"de": [
+"pinienkerne"
+],
+"it": [
+"pinoli"
+],
+"pt": [
+"pinhões"
+]
+},
+{
+"en": "cashews",
+"es": [
+"anacardos"
+],
+"fr": [
+"noix de cajou"
+],
+"de": [
+"cashewkerne"
+],
+"it": [
+"anacardi"
+],
+"pt": [
+"castanha de caju"
+]
+},
+{
+"en": "rice",
+"es": [
+"arroz"
+],
+"fr": [
+"riz"
+],
+"de": [
+"reis"
+],
+"it": [
+"riso"
+],
+"pt": [
+"arroz"
+]
+},
+{
+"en": "pasta",
+"es": [
+"pasta"
+],
+"fr": [
+"pâtes"
+],
+"de": [
+"nudeln",
+"pasta"
+],
+"it": [
+"pasta"
+],
+"pt": [
+"massa"
+]
+},
+{
+"en": "spaghetti",
+"es": [
+"espaguetis"
+],
+"fr": [
+"spaghetti"
+],
+"de": [
+"spaghetti"
+],
+"it": [
+"spaghetti"
+],
+"pt": [
+"esparguete"
+]
+},
+{
+"en": "noodles",
+"es": [
+"fideos"
+],
+"fr": [
+"nouilles"
+],
+"de": [
+"nudeln"
+],
+"it": [
+"noodles",
+"tagliatelle"
+],
+"pt": [
+"massa chinesa",
+"noodles"
+]
+},
+{
+"en": "bread",
+"es": [
+"pan"
+],
+"fr": [
+"pain"
+],
+"de": [
+"brot"
+],
+"it": [
+"pane"
+],
+"pt": [
+"pão"
+]
+},
+{
+"en": "breadcrumbs",
+"es": [
+"pan rallado"
+],
+"fr": [
+"chapelure"
+],
+"de": [
+"paniermehl"
+],
+"it": [
+"pangrattato"
+],
+"pt": [
+"pão ralado"
+]
+},
+{
+"en": "flour",
+"es": [
+"harina"
+],
+"fr": [
+"farine"
+],
+"de": [
+"mehl"
+],
+"it": [
+"farina"
+],
+"pt": [
+"farinha"
+]
+},
+{
+"en": "plain flour",
+"es": [
+"harina de trigo"
+],
+"fr": [
+"farine de blé",
+"farine"
+],
+"de": [
+"weizenmehl"
+],
+"it": [
+"farina 00"
+],
+"pt": [
+"farinha de trigo"
+]
+},
+{
+"en": "cornstarch",
+"es": [
+"maicena",
+"almidón de maíz"
+],
+"fr": [
+"maïzena",
+"fécule de maïs"
+],
+"de": [
+"speisestärke",
+"maisstärke"
+],
+"it": [
+"amido di mais",
+"maizena"
+],
+"pt": [
+"amido de milho",
+"maizena"
+]
+},
+{
+"en": "oats",
+"es": [
+"avena",
+"copos de avena"
+],
+"fr": [
+"flocons d'avoine"
+],
+"de": [
+"haferflocken"
+],
+"it": [
+"fiocchi d'avena"
+],
+"pt": [
+"aveia",
+"flocos de aveia"
+]
+},
+{
+"en": "couscous",
+"es": [
+"cuscús"
+],
+"fr": [
+"couscous"
+],
+"de": [
+"couscous"
+],
+"it": [
+"couscous"
+],
+"pt": [
+"cuscuz"
+]
+},
+{
+"en": "quinoa",
+"es": [
+"quinoa",
+"quinua"
+],
+"fr": [
+"quinoa"
+],
+"de": [
+"quinoa"
+],
+"it": [
+"quinoa"
+],
+"pt": [
+"quinoa"
+]
+},
+{
+"en": "lentils",
+"es": [
+"lentejas"
+],
+"fr": [
+"lentilles"
+],
+"de": [
+"linsen"
+],
+"it": [
+"lenticchie"
+],
+"pt": [
+"lentilhas"
+]
+},
+{
+"en": "chickpeas",
+"es": [
+"garbanzos"
+],
+"fr": [
+"pois chiches"
+],
+"de": [
+"kichererbsen"
+],
+"it": [
+"ceci"
+],
+"pt": [
+"grão-de-bico"
+]
+},
+{
+"en": "kidney beans",
+"es": [
+"alubias rojas",
+"judías rojas"
+],
+"fr": [
+"haricots rouges"
+],
+"de": [
+"kidneybohnen"
+],
+"it": [
+"fagioli rossi"
+],
+"pt": [
+"feijão encarnado",
+"feijão vermelho"
+]
+},
+{
+"en": "black beans",
+"es": [
+"frijoles negros",
+"alubias negras"
+],
+"fr": [
+"haricots noirs"
+],
+"de": [
+"schwarze bohnen"
+],
+"it": [
+"fagioli neri"
+],
+"pt": [
+"feijão preto"
+]
+},
+{
+"en": "white beans",
+"es": [
+"alubias blancas",
+"judías blancas"
+],
+"fr": [
+"haricots blancs"
+],
+"de": [
+"weiße bohnen"
+],
+"it": [
+"fagioli bianchi",
+"cannellini"
+],
+"pt": [
+"feijão branco"
+]
+},
+{
+"en": "tofu",
+"es": [
+"tofu"
+],
+"fr": [
+"tofu"
+],
+"de": [
+"tofu"
+],
+"it": [
+"tofu"
+],
+"pt": [
+"tofu"
+]
+},
+{
+"en": "sugar",
+"es": [
+"azúcar"
+],
+"fr": [
+"sucre"
+],
+"de": [
+"zucker"
+],
+"it": [
+"zucchero"
+],
+"pt": [
+"açúcar"
+]
+},
+{
+"en": "brown sugar",
+"es": [
+"azúcar moreno"
+],
+"fr": [
+"sucre roux",
+"cassonade"
+],
+"de": [
+"brauner zucker"
+],
+"it": [
+"zucchero di canna"
+],
+"pt": [
+"açúcar mascavado",
+"açúcar amarelo"
+]
+},
+{
+"en": "icing sugar",
+"es": [
+"azúcar glas"
+],
+"fr": [
+"sucre glace"
+],
+"de": [
+"puderzucker"
+],
+"it": [
+"zucchero a velo"
+],
+"pt": [
+"açúcar em pó",
+"açúcar de confeiteiro"
+]
+},
+{
+"en": "honey",
+"es": [
+"miel"
+],
+"fr": [
+"miel"
+],
+"de": [
+"honig"
+],
+"it": [
+"miele"
+],
+"pt": [
+"mel"
+]
+},
+{
+"en": "maple syrup",
+"es": [
+"sirope de arce"
+],
+"fr": [
+"sirop d'érable"
+],
+"de": [
+"ahornsirup"
+],
+"it": [
+"sciroppo d'acero"
+],
+"pt": [
+"xarope de ácer"
+]
+},
+{
+"en": "chocolate",
+"es": [
+"chocolate"
+],
+"fr": [
+"chocolat"
+],
+"de": [
+"schokolade"
+],
+"it": [
+"cioccolato"
+],
+"pt": [
+"chocolate"
+]
+},
+{
+"en": "cocoa",
+"es": [
+"cacao"
+],
+"fr": [
+"cacao"
+],
+"de": [
+"kakao"
+],
+"it": [
+"cacao"
+],
+"pt": [
+"cacau"
+]
+},
+{
+"en": "baking powder",
+"es": [
+"levadura química",
+"polvo de hornear"
+],
+"fr": [
+"levure chimique"
+],
+"de": [
+"backpulver"
+],
+"it": [
+"lievito in polvere"
+],
+"pt": [
+"fermento em pó"
+]
+},
+{
+"en": "yeast",
+"es": [
+"levadura"
+],
+"fr": [
+"levure"
+],
+"de": [
+"hefe"
+],
+"it": [
+"lievito"
+],
+"pt": [
+"fermento"
+]
+},
+{
+"en": "baking soda",
+"es": [
+"bicarbonato"
+],
+"fr": [
+"bicarbonate de soude"
+],
+"de": [
+"natron",
+"backnatron"
+],
+"it": [
+"bicarbonato di sodio"
+],
+"pt": [
+"bicarbonato de sódio"
+]
+},
+{
+"en": "vanilla",
+"es": [
+"vainilla"
+],
+"fr": [
+"vanille"
+],
+"de": [
+"vanille"
+],
+"it": [
+"vaniglia"
+],
+"pt": [
+"baunilha"
+]
+},
+{
+"en": "salt",
+"es": [
+"sal"
+],
+"fr": [
+"sel"
+],
+"de": [
+"salz"
+],
+"it": [
+"sale"
+],
+"pt": [
+"sal"
+]
+},
+{
+"en": "pepper",
+"es": [
+"pimienta"
+],
+"fr": [
+"poivre"
+],
+"de": [
+"pfeffer"
+],
+"it": [
+"pepe"
+],
+"pt": [
+"pimenta"
+]
+},
+{
+"en": "black pepper",
+"es": [
+"pimienta negra"
+],
+"fr": [
+"poivre noir"
+],
+"de": [
+"schwarzer pfeffer"
+],
+"it": [
+"pepe nero"
+],
+"pt": [
+"pimenta preta"
+]
+},
+{
+"en": "paprika",
+"es": [
+"pimentón",
+"paprika"
+],
+"fr": [
+"paprika"
+],
+"de": [
+"paprika"
+],
+"it": [
+"paprica"
+],
+"pt": [
+"colorau",
+"paprica"
+]
+},
+{
+"en": "smoked paprika",
+"es": [
+"pimentón ahumado",
+"pimentón de la vera"
+],
+"fr": [
+"paprika fumé"
+],
+"de": [
+"geräuchertes paprikapulver"
+],
+"it": [
+"paprica affumicata"
+],
+"pt": [
+"paprica fumada"
+]
+},
+{
+"en": "cumin",
+"es": [
+"comino"
+],
+"fr": [
+"cumin"
+],
+"de": [
+"kreuzkümmel"
+],
+"it": [
+"cumino"
+],
+"pt": [
+"cominho"
+]
+},
+{
+"en": "turmeric",
+"es": [
+"cúrcuma"
+],
+"fr": [
+"curcuma"
+],
+"de": [
+"kurkuma"
+],
+"it": [
+"curcuma"
+],
+"pt": [
+"açafrão-da-índia",
+"curcuma"
+]
+},
+{
+"en": "cinnamon",
+"es": [
+"canela"
+],
+"fr": [
+"cannelle"
+],
+"de": [
+"zimt"
+],
+"it": [
+"cannella"
+],
+"pt": [
+"canela"
+]
+},
+{
+"en": "nutmeg",
+"es": [
+"nuez moscada"
+],
+"fr": [
+"noix de muscade"
+],
+"de": [
+"muskatnuss"
+],
+"it": [
+"noce moscata"
+],
+"pt": [
+"noz-moscada"
+]
+},
+{
+"en": "cloves",
+"es": [
+"clavo",
+"clavos"
+],
+"fr": [
+"clous de girofle"
+],
+"de": [
+"nelken"
+],
+"it": [
+"chiodi di garofano"
+],
+"pt": [
+"cravo"
+]
+},
+{
+"en": "saffron",
+"es": [
+"azafrán"
+],
+"fr": [
+"safran"
+],
+"de": [
+"safran"
+],
+"it": [
+"zafferano"
+],
+"pt": [
+"açafrão"
+]
+},
+{
+"en": "oregano",
+"es": [
+"orégano"
+],
+"fr": [
+"origan"
+],
+"de": [
+"oregano"
+],
+"it": [
+"origano"
+],
+"pt": [
+"orégãos",
+"oregãos"
+]
+},
+{
+"en": "basil",
+"es": [
+"albahaca"
+],
+"fr": [
+"basilic"
+],
+"de": [
+"basilikum"
+],
+"it": [
+"basilico"
+],
+"pt": [
+"manjericão"
+]
+},
+{
+"en": "parsley",
+"es": [
+"perejil"
+],
+"fr": [
+"persil"
+],
+"de": [
+"petersilie"
+],
+"it": [
+"prezzemolo"
+],
+"pt": [
+"salsa"
+]
+},
+{
+"en": "coriander",
+"es": [
+"cilantro",
+"coriandro"
+],
+"fr": [
+"coriandre"
+],
+"de": [
+"koriander"
+],
+"it": [
+"coriandolo"
+],
+"pt": [
+"coentros"
+]
+},
+{
+"en": "mint",
+"es": [
+"menta",
+"hierbabuena"
+],
+"fr": [
+"menthe"
+],
+"de": [
+"minze"
+],
+"it": [
+"menta"
+],
+"pt": [
+"hortelã"
+]
+},
+{
+"en": "thyme",
+"es": [
+"tomillo"
+],
+"fr": [
+"thym"
+],
+"de": [
+"thymian"
+],
+"it": [
+"timo"
+],
+"pt": [
+"tomilho"
+]
+},
+{
+"en": "rosemary",
+"es": [
+"romero"
+],
+"fr": [
+"romarin"
+],
+"de": [
+"rosmarin"
+],
+"it": [
+"rosmarino"
+],
+"pt": [
+"alecrim"
+]
+},
+{
+"en": "bay leaf",
+"es": [
+"laurel",
+"hoja de laurel"
+],
+"fr": [
+"laurier",
+"feuille de laurier"
+],
+"de": [
+"lorbeerblatt"
+],
+"it": [
+"alloro"
+],
+"pt": [
+"folha de louro",
+"louro"
+]
+},
+{
+"en": "dill",
+"es": [
+"eneldo"
+],
+"fr": [
+"aneth"
+],
+"de": [
+"dill"
+],
+"it": [
+"aneto"
+],
+"pt": [
+"endro"
+]
+},
+{
+"en": "sage",
+"es": [
+"salvia"
+],
+"fr": [
+"sauge"
+],
+"de": [
+"salbei"
+],
+"it": [
+"salvia"
+],
+"pt": [
+"salva"
+]
+},
+{
+"en": "olive oil",
+"es": [
+"aceite de oliva"
+],
+"fr": [
+"huile d'olive"
+],
+"de": [
+"olivenöl"
+],
+"it": [
+"olio d'oliva"
+],
+"pt": [
+"azeite"
+]
+},
+{
+"en": "vegetable oil",
+"es": [
+"aceite vegetal"
+],
+"fr": [
+"huile végétale"
+],
+"de": [
+"pflanzenöl"
+],
+"it": [
+"olio vegetale"
+],
+"pt": [
+"óleo vegetal"
+]
+},
+{
+"en": "sunflower oil",
+"es": [
+"aceite de girasol"
+],
+"fr": [
+"huile de tournesol"
+],
+"de": [
+"sonnenblumenöl"
+],
+"it": [
+"olio di semi di girasole"
+],
+"pt": [
+"óleo de girassol"
+]
+},
+{
+"en": "vinegar",
+"es": [
+"vinagre"
+],
+"fr": [
+"vinaigre"
+],
+"de": [
+"essig"
+],
+"it": [
+"aceto"
+],
+"pt": [
+"vinagre"
+]
+},
+{
+"en": "balsamic vinegar",
+"es": [
+"vinagre balsámico"
+],
+"fr": [
+"vinaigre balsamique"
+],
+"de": [
+"balsamico-essig"
+],
+"it": [
+"aceto balsamico"
+],
+"pt": [
+"vinagre balsâmico"
+]
+},
+{
+"en": "soy sauce",
+"es": [
+"salsa de soja"
+],
+"fr": [
+"sauce soja"
+],
+"de": [
+"sojasauce"
+],
+"it": [
+"salsa di soia"
+],
+"pt": [
+"molho de soja"
+]
+},
+{
+"en": "mustard",
+"es": [
+"mostaza"
+],
+"fr": [
+"moutarde"
+],
+"de": [
+"senf"
+],
+"it": [
+"senape"
+],
+"pt": [
+"mostarda"
+]
+},
+{
+"en": "mayonnaise",
+"es": [
+"mayonesa"
+],
+"fr": [
+"mayonnaise"
+],
+"de": [
+"mayonnaise"
+],
+"it": [
+"maionese"
+],
+"pt": [
+"maionese"
+]
+},
+{
+"en": "ketchup",
+"es": [
+"kétchup"
+],
+"fr": [
+"ketchup"
+],
+"de": [
+"ketchup"
+],
+"it": [
+"ketchup"
+],
+"pt": [
+"ketchup"
+]
+},
+{
+"en": "tomato paste",
+"es": [
+"concentrado de tomate"
+],
+"fr": [
+"concentré de tomate"
+],
+"de": [
+"tomatenmark"
+],
+"it": [
+"concentrato di pomodoro"
+],
+"pt": [
+"concentrado de tomate"
+]
+},
+{
+"en": "canned tomatoes",
+"es": [
+"tomate en lata",
+"tomate triturado"
+],
+"fr": [
+"tomates en conserve",
+"tomates pelées"
+],
+"de": [
+"dosentomaten"
+],
+"it": [
+"pomodori pelati"
+],
+"pt": [
+"tomate pelado",
+"tomate enlatado"
+]
+},
+{
+"en": "coconut milk",
+"es": [
+"leche de coco"
+],
+"fr": [
+"lait de coco"
+],
+"de": [
+"kokosmilch"
+],
+"it": [
+"latte di cocco"
+],
+"pt": [
+"leite de coco"
+]
+},
+{
+"en": "stock",
+"es": [
+"caldo"
+],
+"fr": [
+"bouillon"
+],
+"de": [
+"brühe"
+],
+"it": [
+"brodo"
+],
+"pt": [
+"caldo"
+]
+},
+{
+"en": "chicken stock",
+"es": [
+"caldo de pollo"
+],
+"fr": [
+"bouillon de poulet"
+],
+"de": [
+"hühnerbrühe"
+],
+"it": [
+"brodo di pollo"
+],
+"pt": [
+"caldo de galinha"
+]
+},
+{
+"en": "water",
+"es": [
+"agua"
+],
+"fr": [
+"eau"
+],
+"de": [
+"wasser"
+],
+"it": [
+"acqua"
+],
+"pt": [
+"água"
+]
+},
+{
+"en": "wine",
+"es": [
+"vino"
+],
+"fr": [
+"vin"
+],
+"de": [
+"wein"
+],
+"it": [
+"vino"
+],
+"pt": [
+"vinho"
+]
+},
+{
+"en": "red wine",
+"es": [
+"vino tinto"
+],
+"fr": [
+"vin rouge"
+],
+"de": [
+"rotwein"
+],
+"it": [
+"vino rosso"
+],
+"pt": [
+"vinho tinto"
+]
+},
+{
+"en": "white wine",
+"es": [
+"vino blanco"
+],
+"fr": [
+"vin blanc"
+],
+"de": [
+"weißwein"
+],
+"it": [
+"vino bianco"
+],
+"pt": [
+"vinho branco"
+]
+},
+{
+"en": "beer",
+"es": [
+"cerveza"
+],
+"fr": [
+"bière"
+],
+"de": [
+"bier"
+],
+"it": [
+"birra"
+],
+"pt": [
+"cerveja"
+]
+},
+{
+"en": "olives",
+"es": [
+"aceitunas"
+],
+"fr": [
+"olives"
+],
+"de": [
+"oliven"
+],
+"it": [
+"olive"
+],
+"pt": [
+"azeitonas"
+]
+},
+{
+"en": "capers",
+"es": [
+"alcaparras"
+],
+"fr": [
+"câpres"
+],
+"de": [
+"kapern"
+],
+"it": [
+"capperi"
+],
+"pt": [
+"alcaparras"
+]
+},
+{
+"en": "pesto",
+"es": [
+"pesto"
+],
+"fr": [
+"pesto"
+],
+"de": [
+"pesto"
+],
+"it": [
+"pesto"
+],
+"pt": [
+"pesto"
+]
+},
+{
+"en": "tahini",
+"es": [
+"tahini",
+"tahina"
+],
+"fr": [
+"tahini"
+],
+"de": [
+"tahini"
+],
+"it": [
+"tahina"
+],
+"pt": [
+"tahini"
+]
+},
+{
+"en": "hummus",
+"es": [
+"hummus"
+],
+"fr": [
+"houmous"
+],
+"de": [
+"hummus"
+],
+"it": [
+"hummus"
+],
+"pt": [
+"húmus"
+]
+},
+{
+"en": "puff pastry",
+"es": [
+"hojaldre"
+],
+"fr": [
+"pâte feuilletée"
+],
+"de": [
+"blätterteig"
+],
+"it": [
+"pasta sfoglia"
+],
+"pt": [
+"massa folhada"
+]
+},
+{
+"en": "tortilla",
+"es": [
+"tortilla"
+],
+"fr": [
+"tortilla"
+],
+"de": [
+"tortilla"
+],
+"it": [
+"tortilla"
+],
+"pt": [
+"tortilha"
+]
+}
+]
