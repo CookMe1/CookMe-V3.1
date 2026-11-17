@@ -70,6 +70,14 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.exception("Index creation failed; continuing startup")
 
+    seed_task = None
+    try:
+        import asyncio
+        from seed_master import seed_master_recipes
+        seed_task = asyncio.create_task(seed_master_recipes(db))   # background: first start on an empty database only
+    except Exception:
+        logger.exception("Could not start the master recipe seeding")
+
     release_task = None
     try:
         import asyncio

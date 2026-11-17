@@ -139,3 +139,6 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 
 ## Share to Social
 - The owner button on a recipe is now **Share to Social** (was "Share publicly"): optional note (max 200 chars, run through the contact-info/profanity filter), consent, our checks, then the recipe appears in **Shared by members** on the Social page with the note. **Remove from Social** takes it back down.
+
+## First start on an empty database
+- `backend/seed_master.py`: when the backend starts and there are **no** master recipes, it loads `data/master_recipes.json` in the background (so the live site's empty database gets the library automatically). Never re-adds recipes you deleted, never touches user data. `AUTO_SEED_MASTER=0` switches it off. Updates later still go through `scripts/load_master_recipes.py`.
