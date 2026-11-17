@@ -459,5 +459,90 @@
   "favorited_by": [],
   "hidden_by": [],
   "gallery_images": []
+ },
+ {
+  "recipe_id": "recipe_a010170b0a67",
+  "title": "Homestyle a “Kick”",
+  "description": "A wonderful homestyle a “kick” - Homestyle inspired and full of flavor.",
+  "image": null,
+  "prep_time": "15 min",
+  "cook_time": "45 min",
+  "servings": 8,
+  "difficulty": "Easy",
+  "ingredients": [
+   {
+    "item": "bacon",
+    "amount": "1/4 pound"
+   },
+   {
+    "item": "button mushrooms",
+    "amount": "1 quart"
+   },
+   {
+    "item": "cilantro",
+    "amount": "8 servings"
+   },
+   {
+    "item": "garlic",
+    "amount": "1 large clove"
+   },
+   {
+    "item": "juice of lime",
+    "amount": "1/2"
+   },
+   {
+    "item": "long pepper",
+    "amount": "1"
+   },
+   {
+    "item": "milk",
+    "amount": "3 cups"
+   },
+   {
+    "item": "olive oil",
+    "amount": "8 servings"
+   },
+   {
+    "item": "potato buds",
+    "amount": "1 cup"
+   },
+   {
+    "item": "cheddar cheese",
+    "amount": "8 servings"
+   },
+   {
+    "item": "onion",
+    "amount": "1/2"
+   },
+   {
+    "item": "vegeta bouillon - plus 6 of water",
+    "amount": "1 cup"
+   }
+  ],
+  "steps": [
+   "Heat a large saucepot with a drizzle of olive oil.",
+   "Place the garlic, long hot pepper, onion and mushrooms in the pot to saut until the onion is clear.Prepare the bacon on a heated griddle and let the bacon get nice and crispy. When the bacon is done set it aside.",
+   "Add the tablespoon of bouillon and the cups of water to the pot and simmer.",
+   "Add the cup of potato buds, stir and continue to simmer on low.",
+   "Add the cups of milk and simmer on low for a few more minutes.When the soup is ready to be served add the lime juice and stir. Top the soup with the bacon bits, cilantro and cheddar cheese."
+  ],
+  "tags": [
+   "dinner",
+   "lunch",
+   "main course",
+   "main dish",
+   "soup"
+  ],
+  "category": "",
+  "cuisine": "",
+  "source_url": "https://www.foodista.com/recipe/7PHPCY4V/creamy-mushroom-soup-with-a-kick",
+  "created_at": "2026-05-15T07:49:08.813Z",
+  "updated_at": "2026-05-15T07:49:08.813Z",
+  "user_id": "system_seeder",
+  "likes_count": 0,
+  "saves_count": 0,
+  "favorited_by": [],
+  "hidden_by": [],
+  "gallery_images": []
  }
 ]

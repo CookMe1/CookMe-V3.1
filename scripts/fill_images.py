@@ -17,16 +17,33 @@ KEY = os.environ.get("PEXELS_API_KEY", "")
 def arg(name, default=None):
     return sys.argv[sys.argv.index(name)+1] if name in sys.argv else default
 
+STOP = {"with", "and", "the", "for", "from", "that", "this", "your", "recipe", "best", "easy", "quick", "simple", "classic", "homemade",
+        "perfect", "fail", "fuss", "amazing", "delicious", "healthy", "light", "meal", "style", "kick", "homestyle", "lick", "plate", "magic",
+        "authentic", "traditional", "ultimate", "favorite", "favourite", "ingredient", "ingredients", "minute", "minutes", "leave", "home", "without", "next"}
+
+def words(title):
+    import re
+    return [w for w in re.findall(r"[a-zA-Z]+", title.lower()) if len(w) > 3 and w not in STOP]
+
+def queries(title):
+    w = words(title)
+    qs = [f"{title} food dish"]
+    if len(w) >= 2: qs.append(" ".join(w[:3]) + " food")
+    if w: qs.append(w[-1] + " dish")
+    if w and w[0] != w[-1]: qs.append(w[0] + " food")
+    return qs
+
 def pexels(title):
-    q = f"{title} food dish"
-    r = requests.get("https://api.pexels.com/v1/search", headers={"Authorization": KEY},
-                     params={"query": q, "per_page": 3, "orientation": "landscape"}, timeout=20)
-    r.raise_for_status()
-    for p in r.json().get("photos", []):
-        # keep only if Pexels' alt text mentions a word from the title (avoids random matches)
-        words = {w for w in title.lower().split() if len(w) > 3}
-        if any(w in (p.get("alt") or "").lower() for w in words):
-            return p["src"]["large"], f"Photo by {p['photographer']} on Pexels"
+    """Try the full title, then shorter searches. Keep a photo only if its description shares a word with the dish name."""
+    keep = set(words(title))
+    for q in queries(title):
+        r = requests.get("https://api.pexels.com/v1/search", headers={"Authorization": KEY},
+                         params={"query": q, "per_page": 5, "orientation": "landscape"}, timeout=20)
+        r.raise_for_status()
+        for p in r.json().get("photos", []):
+            if keep & set(words(p.get("alt") or "")):
+                return p["src"]["large"], f"Photo by {p['photographer']} on Pexels"
+        time.sleep(0.4)
     return None, None
 
 def ai_image(title):
