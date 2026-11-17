@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 
 // Set these in the hosting environment (REACT_APP_...). Until then the pages say to use the in-app report buttons.
 const OPERATOR = process.env.REACT_APP_OPERATOR_NAME || 'the CookMe team';
-const CONTACT = process.env.REACT_APP_CONTACT_EMAIL || '';
+const CONTACT = process.env.REACT_APP_CONTACT_EMAIL || 'mail.cookme@gmail.com';
 const GOVERNING_LAW = process.env.REACT_APP_GOVERNING_LAW || '';
 export const LEGAL_UPDATED = '17 November 2026';
 
