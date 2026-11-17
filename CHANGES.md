@@ -80,3 +80,8 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Flow: Auth0's own page handles sign-up/password/reset. CookMe receives a signed ID token, `POST /api/auth/auth0/callback` checks signature, issuer, audience and expiry, then logs the person in like Google does. No passwords stored by CookMe.
 - Unverified emails are refused, so nobody can take over an existing account by signing up with someone else's address.
 - New dependency: `@auth0/auth0-react` (run `yarn install` after pulling). Tests: `tests/test_auth0.py`.
+
+## Recipe data cleanup
+- `backend/recipe_cleaner.py` + `scripts/clean_recipes.py`: drops label steps ("step 1", "2", "▢"), strips step numbers, splits one-paragraph methods into readable steps, fixes amounts ("1.0 cup" -> "1 cup", "White"+"Rice" -> "White Rice").
+- Applied to `data/master_recipes.json`: 990 recipes tidied, 23 too thin to cook from moved to `data/master_recipes_rejected.json` (1,180 kept).
+- `scripts/load_master_recipes.py --apply --prune` also removes master recipes that are no longer in the file (never touches user recipes).
