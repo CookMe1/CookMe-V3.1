@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, Users, ChefHat, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { CATEGORIES } from '../constants/categories';
 import LoadingScreen from '../components/LoadingScreen';
 import BottomNavigation from '../components/BottomNavigation';
 
@@ -235,15 +236,8 @@ const Dashboard = () => {
             Browse Categories
           </h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-            {[
-              { name: 'Student', icon: '🎓', path: '/student', desc: 'Quick & Easy' },
-              { name: '30 Minutes', icon: '⚡', path: '/quick', desc: 'Fast Cooking' },
-              { name: 'One Pot', icon: '🍲', path: '/instapot', desc: 'Instant Pot & One Pot' },
-              { name: 'Budget', icon: '💰', path: '/budget', desc: 'Cost Effective' },
-              { name: 'Air Fryer', icon: '🍟', path: '/airfryer', desc: 'Crispy & Healthy' },
-              { name: 'All Recipes', icon: '🌍', path: '/recipes', desc: 'Browse everything' }
-            ].map((category) => (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {CATEGORIES.map((c) => ({ name: c.label, icon: c.emoji, path: c.path, desc: c.desc })).map((category) => (
               <Link 
                 key={category.name}
                 to={category.path}

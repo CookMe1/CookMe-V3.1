@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Calendar, ShoppingCart, Package, Users, User, Plus, Menu, X, LogOut, DollarSign, GraduationCap, Zap, Clock } from 'lucide-react';
+import { CATEGORIES } from '../constants/categories';
+import { Home, BookOpen, Calendar, ShoppingCart, Package, Users, User, Plus, Menu, X, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,12 +19,7 @@ const Navigation = () => {
     { path: '/social', label: 'Social', icon: Users }
   ];
 
-  const categoryItems = [
-    { path: '/budget', label: 'Budget', icon: DollarSign },
-    { path: '/student', label: 'Student', icon: GraduationCap },
-    { path: '/instapot', label: 'Instapot', icon: Zap },
-    { path: '/quick', label: '30 Mins', icon: Clock }
-  ];
+  const categoryItems = CATEGORIES.map(c => ({ path: c.path, label: c.label, icon: c.Icon }));
 
   return (
     <nav className="bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800 sticky top-0 z-50 hidden md:block">
