@@ -13,6 +13,24 @@ export const startAuth0Login = () => {
   window.dispatchEvent(new Event('cookme:auth0-login'));
 };
 
+// While Auth0 is reading the login code from the address bar, hold the rest of the app back.
+// Otherwise the router's own redirects (/ -> /dashboard -> /login) erase the code and login never finishes.
+const Gate = ({ children }) => {
+  const { isLoading, error } = useAuth0();
+  const returning = /[?&](code|state|error)=/.test(window.location.search);
+  useEffect(() => {
+    if (error) toast.error(error.message || 'Login failed. Please try again.');
+  }, [error]);
+  if (returning && isLoading) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center text-zinc-400 text-sm">
+        Signing you in...
+      </div>
+    );
+  }
+  return children;
+};
+
 const Handler = () => {
   const { loginWithRedirect, isAuthenticated, isLoading, getIdTokenClaims } = useAuth0();
   const { handleOAuthCallback } = useAuth();
@@ -54,7 +72,7 @@ const Auth0Bridge = ({ children }) => {
       cacheLocation="localstorage"
     >
       <Handler />
-      {children}
+      <Gate>{children}</Gate>
     </Auth0Provider>
   );
 };
