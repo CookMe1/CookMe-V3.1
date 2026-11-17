@@ -20,7 +20,7 @@ const InstapotRecipes = () => {
       try {
         const token = getToken();
         const [communityRes, userRes] = await Promise.all([
-          fetch(`${API_URL}/api/community/recipes?category=instapot&limit=24`, {
+          fetch(`${API_URL}/api/recipes/type/instapot?limit=60`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
           fetch(`${API_URL}/api/recipes?limit=100`, {

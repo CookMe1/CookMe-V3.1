@@ -23,7 +23,7 @@ const BudgetRecipes = () => {
         const token = getToken();
         // Fetch from community DB first (budget/cheap category), then user's own
         const [communityRes, userRes] = await Promise.all([
-          fetch(`${API_URL}/api/community/recipes?category=budget&limit=24`, {
+          fetch(`${API_URL}/api/recipes/type/budget?limit=60`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
           fetch(`${API_URL}/api/recipes?limit=100`, {

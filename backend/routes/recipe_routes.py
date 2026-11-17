@@ -966,6 +966,19 @@ The image should be:
 
 
 # Get recipes by category
+@router.get("/type/{cooking_type}")
+async def get_recipes_by_cooking_type(cooking_type: str, request: Request, limit: int = 60, skip: int = 0):
+    """Shared master recipes for a cooking type: quick, student, budget, instapot, airfryer."""
+    db = request.app.state.db
+    await get_current_user(request, db)
+    tags = {"quick": ["quick"], "student": ["student"], "budget": ["budget"],
+            "instapot": ["instant pot", "pressure cooker", "slow cooker", "one pot"], "airfryer": ["air fryer"]}.get(cooking_type)
+    if not tags:
+        raise HTTPException(status_code=404, detail="Unknown cooking type")
+    q = {"user_id": "system_seeder", "tags": {"$in": tags}}
+    recipes = await db.recipes.find(q, {"_id": 0}).sort("title", 1).skip(skip).limit(min(limit, 200)).to_list(min(limit, 200))
+    return {"recipes": recipes, "total": await db.recipes.count_documents(q)}
+
 @router.get("/category/{category}")
 async def get_recipes_by_category(category: str, request: Request):
     db = request.app.state.db

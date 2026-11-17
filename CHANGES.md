@@ -24,3 +24,11 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Emergent LLM package and Emergent Google login (still required for AI features and login).
 - plugins/visual-edits and plugins/health-check (craco.config.js loads them in dev), legacy /import-facebook-recipe (tests use it),
   /import-async + registry/cache (cost savings, not yet wired to the frontend), .emergent/, memory/PRD.md (contains test credentials).
+
+## Master recipes + cooking types
+- `data/master_recipes.json`: 1,184 shared recipes, no user data (no owners, uploaders, favourites, gallery, likes).
+- `scripts/load_master_recipes.py`: loads them (dry run, then `--apply`). Re-runnable.
+- `scripts/check_images.py [--fix]`: checks every image link is alive (needs internet).
+- `scripts/build_master_recipes.py`: how the file was built from the export (not needed to run the app).
+- New endpoint `GET /api/recipes/type/{quick|student|budget|instapot|airfryer}`; Quick, Student, Budget and One-pot pages now use it.
+- Master file also keeps the user-imported recipes (ownership and all user fields removed); embedded photos are kept.
