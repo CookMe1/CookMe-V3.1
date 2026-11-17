@@ -1,0 +1,463 @@
+[
+ {
+  "recipe_id": "recipe_421f03bdc98e",
+  "title": "Roja Sangria",
+  "description": "Roja Sangria requires about 45 minutes from start to finish. This recipe serves 12 and costs $2.45 per serving. Watching your figure? This gluten free, dairy free, lacto ovo vegetarian, and vegan recipe has 174 calories, 2g of protein, and 1g of fat per serving. Only a fe",
+  "image": null,
+  "prep_time": "15 min",
+  "cook_time": "45 min",
+  "servings": 12,
+  "difficulty": "Easy",
+  "ingredients": [
+   {
+    "item": "dry\" roja\" wine",
+    "amount": "2 bottles"
+   },
+   {
+    "item": "brandy",
+    "amount": "1 cup"
+   },
+   {
+    "item": "sugar",
+    "amount": "1/2 cup"
+   },
+   {
+    "item": "sprite",
+    "amount": "12 ounces"
+   },
+   {
+    "item": "raspberries",
+    "amount": "1 small container"
+   },
+   {
+    "item": "raspberries",
+    "amount": "1 quart"
+   },
+   {
+    "item": "apples",
+    "amount": "2"
+   },
+   {
+    "item": "oranges",
+    "amount": "2"
+   },
+   {
+    "item": "limes",
+    "amount": "2"
+   }
+  ],
+  "steps": [
+   "Wash all fruit thoroughly. Using the raspberries and a half quart of strawberries, mash the fruit to a puree using a hand potato masher.",
+   "Cut the remaining strawberries, and section the apples, oranges, and limes. Also squeeze and juice some of the oranges and limes to add additional fruit juices to the sangria.",
+   "Add the wine, brandy, sugar and Sprite. Stir and taste. I prefer to add Sprite for desired sweetness over sugar. This is truly a taste testing game. It may also help to refrigerate and chill before tasting again."
+  ],
+  "tags": [
+   "30 min",
+   "beverage",
+   "drink",
+   "quick",
+   "vegan",
+   "vegetarian"
+  ],
+  "category": "",
+  "cuisine": "",
+  "source_url": "https://www.foodista.com/recipe/78VJS252/roja-sangria",
+  "created_at": "2026-05-15T07:49:04.593Z",
+  "updated_at": "2026-05-15T07:49:04.593Z",
+  "user_id": "system_seeder",
+  "likes_count": 0,
+  "saves_count": 0,
+  "favorited_by": [],
+  "hidden_by": [],
+  "gallery_images": []
+ },
+ {
+  "recipe_id": "recipe_8b7e82610f32",
+  "title": "Bluebird",
+  "description": "Bluebird could be just the gluten free and dairy free recipe you've been looking for. This recipe makes 1 servings with 198 calories, 0g of protein, and 0g of fat each. For $2.55 per serving, this recipe covers 1% of your daily requirements of vitamins and m",
+  "image": "/recipe-images/recipe_8b7e82610f32.jpg",
+  "prep_time": "15 min",
+  "cook_time": "45 min",
+  "servings": 1,
+  "difficulty": "Easy",
+  "ingredients": [
+   {
+    "item": "gin",
+    "amount": "1 1/2 oz"
+   },
+   {
+    "item": "triple sec",
+    "amount": "1/2 oz"
+   },
+   {
+    "item": "curacao",
+    "amount": "1/2 oz"
+   },
+   {
+    "item": "bitters",
+    "amount": "2 dashes"
+   },
+   {
+    "item": "maraschino cherry",
+    "amount": "1"
+   },
+   {
+    "item": "twist of lemon peel",
+    "amount": "1"
+   }
+  ],
+  "steps": [
+   "In a mixing glass half-filled with crushed ice, combine the gin, triple sec, Curacao, and bitters. Stir well.",
+   "Strain into a cocktail glass and garnish with the lemon twist and the cherry."
+  ],
+  "tags": [
+   "30 min",
+   "beverage",
+   "drink",
+   "quick",
+   "vegan",
+   "vegetarian"
+  ],
+  "category": "",
+  "cuisine": "",
+  "source_url": "https://www.thecocktaildb.com/drink/11120",
+  "created_at": "2026-05-15T07:49:04.627Z",
+  "updated_at": "2026-05-15T07:49:04.627Z",
+  "user_id": "system_seeder",
+  "likes_count": 0,
+  "saves_count": 0,
+  "favorited_by": [],
+  "hidden_by": [],
+  "gallery_images": [],
+  "image_attribution": "Photo by Tina Nord on Pexels"
+ },
+ {
+  "recipe_id": "recipe_517b6b088e26",
+  "title": "Gin Sling",
+  "description": "The recipe Gin Sling can be made in around around 45 minutes. One portion of this dish contains approximately 0g of protein, 0g of fat, and a total of 156 calories. For $2.58 per serving, you get a beverage that serves 1. If you have twist of orange peel, juice of ",
+  "image": null,
+  "prep_time": "15 min",
+  "cook_time": "45 min",
+  "servings": 1,
+  "difficulty": "Easy",
+  "ingredients": [
+   {
+    "item": "gin",
+    "amount": "2 oz"
+   },
+   {
+    "item": "juice of lemon",
+    "amount": "1/2"
+   },
+   {
+    "item": "powdered sugar",
+    "amount": "1 tsp"
+   },
+   {
+    "item": "water",
+    "amount": "1 tsp"
+   },
+   {
+    "item": "twist of orange peel",
+    "amount": "1 serving"
+   }
+  ],
+  "steps": [
+   "Dissolve powdered sugar in mixture of water and juice of lemon.",
+   "Add gin.",
+   "Pour into an old-fashioned glass over ice cubes and stir.",
+   "Add the twist of orange peel and serve."
+  ],
+  "tags": [
+   "30 min",
+   "beverage",
+   "drink",
+   "quick",
+   "vegan",
+   "vegetarian"
+  ],
+  "category": "",
+  "cuisine": "",
+  "source_url": "https://www.thecocktaildb.com/drink/11415",
+  "created_at": "2026-05-15T07:49:08.790Z",
+  "updated_at": "2026-05-15T07:49:08.790Z",
+  "user_id": "system_seeder",
+  "likes_count": 0,
+  "saves_count": 0,
+  "favorited_by": [],
+  "hidden_by": [],
+  "gallery_images": []
+ },
+ {
+  "recipe_id": "recipe_e27693acb70b",
+  "title": "Frozen Pineapple Daiquiri",
+  "description": "Frozen Pineapple Daiquiri could be just the gluten free, dairy free, lacto ovo vegetarian, and fodmap friendly recipe you've been looking for. For $3.5 per serving, this recipe covers 21% of your daily requirements of vitamins and minerals. This beverage has 444 calories,",
+  "image": "/recipe-images/recipe_e27693acb70b.jpg",
+  "prep_time": "15 min",
+  "cook_time": "45 min",
+  "servings": 1,
+  "difficulty": "Easy",
+  "ingredients": [
+   {
+    "item": "rum",
+    "amount": "1 1/2 oz"
+   },
+   {
+    "item": "pineapple",
+    "amount": "4 chunks"
+   },
+   {
+    "item": "tblsp lime juice",
+    "amount": "1"
+   },
+   {
+    "item": "sugar",
+    "amount": "1/2 tsp"
+   }
+  ],
+  "steps": [
+   "Combine all ingredients with 1 cup of crushed ice in an electric blender. Blend at a low speed for a short length of time.",
+   "Pour into a cocktail glass and serve."
+  ],
+  "tags": [
+   "30 min",
+   "beverage",
+   "drink",
+   "quick",
+   "vegan",
+   "vegetarian"
+  ],
+  "category": "",
+  "cuisine": "",
+  "source_url": "https://www.thecocktaildb.com/drink/11391",
+  "created_at": "2026-05-15T07:49:08.794Z",
+  "updated_at": "2026-05-15T07:49:08.794Z",
+  "user_id": "system_seeder",
+  "likes_count": 0,
+  "saves_count": 0,
+  "favorited_by": [],
+  "hidden_by": [],
+  "gallery_images": [],
+  "image_attribution": "Photo by Kunal Lakhotia on Pexels"
+ },
+ {
+  "recipe_id": "recipe_68f1a1d67b08",
+  "title": "Gin Smash",
+  "description": "If you want to add more gluten free, dairy free, lacto ovo vegetarian, and vegan recipes to your recipe box, Gin Smash might be a recipe you should try. This recipe serves 1 and costs $2.03 per serving. One serving contains 154 calories, 0g of protein, and 0g of fat. Head",
+  "image": null,
+  "prep_time": "15 min",
+  "cook_time": "45 min",
+  "servings": 1,
+  "difficulty": "Easy",
+  "ingredients": [
+   {
+    "item": "gin",
+    "amount": "2 oz"
+   },
+   {
+    "item": "carbonated water",
+    "amount": "1 oz"
+   },
+   {
+    "item": "sugar",
+    "amount": "1 cube"
+   },
+   {
+    "item": "mint",
+    "amount": "4"
+   },
+   {
+    "item": "orange",
+    "amount": "1 slice"
+   },
+   {
+    "item": "cherry",
+    "amount": "1"
+   }
+  ],
+  "steps": [
+   "Muddle sugar with carbonated water and mint sprigs in an old-fashioned glass.",
+   "Add gin and 1 ice cube. Stir, add the orange slice and the cherry, and serve."
+  ],
+  "tags": [
+   "30 min",
+   "beverage",
+   "drink",
+   "quick",
+   "vegan",
+   "vegetarian"
+  ],
+  "category": "",
+  "cuisine": "",
+  "source_url": "https://www.thecocktaildb.com/drink/11416",
+  "created_at": "2026-05-15T07:49:08.839Z",
+  "updated_at": "2026-05-15T07:49:08.839Z",
+  "user_id": "system_seeder",
+  "likes_count": 0,
+  "saves_count": 0,
+  "favorited_by": [],
+  "hidden_by": [],
+  "gallery_images": []
+ },
+ {
+  "recipe_id": "recipe_bb2539d06a0d",
+  "title": "Gin Lemon",
+  "description": "Gin Lemon could be just the gluten free, dairy free, lacto ovo vegetarian, and fodmap friendly recipe you've been looking for. This recipe serves 1. One serving contains 157 calories, 0g of protein, and 0g of fat. For $2.54 per serving, this recipe covers 2%",
+  "image": null,
+  "prep_time": "15 min",
+  "cook_time": "45 min",
+  "servings": 1,
+  "difficulty": "Easy",
+  "ingredients": [
+   {
+    "item": "gin",
+    "amount": "6 cl"
+   },
+   {
+    "item": "lemon juice",
+    "amount": "8 cl"
+   },
+   {
+    "item": "lemon peel",
+    "amount": "1 Slice"
+   },
+   {
+    "item": "ice",
+    "amount": "1 cubes"
+   }
+  ],
+  "steps": [
+   "For the preparation of the gin lemon you will not need the shaker. Fill the tumbler with ice, pour the gin and lemonade over it.",
+   "Gently mix and decorate with a slice of lemon. Those who prefer can also add a few mint leaves. Your gin lemon is ready to be served."
+  ],
+  "tags": [
+   "30 min",
+   "beverage",
+   "drink",
+   "quick",
+   "vegan",
+   "vegetarian"
+  ],
+  "category": "",
+  "cuisine": "",
+  "source_url": "https://www.thecocktaildb.com/drink/178366",
+  "created_at": "2026-05-15T07:49:10.905Z",
+  "updated_at": "2026-05-15T07:49:10.905Z",
+  "user_id": "system_seeder",
+  "likes_count": 0,
+  "saves_count": 0,
+  "favorited_by": [],
+  "hidden_by": [],
+  "gallery_images": []
+ },
+ {
+  "recipe_id": "recipe_76b08007ec9e",
+  "title": "Sex on the Beach",
+  "description": "If you want to add more gluten free, dairy free, lacto ovo vegetarian, and vegan recipes to your repertoire, Sex on the Beach might be a recipe you should try. One portion of this dish contains approximately 2g of protein, 1g of fat, and a total of 278 calories. This reci",
+  "image": null,
+  "prep_time": "15 min",
+  "cook_time": "45 min",
+  "servings": 1,
+  "difficulty": "Easy",
+  "ingredients": [
+   {
+    "item": "vodka",
+    "amount": "1 oz"
+   },
+   {
+    "item": "peach schnapps",
+    "amount": "3/4 oz"
+   },
+   {
+    "item": "cranberry juice",
+    "amount": "1 serving"
+   },
+   {
+    "item": "orange juice",
+    "amount": "1 serving"
+   }
+  ],
+  "steps": [
+   "Build all ingredients in a highball glass filled with ice.",
+   "Garnish with orange slice."
+  ],
+  "tags": [
+   "30 min",
+   "beverage",
+   "budget",
+   "cheap",
+   "drink",
+   "easy",
+   "quick",
+   "student",
+   "vegan",
+   "vegetarian"
+  ],
+  "category": "",
+  "cuisine": "",
+  "source_url": "https://www.thecocktaildb.com/drink/12754",
+  "created_at": "2026-05-15T07:49:10.915Z",
+  "updated_at": "2026-05-15T07:49:10.915Z",
+  "user_id": "system_seeder",
+  "likes_count": 0,
+  "saves_count": 0,
+  "favorited_by": [],
+  "hidden_by": [],
+  "gallery_images": []
+ },
+ {
+  "recipe_id": "recipe_2df0bb32e71c",
+  "title": "Mint Julep for Two",
+  "description": "A wonderful mint julep for two - Homestyle inspired and full of flavor.",
+  "image": null,
+  "prep_time": "15 min",
+  "cook_time": "45 min",
+  "servings": 1,
+  "difficulty": "Easy",
+  "ingredients": [
+   {
+    "item": "mint",
+    "amount": "6 sprigs"
+   },
+   {
+    "item": "simple syrup",
+    "amount": "1 tablespoon"
+   },
+   {
+    "item": "ice",
+    "amount": "1 serving"
+   },
+   {
+    "item": "bourbon",
+    "amount": "1 ounce"
+   }
+  ],
+  "steps": [
+   "In a tall glass, add the mint and simple syrup. With the handle of a spoon, crush and mash the leaves to extract the flavors. Fill the glass with the crushed ice and pour in the bourbon. Using a tea spoon, jiggle the contents to mix and chill.",
+   "Strain into a julep cup filled with crushed ice.",
+   "Garnish with fresh mint sprigs."
+  ],
+  "tags": [
+   "30 min",
+   "antipasti",
+   "antipasto",
+   "appetizer",
+   "quick",
+   "snack",
+   "starter",
+   "vegan",
+   "vegetarian"
+  ],
+  "category": "",
+  "cuisine": "",
+  "source_url": "https://www.foodista.com/recipe/8334LG47/mint-juleps",
+  "created_at": "2026-05-15T07:49:10.937Z",
+  "updated_at": "2026-05-15T07:49:10.937Z",
+  "user_id": "system_seeder",
+  "likes_count": 0,
+  "saves_count": 0,
+  "favorited_by": [],
+  "hidden_by": [],
+  "gallery_images": []
+ }
+]

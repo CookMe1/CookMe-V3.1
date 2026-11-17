@@ -47,6 +47,8 @@ if __name__ == "__main__":
         if KEY and searches >= MAX and "--ai" not in sys.argv:
             print(f"Reached the hourly Pexels limit. Progress saved. Run the same command again in 1 hour."); break
         dest = OUT/f"{r['recipe_id']}.jpg"; img = None; credit = None
+        if dest.exists():   # already downloaded earlier: just link it, no search needed
+            r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r.setdefault("image_attribution", "Photo from Pexels"); done += 1; continue
         try:
             if KEY:
                 searches += 1

@@ -12,7 +12,7 @@ def is_dessert(r) -> bool:
     t = (r.get("title") or "").lower()
     tags = set(x.lower() for x in r.get("tags") or [] if isinstance(x, str))
     return (r.get("category") == "dessert") or bool(tags & {"dessert", "desert", "cake", "pudding", "baking", "sweet"}) or bool(
-        re.search(r"cake|pudding|curd|delight|cookie|brownie|tart\b|pie\b|fudge|ice cream|mousse|cobbler|crumble|biscuit|muffin|candy", t))
+        re.search(r"cake|pudding|curd|delight|cookie|brownie|tart\b|pie\b|fudge|ice cream|mousse|cobbler|crumble|biscuit|muffin|candy|dessert|\bbars?\b|rocky road|truffle|sundae|brittle|macaron|meringue|sorbet|gelato|caramels?\b", t))
 
 
 def types(r):

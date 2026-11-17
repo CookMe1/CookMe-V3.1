@@ -29,7 +29,7 @@ def test_every_recipe_has_content_and_valid_image():
     for r in DATA:
         assert r["ingredients"] and r["steps"]
         img = r.get("image")
-        assert img is None or img.startswith(("http", "data:image/"))
+        assert img is None or img.startswith(("http", "data:image/", "/recipe-images/"))
 
 
 def test_cooking_types_present():

@@ -137,6 +137,9 @@ export const AuthProvider = ({ children }) => {
       if (provider === 'google') {
         endpoint = '/auth/google/callback';
         body = { session_id: params.session_id };
+      } else if (provider === 'auth0') {
+        endpoint = '/auth/auth0/callback';
+        body = { id_token: params.id_token };
       } else if (provider === 'facebook' || provider === 'instagram') {
         endpoint = '/auth/facebook/callback';
         body = { access_token: params.access_token, provider };

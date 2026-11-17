@@ -72,3 +72,22 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - `scripts/check_images.py` now flags missing, dead, tiny, stock and repeated images (`--fix` blanks them).
 - `scripts/fill_images.py` fills blanks from Pexels (free key) and optionally AI (`--ai`, on Emergent). Run both on a machine with internet, then commit `frontend/public/recipe-images/` + the JSON.
 - Meal plans: dinners need 6+ ingredients (or a main-course tag); sides, dips and snacks (e.g. Padron peppers) are excluded.
+
+## Email login (Auth0)
+- Login page gets a "Continue with email" button when these are set (otherwise it stays hidden and nothing changes):
+  - Frontend env: `REACT_APP_AUTH0_DOMAIN`, `REACT_APP_AUTH0_CLIENT_ID`
+  - Backend env: `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`
+- Flow: Auth0's own page handles sign-up/password/reset. CookMe receives a signed ID token, `POST /api/auth/auth0/callback` checks signature, issuer, audience and expiry, then logs the person in like Google does. No passwords stored by CookMe.
+- Unverified emails are refused, so nobody can take over an existing account by signing up with someone else's address.
+- New dependency: `@auth0/auth0-react` (run `yarn install` after pulling). Tests: `tests/test_auth0.py`.
+
+## Recipe data cleanup
+- `backend/recipe_cleaner.py` + `scripts/clean_recipes.py`: drops label steps ("step 1", "2", "▢"), strips step numbers, splits one-paragraph methods into readable steps, fixes amounts ("1.0 cup" -> "1 cup", "White"+"Rice" -> "White Rice").
+- Applied to `data/master_recipes.json`: 990 recipes tidied, 23 too thin to cook from moved to `data/master_recipes_rejected.json` (1,180 kept).
+- `scripts/load_master_recipes.py --apply --prune` also removes master recipes that are no longer in the file (never touches user recipes).
+
+## Checkup fixes
+- Pantry suggestions now rank by how many of your pantry items a recipe uses (and need 2+ when you have 2+), with synonyms ("pasta" covers spaghetti/penne, "cheese" covers cheddar/feta, etc.). Before, a 1-item omelette could outrank chicken-and-rice dishes.
+- Meal plans: fixed doubled-backslash typos that stopped the "not a meal" filter matching chips/nuts/ideas; desserts such as "Rocky Road Dessert Bars" and caramels no longer count as dinner.
+- Recipe photos: removed 6 unused files, recompressed the largest (max 182 KB).
+- New tests: `tests/test_regressions.py`.

@@ -22,7 +22,7 @@ def _words(text):
     return {w.rstrip("s") for w in re.findall(r"[a-z]+", (text or "").lower()) if w not in STOP and len(w) > 2}
 
 
-NOT_A_MEAL = r"\bbuns?\b|sauce\b|dressing|marinade|\bdips?\b|syrup|relish|chutney|\bjam\b|stuffing|side dish|\bglaze\b|\bstock\b|\brub\b|vinaigrette|compote|pickle|parfait|smoothie|ugali|pretzel|queso|guacamole|hummus|salsa|chips\\b|crisps|nuts\\b|olives|sauerkraut|kimchi|roundup|collection|ideas\\b|\\bgroup\\b"
+NOT_A_MEAL = r"\bbuns?\b|sauce\b|dressing|marinade|\bdips?\b|syrup|relish|chutney|\bjam\b|stuffing|side dish|\bglaze\b|\bstock\b|\brub\b|vinaigrette|compote|brioche|\bloaf\b|pickle|parfait|smoothie|ugali|pretzel|queso|guacamole|hummus|salsa|chips\b|crisps|nuts\b|olives|sauerkraut|kimchi|roundup|collection|ideas\b|\bgroup\b"
 LIGHT = r"salad|soup|sandwich|wrap|toastie|panini|slaw"
 MAIN_TAGS = {"dinner", "main course", "main dish"}
 
