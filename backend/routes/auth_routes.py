@@ -21,7 +21,8 @@ import jwt
 from jwt import PyJWKClient
 from starlette.concurrency import run_in_threadpool
 
-from auth import create_access_token, get_current_user, generate_user_id
+import account_ops
+from auth import create_access_token, get_current_user, generate_user_id, is_admin
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def _upsert_oauth_user(db, email: str, name: str, avatar: str, provider: str) -> dict:
     """Find or create a user from an OAuth provider. Returns the user doc."""
     user_doc = await db.users.find_one({"email": email}, {"_id": 0})
+    banned = await db.banned_emails.find_one({"email": (email or "").lower()})
+    if banned or (user_doc and user_doc.get("status") == "banned"):
+        raise HTTPException(status_code=403, detail="This account has been closed.")
 
     if user_doc:
         update_fields = {"auth_provider": provider}
@@ -327,14 +331,15 @@ async def apple_callback(request: Request, response: Response):
 @router.get("/me")
 async def get_me(request: Request):
     db = request.app.state.db
-    user = await get_current_user(request, db)
+    user = await get_current_user(request, db, allow_restricted=True)
+    user = dict(user)
+    user["is_admin"] = is_admin(user)
     return user
 
 
 # ── Download / delete my data (GDPR) ──────────────────────────────────────────
 
-_USER_DATA = ["recipes", "pantry_items", "shopping_list", "shopping_lists", "cookbooks", "meal_plans",
-              "recipe_saves", "recipe_likes", "community_likes", "comments"]
+_USER_DATA = account_ops.USER_DATA
 
 
 @router.get("/me/export")
@@ -362,13 +367,7 @@ async def delete_my_account(request: Request, response: Response):
     if body.get("confirm") is not True:
         raise HTTPException(status_code=400, detail="Confirmation required")
     uid = user["user_id"]
-    mine = await db.comments.find({"user_id": uid}, {"_id": 0, "comment_id": 1}).to_list(100000)
-    if mine:
-        await db.comments.delete_many({"parent_id": {"$in": [c["comment_id"] for c in mine]}})
-    for name in _USER_DATA:
-        await db[name].delete_many({"user_id": uid})
-    await db.recipe_consents.update_many({"user_id": uid}, {"$set": {"account_deleted_at": datetime.now(timezone.utc)}})
-    await db.user_sessions.delete_many({"user_id": uid})
+    await account_ops.erase_user_content(db, uid)
     await db.users.delete_one({"user_id": uid})
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Your account and data have been deleted"}

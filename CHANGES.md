@@ -126,3 +126,13 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - "Shared by members" strip on the Social page (`/api/social/feed`).
 - Account: `GET /api/auth/me/export` (download my data) and `DELETE /api/auth/me` (erase account + content), buttons in Profile → Settings.
 - NOT legal advice: have a lawyer review both pages before launch.
+
+## Admin account, reporting and account review
+- **Admin**: set `ADMIN_EMAILS` (comma list) in the backend env. Those emails (signed in via Google or Auth0, which verify email) get an "Admin: review reported content" link in Profile → Settings and the `/admin` page. Nobody else can open it.
+- **Report buttons** on every public/master recipe and comment: report the item, or report the person who wrote/shared it.
+  - Report a *user* → their account is locked at once. They see "Your profile is under review" instead of the app; their public recipes and comments are hidden meanwhile.
+  - Report a *recipe* → it is taken down (private, "under review") at once.
+  - Report a *comment* → hidden after 3 reports; always shows in the admin queue.
+- **Admin queue** (`/admin`): the reported profile (name, email, recipes, recent comments), the full recipe (photo, ingredients, method) or the comment, every reporter's reason/details. Buttons: Reinstate/Keep it (restores everything), Delete (recipe/comment), Delete & block account (erases the person's content and blocks that email from logging in again).
+- **Email alert**: optional. Set `SMTP_HOST`, `SMTP_USER`, `SMTP_PASSWORD` (+ `SMTP_FROM`, `SMTP_PORT`, `APP_URL`) and each report is emailed to `ADMIN_EMAILS`. Without SMTP the alert is only in the queue and the server log.
+- **Abuse guards**: max 5 reports per user per day, one open report per target, admins can't be reported/locked, and a reporter whose reports are dismissed 3 times can no longer report.

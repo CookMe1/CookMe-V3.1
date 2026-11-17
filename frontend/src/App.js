@@ -23,6 +23,7 @@ import RecipeDetail from './pages/RecipeDetail';
 import AddRecipe from './pages/AddRecipe';
 import EditRecipe from './pages/EditRecipe';
 import { Terms, Privacy } from './pages/Legal';
+import Admin from './pages/Admin';
 import MealPlanner from './pages/MealPlanner';
 import ShoppingList from './pages/ShoppingList';
 import Pantry from './pages/Pantry';
@@ -138,6 +139,14 @@ function AppRouter() {
         <ProtectedRoute>
           <Navigation />
           <EditRecipe />
+          <BottomNavigation />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin" element={
+        <ProtectedRoute>
+          <Navigation />
+          <Admin />
           <BottomNavigation />
         </ProtectedRoute>
       } />

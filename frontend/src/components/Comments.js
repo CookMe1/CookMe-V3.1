@@ -3,6 +3,7 @@ import { MessageCircle, Flag, Trash2, CornerDownRight, Loader2, ShieldCheck } fr
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
+import ReportDialog from './ReportDialog';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 const headers = () => {
@@ -83,14 +84,9 @@ const Comments = ({ recipeId, isOwner }) => {
     const res = await fetch(`${API_URL}/api/social/comments/${id}`, { method: 'DELETE', headers: headers() });
     if (res.ok) { toast.success('Deleted'); load(); } else toast.error('Could not delete.');
   };
-  const report = async (id) => {
-    const res = await fetch(`${API_URL}/api/social/comments/${id}/report`, { method: 'POST', headers: headers(), body: JSON.stringify({ reason: 'inappropriate' }) });
-    if (res.ok) { toast.success('Thanks, we’ll review it.'); load(); } else toast.error('Could not send the report.');
-  };
-  const reportRecipe = async () => {
-    const res = await fetch(`${API_URL}/api/social/recipes/${recipeId}/report`, { method: 'POST', headers: headers(), body: JSON.stringify({ reason: 'inappropriate' }) });
-    if (res.ok) toast.success('Thanks, we’ll review this recipe.'); else toast.error('Could not send the report.');
-  };
+  const [reporting, setReporting] = useState(null);
+  const report = (id) => setReporting({ type: 'comment', id });
+  const reportRecipe = () => setReporting({ type: 'recipe', id: recipeId });
 
   return (
     <section className="mt-10" data-testid="comments-section">
@@ -125,6 +121,7 @@ const Comments = ({ recipeId, isOwner }) => {
           ))}
       </div>
       <p className="text-xs text-zinc-600 mt-6 flex items-center gap-1"><ShieldCheck className="w-3 h-3" /> Comments are checked automatically and can be reported. See our community rules in the Terms.</p>
+      <ReportDialog target={reporting} onClose={() => setReporting(null)} onDone={load} />
     </section>
   );
 };

@@ -7,15 +7,16 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
+import account_ops
 import content_filter
+import notify
 import public_sharing as ps
-from auth import get_current_user
+from auth import get_current_user, is_admin
 
 router = APIRouter(prefix="/social", tags=["social"])
 
 MAX_LEN = 1000
 HIDE_AFTER_REPORTS = 3          # distinct reporters before a comment is hidden pending review
-UNPUBLISH_AFTER_REPORTS = 3     # distinct reporters before a public recipe goes back to private
 MAX_PER_MINUTE = 5
 
 
@@ -122,16 +123,49 @@ async def delete_comment(comment_id: str, request: Request):
     return {"message": "Deleted"}
 
 
-async def _record_report(db, user, kind, target_id, data: ReportIn):
-    reason = (data.reason or "other")[:30]
-    details = "" if content_filter.problems(data.details or "") else (data.details or "")[:500]
-    row = await db.reports.find_one({"kind": kind, "target_id": target_id, "reporter_id": user["user_id"]})
-    if row:
+MAX_REPORTS_PER_DAY = 5
+MAX_DISMISSED = 3     # after this many reports the admin dismissed, a user can no longer report
+
+
+async def _guard_reporter(db, user):
+    if (user.get("reports_dismissed") or 0) >= MAX_DISMISSED:
+        raise HTTPException(status_code=403, detail="Reporting is switched off for your account.")
+    since = datetime.now(timezone.utc) - timedelta(days=1)
+    if await db.reports.count_documents({"reporter_id": user["user_id"], "created_at": {"$gte": since}}) >= MAX_REPORTS_PER_DAY:
+        raise HTTPException(status_code=429, detail="You've sent a lot of reports today. Please try again tomorrow.")
+
+
+async def _record_report(db, user, kind, target_id, data: ReportIn, target_user_id=None) -> bool:
+    await _guard_reporter(db, user)
+    if await db.reports.find_one({"kind": kind, "target_id": target_id, "reporter_id": user["user_id"], "status": "open"}):
         return False
-    await db.reports.insert_one({"report_id": f"rp_{uuid.uuid4().hex[:12]}", "kind": kind, "target_id": target_id,
-                                 "reporter_id": user["user_id"], "reason": reason, "details": details,
-                                 "status": "open", "created_at": datetime.now(timezone.utc)})
+    details = "" if content_filter.problems(data.details or "") else (data.details or "")[:500]
+    await db.reports.insert_one({
+        "report_id": f"rp_{uuid.uuid4().hex[:12]}", "kind": kind, "target_id": target_id, "target_user_id": target_user_id,
+        "reporter_id": user["user_id"], "reason": (data.reason or "other")[:30], "details": details,
+        "status": "open", "created_at": datetime.now(timezone.utc)})
     return True
+
+
+async def _alert(what: str, reporter: dict, data: ReportIn, extra: str):
+    await notify.alert_admin(
+        f"CookMe report: {what}",
+        f"{what}\nReason: {data.reason or 'other'}\nDetails: {(data.details or '')[:300]}\n"
+        f"Reported by: {reporter.get('name')} ({reporter.get('email')})\n\n{extra}")
+
+
+async def _report_user(db, reporter, target_uid, data: ReportIn, context: str):
+    target = await db.users.find_one({"user_id": target_uid}, {"_id": 0})
+    if not target or target_uid in ("system_seeder", reporter["user_id"]):
+        raise HTTPException(status_code=400, detail="That user can't be reported.")
+    if is_admin(target):
+        raise HTTPException(status_code=400, detail="That user can't be reported.")
+    await _record_report(db, reporter, "user", target_uid, data, target_uid)
+    if target.get("status") not in ("banned",):
+        await account_ops.lock_user(db, target_uid)
+    await _alert("a user was reported and their account is under review", reporter, data,
+                 f"User: {target.get('name')} ({target.get('email')})\nFrom: {context}")
+    return {"message": "Thank you. The account has been put under review while we check it."}
 
 
 @router.post("/comments/{comment_id}/report")
@@ -143,26 +177,53 @@ async def report_comment(comment_id: str, data: ReportIn, request: Request):
         raise HTTPException(status_code=404, detail="Comment not found")
     if c["user_id"] == user["user_id"]:
         raise HTTPException(status_code=400, detail="You can't report your own comment")
-    await _record_report(db, user, "comment", comment_id, data)
-    n = await db.reports.count_documents({"kind": "comment", "target_id": comment_id})
-    if n >= HIDE_AFTER_REPORTS:
+    if await _record_report(db, user, "comment", comment_id, data, c["user_id"]):
+        await _alert("a comment was reported", user, data, f"Comment: {c['text']}")
+    if await db.reports.count_documents({"kind": "comment", "target_id": comment_id}) >= HIDE_AFTER_REPORTS:
         await db.comments.update_one({"comment_id": comment_id}, {"$set": {"status": "hidden"}})
     return {"message": "Thank you. We'll review it."}
 
 
+@router.post("/comments/{comment_id}/report-user")
+async def report_comment_author(comment_id: str, data: ReportIn, request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    c = await db.comments.find_one({"comment_id": comment_id}, {"_id": 0})
+    if not c:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    return await _report_user(db, user, c["user_id"], data, f"Comment: {c['text']}")
+
+
 @router.post("/recipes/{recipe_id}/report")
 async def report_recipe(recipe_id: str, data: ReportIn, request: Request):
+    """Reporting a public recipe takes it down straight away (back to private, 'under review') until the admin decides."""
     db = request.app.state.db
     user = await get_current_user(request, db)
     recipe = await _visible_recipe(db, user, recipe_id)
     if recipe.get("user_id") == user["user_id"]:
         raise HTTPException(status_code=400, detail="You can't report your own recipe")
-    await _record_report(db, user, "recipe", recipe_id, data)
-    n = await db.reports.count_documents({"kind": "recipe", "target_id": recipe_id})
-    if recipe.get("visibility") == "public" and n >= UNPUBLISH_AFTER_REPORTS:
-        await db.recipes.update_one({"recipe_id": recipe_id}, {"$set": {
-            "visibility": "private", "publish_status": "under_review"}})
-    return {"message": "Thank you. We'll review it."}
+    owner = recipe.get("user_id") if recipe.get("user_id") != "system_seeder" else None
+    if await _record_report(db, user, "recipe", recipe_id, data, owner):
+        if recipe.get("visibility") == "public":
+            await db.recipes.update_one({"recipe_id": recipe_id}, {"$set": {
+                "visibility": "private", "publish_status": "under_review", "held_by_review": True}})
+        await _alert("a recipe was reported", user, data, f"Recipe: {recipe.get('title')}\n{(recipe.get('description') or '')[:300]}")
+    return {"message": "Thank you. The recipe has been taken down while we review it."}
+
+
+@router.post("/recipes/{recipe_id}/report-user")
+async def report_recipe_author(recipe_id: str, data: ReportIn, request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    recipe = await _visible_recipe(db, user, recipe_id)
+    return await _report_user(db, user, recipe.get("user_id"), data, f"Recipe: {recipe.get('title')}")
+
+
+@router.post("/users/{user_id}/report")
+async def report_user(user_id: str, data: ReportIn, request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    return await _report_user(db, user, user_id, data, "Profile")
 
 
 @router.get("/feed")

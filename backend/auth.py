@@ -26,7 +26,20 @@ def decode_access_token(token: str) -> Optional[dict]:
     except JWTError:
         return None
 
-async def get_current_user(request: Request, db):
+def is_admin(user: dict) -> bool:
+    """Admins are listed in the ADMIN_EMAILS env var, and must have signed in with a provider that verifies email."""
+    allowed = [e.strip().lower() for e in os.environ.get("ADMIN_EMAILS", "").split(",") if e.strip()]
+    return bool(user) and (user.get("email") or "").lower() in allowed and user.get("auth_provider") in ("google", "auth0")
+
+
+async def require_admin(request: Request, db):
+    user = await get_current_user(request, db)
+    if not is_admin(user):
+        raise HTTPException(status_code=403, detail="Admins only")
+    return user
+
+
+async def get_current_user(request: Request, db, allow_restricted: bool = False):
     """Extract user from session_token cookie or Authorization header."""
     # Try cookie first
     session_token = request.cookies.get('session_token')
@@ -67,7 +80,11 @@ async def get_current_user(request: Request, db):
     
     if not user_doc:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
+    status = user_doc.get("status")
+    if status in ("under_review", "banned") and not allow_restricted:
+        raise HTTPException(status_code=403, detail={"code": "account_" + status})
+
     return user_doc
 
 def generate_user_id() -> str:

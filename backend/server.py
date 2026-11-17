@@ -113,6 +113,7 @@ from routes.instagram_routes import router as instagram_router
 from routes.translation_routes import router as translation_router
 from routes.community_routes import router as community_router
 from routes.social_routes import router as social_router
+from routes.admin_routes import router as admin_router
 from routes.localisation_routes import router as localisation_router
 from import_queue import router as import_queue_router
 
@@ -120,7 +121,7 @@ for router in (
     auth_router, recipe_router, pantry_router, shopping_router,
     import_workflow_router, cookbook_router, meal_plan_router,
     instagram_router, translation_router, community_router,
-    localisation_router, import_queue_router, social_router,
+    localisation_router, import_queue_router, social_router, admin_router,
 ):
     api_router.include_router(router)
 

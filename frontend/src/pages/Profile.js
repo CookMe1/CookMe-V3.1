@@ -262,6 +262,12 @@ const Profile = () => {
 
         {activeTab === 'settings' && isOwnProfile && (
           <div className="max-w-lg space-y-4">
+            {authUser?.is_admin && (
+              <Link to="/admin" className="block rounded-lg border border-orange-600/40 bg-orange-600/10 px-4 py-3 text-orange-300 font-medium" data-testid="admin-link">
+                Admin: review reported content
+              </Link>
+            )}
+
             {/* Legal + your data */}
             <Card className="bg-zinc-900 border-zinc-800" data-testid="your-data-card">
               <CardContent className="pt-5 space-y-3">

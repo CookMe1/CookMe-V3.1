@@ -61,14 +61,13 @@ def test_delete_rules(env):
     current["u"] = THIRD; assert env.delete(f"/api/social/comments/{cid}").status_code == 403
     current["u"] = ME; assert env.delete(f"/api/social/comments/{cid}").status_code == 200   # recipe owner can remove
 
-def test_reports_hide_comment_and_unpublish_recipe(env):
+def test_reports_hide_comment_and_take_down_recipe(env):
     rid = publish(env); current["u"] = OTHER
     cid = env.post(f"/api/social/recipes/{rid}/comments", json={"text": "Nice"}).json()["comment_id"]
     for u in (ME, THIRD, FOURTH):
         current["u"] = u; assert env.post(f"/api/social/comments/{cid}/report", json={"reason": "spam"}).status_code == 200
     assert env.get(f"/api/social/recipes/{rid}/comments").json()["count"] == 0
-    for u in (OTHER, THIRD, FOURTH):
-        current["u"] = u; env.post(f"/api/social/recipes/{rid}/report", json={"reason": "copied"})
+    current["u"] = OTHER; env.post(f"/api/social/recipes/{rid}/report", json={"reason": "copied"})   # one report takes it down
     current["u"] = ME
     stored = env.get(f"/api/recipes/{rid}").json()
     assert stored["visibility"] == "private" and stored["publish_status"] == "under_review"
