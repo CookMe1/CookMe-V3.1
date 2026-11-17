@@ -446,7 +446,7 @@ const ShoppingList = () => {
 
         {/* Completion Banner */}
         {checkedItems === totalItems && totalItems > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-green-600 to-emerald-600 p-4">
+          <div className="fixed left-0 right-0 z-40 bg-gradient-to-r from-green-600 to-emerald-600 p-4" style={{ bottom: 'var(--bottom-nav-h)' }}>
             <div className="max-w-2xl mx-auto text-center">
               <p className="text-white font-semibold text-lg">🎉 All done! Great shopping!</p>
             </div>

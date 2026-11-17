@@ -145,3 +145,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 
 ## Removed the unit converter
 - Removed the "Unit Converter" box (and its voice button) from the bottom of the recipe page: ingredient amounts already scale and convert with the servings and unit settings. (It also called an AI service directly from the browser with no key, so it never worked.)
+
+## Bottom navigation always at the bottom
+- The phone bottom bar is now pinned to the very bottom edge (it used to float 68px up, left over from the ad banner), full width, with room for the iPhone home bar / notch (`viewport-fit=cover` + safe-area inset). Buttons share the width evenly, so it fits from 320px phones up; it hides while you type so the keyboard never covers it. Tablets and laptops (768px+) use the top menu as before.
+- Shopping "All done" banner sits above the bar (`--bottom-nav-h` CSS variable).

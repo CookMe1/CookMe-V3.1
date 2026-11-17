@@ -224,3 +224,11 @@ code {
   * { @apply border-border; }
   body { @apply bg-background text-foreground; }
 }
+
+/* Bottom navigation: always pinned to the bottom edge, above the phone's home bar / notch area.
+   --bottom-nav-h is the space the bar takes (0 on tablets/laptops, which use the top menu instead). */
+:root { --bottom-nav-h: 0px; }
+@media (max-width: 767px) {
+  :root { --bottom-nav-h: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+  body { padding-bottom: env(safe-area-inset-bottom, 0px); }
+}

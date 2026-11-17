@@ -36,6 +36,18 @@ const BottomNavigation = ({ showNav = true }) => {
     return () => window.removeEventListener('cookme:open-camera', open);
   }, []);
 
+  // Hide the bar while the on-screen keyboard is up (typing in a box), so it never covers what you're typing
+  const [typing, setTyping] = useState(false);
+  useEffect(() => {
+    const isField = (el) => el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)
+      && !(el.tagName === 'INPUT' && ['file', 'checkbox', 'radio', 'button', 'submit'].includes(el.type));
+    const on = (e) => setTyping(isField(e.target));
+    const off = () => setTyping(false);
+    window.addEventListener('focusin', on);
+    window.addEventListener('focusout', off);
+    return () => { window.removeEventListener('focusin', on); window.removeEventListener('focusout', off); };
+  }, []);
+
   // Don't show during loading or if not authenticated or explicitly hidden
   if (loading || !isAuthenticated || !showNav) return null;
 
@@ -260,7 +272,10 @@ const BottomNavigation = ({ showNav = true }) => {
 
   return (
     <>
-      <div className="fixed bottom-[68px] left-1/2 -translate-x-1/2 z-50 md:hidden">
+      <div
+        className={`fixed inset-x-0 bottom-0 z-50 md:hidden transition-transform duration-200 ${typing ? 'translate-y-full' : 'translate-y-0'}`}
+        data-testid="bottom-navigation-wrapper"
+      >
         {/* Hidden file inputs */}
         <input
           ref={fileInputRef}
@@ -281,9 +296,10 @@ const BottomNavigation = ({ showNav = true }) => {
         />
         
         <nav
-          className="flex items-center gap-1 px-3 py-2 rounded-2xl glass border border-zinc-800/50"
+          className="glass border-t border-zinc-800/60 pb-[env(safe-area-inset-bottom)]"
           data-testid="bottom-navigation"
         >
+          <div className="mx-auto flex h-16 w-full max-w-lg items-center justify-between px-1 sm:px-4">
           {/* Left nav items */}
           {navItems.slice(0, 2).map((item) => {
             const Icon = item.icon;
@@ -294,14 +310,14 @@ const BottomNavigation = ({ showNav = true }) => {
                 key={item.path}
                 to={item.path}
                 data-testid={`nav-${item.label.toLowerCase()}`}
-                className={`flex flex-col items-center justify-center px-4 py-2 rounded-xl transition-all ${
+                className={`flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-2 rounded-xl transition-all ${
                   isActive
                     ? 'bg-zinc-800 text-orange-500'
                     : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium mt-1">{item.label}</span>
+                <span className="text-[10px] font-medium mt-1 truncate max-w-full">{item.label}</span>
               </Link>
             );
           })}
@@ -310,7 +326,7 @@ const BottomNavigation = ({ showNav = true }) => {
           <button
             onClick={handleCameraClick}
             data-testid="nav-camera"
-            className="flex items-center justify-center w-16 h-16 -mt-6 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:scale-105 transition-all animate-pulse-glow"
+            className="flex shrink-0 items-center justify-center w-16 h-16 -mt-6 mx-1 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/40 hover:shadow-orange-500/60 hover:scale-105 transition-all animate-pulse-glow"
           >
             <Camera className="w-8 h-8" strokeWidth={2.5} />
           </button>
@@ -325,17 +341,18 @@ const BottomNavigation = ({ showNav = true }) => {
                 key={item.path}
                 to={item.path}
                 data-testid={`nav-${item.label.toLowerCase()}`}
-                className={`flex flex-col items-center justify-center px-4 py-2 rounded-xl transition-all ${
+                className={`flex min-w-0 flex-1 flex-col items-center justify-center px-1 py-2 rounded-xl transition-all ${
                   isActive
                     ? 'bg-zinc-800 text-orange-500'
                     : 'text-zinc-500 hover:text-zinc-300'
                 }`}
               >
                 <Icon className="w-5 h-5" />
-                <span className="text-[10px] font-medium mt-1">{item.label}</span>
+                <span className="text-[10px] font-medium mt-1 truncate max-w-full">{item.label}</span>
               </Link>
             );
           })}
+          </div>
         </nav>
       </div>
 
