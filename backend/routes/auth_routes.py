@@ -331,6 +331,49 @@ async def get_me(request: Request):
     return user
 
 
+# ── Download / delete my data (GDPR) ──────────────────────────────────────────
+
+_USER_DATA = ["recipes", "pantry_items", "shopping_list", "shopping_lists", "cookbooks", "meal_plans",
+              "recipe_saves", "recipe_likes", "community_likes", "comments"]
+
+
+@router.get("/me/export")
+async def export_my_data(request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    out = {"account": user, "exported_at": datetime.now(timezone.utc).isoformat()}
+    for name in _USER_DATA:
+        out[name] = await db[name].find({"user_id": user["user_id"]}, {"_id": 0}).to_list(10000)
+    out["sharing_consents"] = await db.recipe_consents.find({"user_id": user["user_id"]}, {"_id": 0}).to_list(10000)
+    return out
+
+
+@router.delete("/me")
+async def delete_my_account(request: Request, response: Response):
+    """Erase the account and everything the user created. Replies under their comments go too.
+    Public-sharing consent records are kept (without the account) as proof of the licence given."""
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+    if body.get("confirm") is not True:
+        raise HTTPException(status_code=400, detail="Confirmation required")
+    uid = user["user_id"]
+    mine = await db.comments.find({"user_id": uid}, {"_id": 0, "comment_id": 1}).to_list(100000)
+    if mine:
+        await db.comments.delete_many({"parent_id": {"$in": [c["comment_id"] for c in mine]}})
+    for name in _USER_DATA:
+        await db[name].delete_many({"user_id": uid})
+    await db.recipe_consents.update_many({"user_id": uid}, {"$set": {"account_deleted_at": datetime.now(timezone.utc)}})
+    await db.user_sessions.delete_many({"user_id": uid})
+    await db.users.delete_one({"user_id": uid})
+    response.delete_cookie(key="session_token", path="/")
+    return {"message": "Your account and data have been deleted"}
+
+
 # ── Logout ────────────────────────────────────────────────────────────────────
 
 @router.post("/logout")

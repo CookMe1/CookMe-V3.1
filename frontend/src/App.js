@@ -22,6 +22,7 @@ import Recipes from './pages/Recipes';
 import RecipeDetail from './pages/RecipeDetail';
 import AddRecipe from './pages/AddRecipe';
 import EditRecipe from './pages/EditRecipe';
+import { Terms, Privacy } from './pages/Legal';
 import MealPlanner from './pages/MealPlanner';
 import ShoppingList from './pages/ShoppingList';
 import Pantry from './pages/Pantry';
@@ -96,6 +97,8 @@ function AppRouter() {
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="/auth/facebook/callback" element={<AuthCallback />} />
       <Route path="/auth/twitter/callback" element={<AuthCallback />} />
       <Route path="/auth/apple/callback" element={<AuthCallback />} />

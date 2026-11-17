@@ -69,6 +69,30 @@ const Profile = () => {
     window.location.href = '/login';
   };
 
+  const authFetchHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem('token') || sessionStorage.getItem('token')}`, 'Content-Type': 'application/json' });
+
+  const downloadMyData = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me/export`, { headers: authFetchHeaders() });
+      if (!res.ok) throw new Error();
+      const blob = new Blob([JSON.stringify(await res.json(), null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'cookme-my-data.json'; a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (e) { toast.error('Could not download your data. Please try again.'); }
+  };
+
+  const deleteMyAccount = async () => {
+    if (!window.confirm('Delete your account and everything you created? This can’t be undone.')) return;
+    if (window.prompt('Type DELETE to confirm') !== 'DELETE') return;
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me`, { method: 'DELETE', headers: authFetchHeaders(), body: JSON.stringify({ confirm: true }) });
+      if (!res.ok) throw new Error();
+      localStorage.removeItem('token'); sessionStorage.removeItem('token');
+      window.location.href = '/login';
+    } catch (e) { toast.error('Could not delete your account. Please try again.'); }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
@@ -238,6 +262,22 @@ const Profile = () => {
 
         {activeTab === 'settings' && isOwnProfile && (
           <div className="max-w-lg space-y-4">
+            {/* Legal + your data */}
+            <Card className="bg-zinc-900 border-zinc-800" data-testid="your-data-card">
+              <CardContent className="pt-5 space-y-3">
+                <h3 className="font-semibold text-zinc-100">Privacy and your data</h3>
+                <div className="flex gap-4 text-sm">
+                  <Link to="/terms" className="text-orange-500 underline">Terms of Service</Link>
+                  <Link to="/privacy" className="text-orange-500 underline">Privacy Policy</Link>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button variant="outline" size="sm" onClick={downloadMyData} className="border-zinc-700 text-zinc-300 hover:bg-zinc-800" data-testid="download-data-btn">Download my data</Button>
+                  <Button variant="outline" size="sm" onClick={deleteMyAccount} className="border-red-900 text-red-400 hover:bg-red-950" data-testid="delete-account-btn">Delete my account</Button>
+                </div>
+                <p className="text-xs text-zinc-500">Deleting erases your account, recipes, cookbooks, meal plans, shopping lists and comments. This can’t be undone.</p>
+              </CardContent>
+            </Card>
+
             {/* Credits */}
             <Card className="bg-zinc-900 border-zinc-800" data-testid="credits-card">
               <CardContent className="pt-5">

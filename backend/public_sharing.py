@@ -3,6 +3,7 @@ Not legal advice: have a lawyer review CONSENT_TEXT and your Terms of Service be
 import hashlib
 import re
 
+import content_filter
 from recipe_cleaner import clean_steps
 
 TERMS_VERSION = "2026-11-17"
@@ -28,10 +29,6 @@ def shared_or_own(user_id: str) -> dict:
     ]}
 
 
-_URL = re.compile(r"https?://|www\.|\b[a-z0-9-]+\.(?:com|net|org|io|co\.uk|es)\b", re.I)
-_EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
-_PHONE = re.compile(r"(?<!\d)(?:\+?\d[\s-]?){9,}(?!\d)")
-_BLOCKED = re.compile(r"\b(?:fuck\w*|shit\w*|cunt|nigger|nigga|faggot|retard\w*|whore|slut)\b", re.I)
 _STOCK = ("images.unsplash.com", "placeholder", "no-image")
 
 
@@ -71,13 +68,13 @@ def check_recipe(r: dict) -> list:
     elif image.startswith("http") or any(s in image for s in _STOCK):
         add("image", "Upload your own photo of the dish (photos copied from the web or stock photos can't be used).")
 
-    text = " ".join([title, desc] + steps + [str(i.get("item", "")) for i in ings])
-    if _URL.search(text):
-        add("text", "Remove web links and website names from the recipe text.")
-    if _EMAIL.search(text) or _PHONE.search(text):
-        add("text", "Remove email addresses and phone numbers from the recipe text.")
-    if _BLOCKED.search(text):
-        add("text", "The recipe contains language we don't allow. Please reword it.")
+    # one line per field so numbers in neighbouring fields never look like a phone number
+    text = "\n".join([title, desc] + steps + [str(i.get("item", "")) for i in ings])
+    seen = set()
+    for p in content_filter.problems(text):
+        if p["code"] not in seen:
+            seen.add(p["code"])
+            add("text", p["message"])
     return issues
 
 

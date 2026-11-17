@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { AUTH0_ENABLED, startAuth0Login } from '../components/Auth0Bridge';
@@ -158,7 +159,7 @@ const Login = () => {
         {/* Footer */}
         <p className="text-zinc-600 text-xs text-center mt-8 leading-relaxed">
           By continuing, you agree to CookMe's<br />
-          <span className="text-zinc-500">Terms of Service</span> and <span className="text-zinc-500">Privacy Policy</span>
+          <Link to="/terms" className="text-zinc-400 underline">Terms of Service</Link> and <Link to="/privacy" className="text-zinc-400 underline">Privacy Policy</Link>
         </p>
       </div>
     </div>

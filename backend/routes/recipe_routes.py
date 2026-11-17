@@ -385,6 +385,8 @@ async def publish_recipe(recipe_id: str, request: Request):
     user = await get_current_user(request, db)
     body = await request.json()
     recipe = await _own_recipe(db, user, recipe_id)
+    if recipe.get("publish_status") == "under_review":
+        raise HTTPException(status_code=403, detail="This recipe was reported and is being reviewed, so it can't be made public right now")
     if body.get("consent") is not True or body.get("terms_version") != ps.TERMS_VERSION:
         raise HTTPException(status_code=400, detail="You need to agree to the sharing terms to make a recipe public")
     issues = await ps.full_check(db, recipe)

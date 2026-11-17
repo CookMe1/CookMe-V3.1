@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ShareRecipe from '../components/ShareRecipe';
+import Comments from '../components/Comments';
 import { Clock, Users, ChefHat, Heart, Bookmark, Share2, Minus, Plus, Printer, Loader2, Camera, ImageIcon, Trash2, Upload, AlertCircle, Mic, MicOff } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -876,6 +877,9 @@ const RecipeDetail = () => {
 
         {/* Source and credits */}
         <SourceCredit recipe={recipe} />
+        {(recipe.visibility === 'public' || recipe.user_id === 'system_seeder') && (
+          <Comments recipeId={recipe.recipe_id} isOwner={!!currentUser && recipe.user_id === currentUser.user_id} />
+        )}
 
         {/* Unit Converter */}
         <UnitConverter />

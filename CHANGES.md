@@ -117,3 +117,12 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Privacy fixes: `GET /recipes/{id}`, `/category/{category}` and `/master/all` used to expose other users' private recipes; now only owner / master / public. Owner ids and favourites are masked on others' recipes.
 - Pantry search, meal planner, featured and counters include public recipes.
 - NOT legal advice: have a lawyer review the consent text, and add Terms/Privacy pages and a report/takedown button.
+
+## Legal pages, community comments and safety
+- New `/terms` and `/privacy` pages (public, linked from the login screen and Profile → Settings). Set `REACT_APP_OPERATOR_NAME`, `REACT_APP_CONTACT_EMAIL` and optionally `REACT_APP_GOVERNING_LAW` in the frontend env to fill in who runs CookMe and how to reach them.
+- `backend/content_filter.py`: blocks phone numbers (incl. spaced / spelled-out), email addresses (incl. "name at gmail dot com"), web links, social handles ("@name", WhatsApp, "DM me") and profanity (English, Spanish, Hindi/Urdu; catches f.u.c.k, sh1t, f*ck). Used for comments, replies and public recipe checks.
+- Comments + replies (one level) on public and master recipes (`/api/social/...`); posting rate-limited, duplicates blocked, authors shown as "First L.". Recipe owner or comment author can delete.
+- Report buttons: 3 distinct reports hide a comment; 3 reports on a public recipe make it private ("under_review", can't be re-published until reviewed).
+- "Shared by members" strip on the Social page (`/api/social/feed`).
+- Account: `GET /api/auth/me/export` (download my data) and `DELETE /api/auth/me` (erase account + content), buttons in Profile → Settings.
+- NOT legal advice: have a lawyer review both pages before launch.

@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import MemberRecipes from '../components/MemberRecipes';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -214,6 +215,8 @@ const Social = () => {
             </Card>
           </div>
         )}
+
+        <MemberRecipes />
 
         {/* Community feed */}
         {!socialEnabled ? (
