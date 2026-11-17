@@ -8,11 +8,18 @@ CHEAP = r"pasta|spaghetti|noodle|rice|egg|potato|bean|lentil|chickpea|bread|oat|
 SLOW = r"overnight|marinate for (?:at least )?\d+ hours|\b\d+ hours?\b|slow[- ]cook|chill for|refrigerate for"
 def text(r): return ((r.get("title") or "")+" "+" ".join(map(str,r.get("steps") or []))).lower()
 def ings(r): return " ".join((str(i.get("item", "")) if isinstance(i, dict) else str(i)) for i in r.get("ingredients") or []).lower()
+def is_dessert(r) -> bool:
+    t = (r.get("title") or "").lower()
+    tags = set(x.lower() for x in r.get("tags") or [] if isinstance(x, str))
+    return (r.get("category") == "dessert") or bool(tags & {"dessert", "desert", "cake", "pudding", "baking", "sweet"}) or bool(
+        re.search(r"cake|pudding|curd|delight|cookie|brownie|tart\b|pie\b|fudge|ice cream|mousse|cobbler|crumble|biscuit|muffin|candy", t))
+
+
 def types(r):
     t, s, ing = (r.get("title") or "").lower(), text(r), ings(r)
     n_ing, n_steps = len(r.get("ingredients") or []), len(r.get("steps") or [])
     tags = set(x.lower() for x in r.get("tags") or [] if isinstance(x,str))
-    dessert = (r.get("category")=="dessert") or bool(tags & {"dessert","desert","cake","pudding","pie","baking","sweet"}) or bool(re.search(r"cake|pudding|curd|delight|cookie|brownie|tart\b|pie\b|fudge|ice cream|mousse|cobbler|crumble|biscuit|muffin|candy", t))
+    dessert = is_dessert(r)
     out = []
     if re.search(r"instant pot|instapot|pressure cooker", s): out += ["instant pot","pressure cooker"]
     if re.search(r"slow cooker|crock ?pot", s): out += ["slow cooker","crockpot"]

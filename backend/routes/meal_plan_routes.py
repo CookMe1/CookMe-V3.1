@@ -163,6 +163,30 @@ async def generate_ai_meal_plan(data: AIGenerateRequest, request: Request):
     ).to_list(50)
     saved_titles = [r["title"] for r in saved]
 
+    # ── 1) Free path: build the week from tagged recipes (master list + the user's own) ──
+    try:
+        from meal_plan_builder import build_plan
+        pool = await db.recipes.find(
+            {"$or": [{"user_id": "system_seeder"}, {"user_id": user["user_id"], "hidden_by": {"$ne": user["user_id"]}}]},
+            {"_id": 0, "recipe_id": 1, "title": 1, "image": 1, "tags": 1, "cuisine": 1, "category": 1, "ingredients": 1},
+        ).to_list(3000)
+        built = build_plan(key, pool, pantry_names, data.cuisine_preferences or [], data.dietary_restrictions or [], seed=uuid.uuid4().hex)
+        if built:
+            days, notes = built
+            now = datetime.now(timezone.utc)
+            await db.meal_plans.find_one_and_update(
+                {"user_id": user["user_id"], "week_start": key},
+                {"$set": {"days": days, "updated_at": now},
+                 "$setOnInsert": {"meal_plan_id": f"mp_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"],
+                                  "week_start": key, "created_at": now}},
+                upsert=True,
+            )
+            return {"week_start": key, "days": days, "source": "recipes", "notes": notes}
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).info(f"Recipe-based meal plan failed, using AI: {e}")
+
+    # ── 2) AI fallback (custom requests, e.g. gluten-free, or too few recipes) ──
     # Build prompt
     prefs = ", ".join(data.cuisine_preferences) if data.cuisine_preferences else "any cuisine"
     restrictions = ", ".join(data.dietary_restrictions) if data.dietary_restrictions else "none"

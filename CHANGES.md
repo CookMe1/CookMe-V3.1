@@ -61,3 +61,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - **Our own ingredient dictionary** (161 ingredients x English/Spanish/French/German/Italian/Portuguese) - `data/ingredient_dictionary.json`, edit and regenerate with `scripts/build_ingredient_dictionary.py`. `translate-ingredient`, nutrition and pantry matching use it before AI. Please have a native speaker check the entries.
 - **Automatic tagging** (`backend/recipe_tagger.py`): every saved recipe gets cooking-type, vegetarian/vegan tags and a cuisine, free. Backfill existing recipes with `python scripts/retag_recipes.py --apply`.
 - **Photo scan language:** the app language is sent with the photo so a recipe card in another language comes back translated into the user's language.
+
+## Meal plans from recipes
+- "Generate" in the Meal Planner now builds the week from tagged recipes (master list + the user's own): breakfast / lunch / dinner picked by tags and title, no repeats, vegetarian/vegan honoured, cuisine and pantry preferred, quick meals on weekdays. Free, instant.
+- Only requests we can't honour from tags (e.g. gluten-free, nut-free) or too few recipes still use AI.
