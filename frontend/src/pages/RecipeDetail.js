@@ -5,7 +5,9 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
 import CookingMode from '../components/CookingMode';
+import SourceCredit from '../components/SourceCredit';
 import { convertAmount } from '../utils/units';
+import { PLACEHOLDER_IMAGE, onImageError } from '../utils/placeholder';
 import { validateImageQuality, getRejectMessage, compressImage } from '../utils/imageValidator';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -498,12 +500,10 @@ const RecipeDetail = () => {
       {/* Hero Image */}
       <div className="relative h-[50vh] min-h-[400px]">
         <img 
-          src={recipe.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800'}
+          src={recipe.image || PLACEHOLDER_IMAGE}
           alt={recipe.title}
           className="absolute inset-0 w-full h-full object-cover"
-          onError={(e) => {
-            e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800';
-          }}
+          onError={onImageError}
         />
         <div className="absolute inset-0 gradient-overlay" />
         
@@ -822,9 +822,7 @@ const RecipeDetail = () => {
                       src={img.image_url}
                       alt={`Recipe photo ${index + 1}`}
                       className="w-full h-40 object-cover"
-                      onError={(e) => {
-                        e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800';
-                      }}
+                      onError={onImageError}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                       <div className="absolute bottom-2 left-2 right-2">
@@ -865,20 +863,8 @@ const RecipeDetail = () => {
           </div>
         )}
 
-        {/* Source Link */}
-        {recipe.source_url && (
-          <div className="mt-8 pt-8 border-t border-zinc-800">
-            <h3 className="font-semibold text-zinc-100 mb-4">Source</h3>
-            <a 
-              href={recipe.source_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-orange-500 hover:text-orange-400 underline"
-            >
-              View original recipe
-            </a>
-          </div>
-        )}
+        {/* Source and credits */}
+        <SourceCredit recipe={recipe} />
 
         {/* Unit Converter */}
         <UnitConverter />

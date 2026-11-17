@@ -65,3 +65,10 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 ## Meal plans from recipes
 - "Generate" in the Meal Planner now builds the week from tagged recipes (master list + the user's own): breakfast / lunch / dinner picked by tags and title, no repeats, vegetarian/vegan honoured, cuisine and pantry preferred, quick meals on weekdays. Free, instant.
 - Only requests we can't honour from tags (e.g. gluten-free, nut-free) or too few recipes still use AI.
+
+## Images, credits and meal-plan quality
+- Fallback: recipes with no/broken image now show a neutral "Photo coming soon" tile instead of one repeated stock photo (the stock photo is no longer saved into recipes).
+- Every recipe page has a Source block ("Recipe from X" + link, CC BY 3.0 note for Foodista, photo credit). Profile > Settings has a Credits card (TheMealDB, Foodista, spoonacular, USDA, Open Food Facts).
+- `scripts/check_images.py` now flags missing, dead, tiny, stock and repeated images (`--fix` blanks them).
+- `scripts/fill_images.py` fills blanks from Pexels (free key) and optionally AI (`--ai`, on Emergent). Run both on a machine with internet, then commit `frontend/public/recipe-images/` + the JSON.
+- Meal plans: dinners need 6+ ingredients (or a main-course tag); sides, dips and snacks (e.g. Padron peppers) are excluded.

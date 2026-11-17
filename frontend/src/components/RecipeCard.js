@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Bookmark, Clock, Users, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PLACEHOLDER_IMAGE, onImageError } from '../utils/placeholder';
 
 // ── Nutrition mini-strip shown on every card that has nutrition data ──────────
 const NutritionStrip = ({ nutrition }) => (
@@ -93,12 +94,11 @@ const RecipeCard = ({ recipe, showNutrition = false, onLikeChange, onSaveChange,
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
           <img
-            src={recipe.image}
+            src={recipe.image || PLACEHOLDER_IMAGE}
             alt={recipe.title}
             className="w-full h-full object-cover img-zoom"
-            onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800';
-            }}
+            loading="lazy"
+            onError={onImageError}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           

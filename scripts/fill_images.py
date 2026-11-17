@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Give every recipe with no image a proper one.
+ 1) Free photo from Pexels (free licence, no credit legally required but we store one anyway).
+    Get a free key at https://www.pexels.com/api/ and set it:  export PEXELS_API_KEY=...
+ 2) Optional --ai: generate an image (needs ENABLE_AI_IMAGES=1 and the Emergent LLM key, i.e. run on Emergent).
+ Images are saved to frontend/public/recipe-images/<recipe_id>.jpg and recipe['image'] is set to /recipe-images/<id>.jpg
+ Usage:  python scripts/fill_images.py [--limit 50] [--ai] [--dry]
+Photo choice is a best match for the dish name, so spot-check a few. AI ones are labelled 'AI-generated illustration'."""
+import json, os, sys, time
+from pathlib import Path
+import requests
+ROOT = Path(__file__).resolve().parent.parent
+F = ROOT/"data"/"master_recipes.json"
+OUT = ROOT/"frontend"/"public"/"recipe-images"
+KEY = os.environ.get("PEXELS_API_KEY", "")
+
+def arg(name, default=None):
+    return sys.argv[sys.argv.index(name)+1] if name in sys.argv else default
+
+def pexels(title):
+    q = f"{title} food dish"
+    r = requests.get("https://api.pexels.com/v1/search", headers={"Authorization": KEY},
+                     params={"query": q, "per_page": 3, "orientation": "landscape"}, timeout=20)
+    r.raise_for_status()
+    for p in r.json().get("photos", []):
+        # keep only if Pexels' alt text mentions a word from the title (avoids random matches)
+        words = {w for w in title.lower().split() if len(w) > 3}
+        if any(w in (p.get("alt") or "").lower() for w in words):
+            return p["src"]["large"], f"Photo by {p['photographer']} on Pexels"
+    return None, None
+
+def ai_image(title):
+    import asyncio, base64
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    chat = LlmChat(api_key=os.environ["EMERGENT_LLM_KEY"], session_id="img", system_message="You create realistic overhead food photos.")
+    chat.with_model("gemini", "gemini-2.5-flash-image-preview").with_params(modalities=["image", "text"])
+    _, imgs = asyncio.run(chat.send_message_multimodal_response(UserMessage(text=f"Realistic overhead photo of {title}, plated on a ceramic plate, natural light, no text, no people.")))
+    return base64.b64decode(imgs[0]["data"]) if imgs else None
+
+if __name__ == "__main__":
+    data = json.load(open(F, encoding="utf-8")); OUT.mkdir(parents=True, exist_ok=True)
+    todo = [r for r in data if not r.get("image")]; lim = int(arg("--limit", len(todo)))
+    done = 0
+    for r in todo[:lim]:
+        dest = OUT/f"{r['recipe_id']}.jpg"; img = None; credit = None
+        try:
+            if KEY:
+                url, credit = pexels(r["title"])
+                if url: img = requests.get(url, timeout=30).content
+            if img is None and "--ai" in sys.argv and os.environ.get("ENABLE_AI_IMAGES") == "1":
+                img = ai_image(r["title"]); credit = "AI-generated illustration"
+                r["image_source"] = "ai-generated"
+        except Exception as e:
+            print("  skip", r["title"], e); continue
+        if not img: print("  no match:", r["title"]); continue
+        print("  ok:", r["title"], "-", credit)
+        if "--dry" not in sys.argv:
+            dest.write_bytes(img); r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r["image_attribution"] = credit
+        done += 1; time.sleep(0.4)
+    if "--dry" not in sys.argv: json.dump(data, open(F, "w", encoding="utf-8"), ensure_ascii=False)
+    print(f"filled {done} of {len(todo)} missing")

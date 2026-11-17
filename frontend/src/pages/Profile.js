@@ -238,6 +238,21 @@ const Profile = () => {
 
         {activeTab === 'settings' && isOwnProfile && (
           <div className="max-w-lg space-y-4">
+            {/* Credits */}
+            <Card className="bg-zinc-900 border-zinc-800" data-testid="credits-card">
+              <CardContent className="pt-5">
+                <h3 className="font-semibold text-zinc-100 mb-2">Credits</h3>
+                <ul className="text-sm text-zinc-400 space-y-1">
+                  <li>Recipes and photos from <a className="text-orange-500 underline" href="https://www.themealdb.com" target="_blank" rel="noopener noreferrer">TheMealDB</a></li>
+                  <li>Recipes from <a className="text-orange-500 underline" href="https://www.foodista.com" target="_blank" rel="noopener noreferrer">Foodista</a>, licensed <a className="text-orange-500 underline" href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener noreferrer">CC BY 3.0</a></li>
+                  <li>Photos from <a className="text-orange-500 underline" href="https://spoonacular.com" target="_blank" rel="noopener noreferrer">spoonacular</a></li>
+                  <li>Nutrition data from <a className="text-orange-500 underline" href="https://fdc.nal.usda.gov" target="_blank" rel="noopener noreferrer">USDA FoodData Central</a></li>
+                  <li>Product data from <a className="text-orange-500 underline" href="https://world.openfoodfacts.org" target="_blank" rel="noopener noreferrer">Open Food Facts</a></li>
+                </ul>
+              </CardContent>
+            </Card>
+
+
             {/* Language setting */}
             <Card className="bg-zinc-900 border-zinc-800">
               <CardContent className="pt-5">

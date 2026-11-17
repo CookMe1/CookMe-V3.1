@@ -22,7 +22,7 @@ def _words(text):
     return {w.rstrip("s") for w in re.findall(r"[a-z]+", (text or "").lower()) if w not in STOP and len(w) > 2}
 
 
-NOT_A_MEAL = r"\bbuns?\b|sauce\b|dressing|marinade|\bdips?\b|syrup|relish|chutney|\bjam\b|stuffing|side dish|\bglaze\b|\bstock\b|\brub\b|vinaigrette|compote|pickle|parfait|smoothie|ugali|pretzel"
+NOT_A_MEAL = r"\bbuns?\b|sauce\b|dressing|marinade|\bdips?\b|syrup|relish|chutney|\bjam\b|stuffing|side dish|\bglaze\b|\bstock\b|\brub\b|vinaigrette|compote|pickle|parfait|smoothie|ugali|pretzel|queso|guacamole|hummus|salsa|chips\\b|crisps|nuts\\b|olives|sauerkraut|kimchi|roundup|collection|ideas\\b|\\bgroup\\b"
 LIGHT = r"salad|soup|sandwich|wrap|toastie|panini|slaw"
 MAIN_TAGS = {"dinner", "main course", "main dish"}
 
@@ -39,6 +39,9 @@ def slot_kinds(r) -> set:
         return set()
     if tags & BREAKFAST_TAGS or re.search(BREAKFAST_WORDS, title):
         return {"breakfast"}
+    n_ing = len(r.get("ingredients") or [])
+    if n_ing and n_ing < 4:
+        return set()                                       # too small to be a meal (e.g. "Padron peppers")
     if tags & NOT_MAIN_TAGS and not tags & MAIN_TAGS and not re.search(LUNCH_WORDS, title):
         return set()
     light = bool(re.search(LIGHT, title)) or bool(tags & {"salad", "soup"})
@@ -46,8 +49,10 @@ def slot_kinds(r) -> set:
         return {"dinner"} | ({"lunch"} if "quick" in tags or "lunch" in tags else set())
     if light:
         return {"lunch"}                                  # salads, soups and sandwiches are lunches
-    kinds = {"dinner"}
-    if "lunch" in tags or "quick" in tags:
+    kinds = set()
+    if n_ing == 0 or n_ing >= 6 or tags & MAIN_TAGS:
+        kinds.add("dinner")                                # a dinner needs some substance
+    if "lunch" in tags or "quick" in tags or not kinds:
         kinds.add("lunch")
     return kinds
 

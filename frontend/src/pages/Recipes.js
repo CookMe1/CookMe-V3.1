@@ -156,7 +156,7 @@ const Recipes = () => {
           id: recipe.recipe_id,
           title: recipe.title,
           description: recipe.description,
-          image: recipe.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800',
+          image: recipe.image || null,
           prepTime: recipe.prep_time,
           cookTime: recipe.cook_time,
           servings: recipe.servings,

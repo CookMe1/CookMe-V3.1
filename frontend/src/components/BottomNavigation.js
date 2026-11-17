@@ -209,7 +209,7 @@ const BottomNavigation = ({ showNav = true }) => {
                 difficulty: data.difficulty || 'Medium',
                 ingredients: data.ingredients || [],
                 steps: data.steps || [],
-                image: recipeImage || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800',
+                image: recipeImage || null,
                 tags: ['Photo Import']
               })
             });
