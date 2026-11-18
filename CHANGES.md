@@ -266,3 +266,4 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Nutrition accuracy pass (checked against all 1,170 library recipes): ingredient lines with the amount inside the name are split first, "tblsp/tbls/handfull" understood, red/green peppers are vegetables (not seasoning), nuts/prawns/olives counted by realistic piece weight, seasonings capped at 30 g, deep-frying oil mostly not counted. Median recipe is now 477 kcal/serving.
 - Imports: if every direct method is blocked, a copy from the Internet Archive is tried; empty AI results become a clear "paste it" message instead of a blank recipe; "Not specified" times are blanked.
 - Admin: POST /admin/fetch-test {url} shows what each fetch method returned (for diagnosing blocked sites).
+- Privacy: PostHog session recording (screen recording of users) switched off; added robots.txt (keeps /api and /admin out of search engines).
