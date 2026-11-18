@@ -251,3 +251,9 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - **Diet conversion:** tick several at once (e.g. vegan + gluten-free) for one AI call. Vegan automatically covers vegetarian and dairy-free. Combinations are cached.
 - **AI recipes into the shared library:** recipes the AI wrote for a user are marked `ai_generated`. When a user finishes Cooking Mode on one ("Done"), it goes into Admin -> "AI recipes ready for review". You read it, optionally pick a free Pixabay/Pexels photo (needs `PIXABAY_API_KEY` and/or `PEXELS_API_KEY` in the backend settings), and "Publish to library" makes your own copy for everyone (labelled AI-made, no user name, photo credited). Nothing goes public without your approval. Photos are saved in our own database, never hotlinked.
 - **Terms:** new section 2A explains AI-written recipes and that cooked ones may be reviewed and added to the shared library.
+
+## Claude Haiku 5.5 is now the default AI model
+- Default is `anthropic` / `claude-haiku-5-5` (confirmed available on the Emergent key). No settings needed.
+- Safety net: when the backend starts it tests the model once; if it does not answer, the whole app switches to `openai` / `gpt-4o-mini` for that run and logs a warning. A wrong model name can never break imports.
+- To force the old model: set `AI_PROVIDER=openai` and `AI_MODEL=gpt-4o-mini`. Admin -> "Test AI model" shows which model is in use.
+- Unchanged: recipe photo creation (Gemini) and the full-recipe translation backup (`gpt-5.2`).

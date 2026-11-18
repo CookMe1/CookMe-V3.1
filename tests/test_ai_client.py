@@ -9,10 +9,10 @@ import ai_client
 def test_model_defaults_and_env(monkeypatch):
     monkeypatch.delenv("AI_PROVIDER", raising=False)
     monkeypatch.delenv("AI_MODEL", raising=False)
-    assert ai_client.model_for() == ("openai", "gpt-4o-mini")
-    monkeypatch.setenv("AI_PROVIDER", "anthropic")
-    monkeypatch.setenv("AI_MODEL", "claude-haiku-5-5")
-    assert ai_client.model_for() == ("anthropic", "claude-haiku-5-5")
+    assert ai_client.model_for() == ("anthropic", "claude-haiku-5-5")          # Haiku is the default
+    monkeypatch.setenv("AI_PROVIDER", "openai")
+    monkeypatch.setenv("AI_MODEL", "gpt-4o-mini")
+    assert ai_client.model_for() == ("openai", "gpt-4o-mini")                  # old model by setting
 
 
 def test_parse_json_with_fences():
@@ -104,3 +104,27 @@ def test_multi_diet_is_one_call_and_vegan_covers_vegetarian():
     assert normalise_diets(["Gluten-Free", "vegan"]) == normalise_diets(["vegan", "gluten-free"])
     with pytest.raises(HTTPException):
         normalise_diets(["paleo-ish"])
+
+
+def test_startup_check_falls_back_when_model_fails(monkeypatch):
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+    monkeypatch.delenv("AI_MODEL", raising=False)
+    monkeypatch.setenv("EMERGENT_LLM_KEY", "k")
+
+    async def boom(*a, **k):
+        raise RuntimeError("unknown provider")
+    monkeypatch.setattr(ai_client, "ask_json", boom)
+    assert asyncio.run(ai_client.verify_model()) == "openai/gpt-4o-mini"
+    assert ai_client.model_for() == ("openai", "gpt-4o-mini")                  # whole app now on the fallback
+
+
+def test_startup_check_keeps_haiku_when_it_answers(monkeypatch):
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+    monkeypatch.delenv("AI_MODEL", raising=False)
+    monkeypatch.setenv("EMERGENT_LLM_KEY", "k")
+
+    async def fine(*a, **k):
+        return {"ok": True}
+    monkeypatch.setattr(ai_client, "ask_json", fine)
+    assert asyncio.run(ai_client.verify_model()) == "anthropic/claude-haiku-5-5"
+    assert ai_client.model_for() == ("anthropic", "claude-haiku-5-5")

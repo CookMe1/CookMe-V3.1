@@ -95,6 +95,13 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.exception("Could not start the master recipe seeding")
 
+    try:
+        import asyncio
+        from ai_client import verify_model
+        asyncio.create_task(verify_model())   # tests the AI model once; falls back to GPT-4o mini if it fails
+    except Exception:
+        logger.exception("Could not start the AI model check")
+
     release_task = None
     try:
         import asyncio
