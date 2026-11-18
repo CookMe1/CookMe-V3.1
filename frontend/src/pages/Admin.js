@@ -57,6 +57,7 @@ const Admin = () => {
   const { user, loading: authLoading } = useAuth();
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState(null);
+  const [errors, setErrors] = useState(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`${API_URL}/api/admin/reports`, { headers: headers() });
@@ -66,6 +67,26 @@ const Admin = () => {
 
   if (authLoading) return null;
   if (!user?.is_admin) return <Navigate to="/dashboard" replace />;
+
+  const downloadBackup = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/backup`, { headers: headers() });
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (res.headers.get('Content-Disposition') || '').split('filename=')[1]?.replace(/"/g, '') || 'cookme-backup.jsonl.gz';
+      document.body.appendChild(a); a.click(); a.remove();
+      toast.success('Backup downloaded. Keep it somewhere private.');
+    } catch (e) { toast.error('Backup failed. Please try again.'); }
+  };
+
+  const loadErrors = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/admin/errors`, { headers: headers() });
+      if (res.ok) setErrors((await res.json()).errors); else toast.error('Could not load errors.');
+    } catch (e) { toast.error('Could not reach the server.'); }
+  };
 
   const sendTest = async () => {
     try {
@@ -92,7 +113,18 @@ const Admin = () => {
         <Link to="/profile" className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 mb-4"><ArrowLeft className="w-4 h-4" /> Back</Link>
         <h1 className="font-display text-3xl font-bold flex items-center gap-2 mb-1"><ShieldCheck className="w-7 h-7 text-orange-500" /> Review queue</h1>
         <p className="text-zinc-500 text-sm mb-2">Reported accounts are locked and reported recipes are taken down until you decide.</p>
-        <button onClick={sendTest} className="text-xs text-orange-400 underline mb-6" data-testid="test-email-btn">Send me a test email</button>
+        <div className="flex flex-wrap gap-x-5 gap-y-1 mb-6">
+          <button onClick={sendTest} className="text-xs text-orange-400 underline" data-testid="test-email-btn">Send me a test email</button>
+          <button onClick={downloadBackup} className="text-xs text-orange-400 underline" data-testid="backup-btn">Download backup</button>
+          <button onClick={loadErrors} className="text-xs text-orange-400 underline" data-testid="errors-btn">Show recent app errors</button>
+        </div>
+        {errors && (
+          <Card className="bg-zinc-900 border-zinc-800 mb-6" data-testid="errors-list"><CardContent className="pt-5 text-xs text-zinc-400 space-y-2">
+            {errors.length === 0 ? <p>No errors reported in the last 30 days. 🎉</p> : errors.map((e, i) => (
+              <p key={i}><span className="text-zinc-600">{when(e.created_at)}</span> <span className="text-zinc-200">{e.message}</span> <span className="text-zinc-600">{e.url}</span></p>
+            ))}
+          </CardContent></Card>
+        )}
 
         {!data ? <Loader2 className="w-6 h-6 animate-spin text-zinc-500" /> : data.items.length === 0 ? (
           <p className="text-zinc-400" data-testid="admin-empty">Nothing to review. 🎉</p>

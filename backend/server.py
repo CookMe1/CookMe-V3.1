@@ -55,6 +55,7 @@ async def lifespan(app: FastAPI):
         await db.recipes.create_index([("visibility", 1), ("public_since", -1)])
         await db.recipes.create_index([("user_id", 1), ("visibility", 1)])
         await db.recipes.create_index([("hidden_by", 1)])
+        await db.client_errors.create_index([("created_at", 1)], expireAfterSeconds=60 * 60 * 24 * 30)
         await db.cookbooks.create_index([("cookbook_id", 1)], unique=True)
         await db.meal_plans.create_index([("user_id", 1), ("week_start", -1)])
         await db.meal_plans.create_index([("meal_plan_id", 1)], unique=True)
@@ -106,6 +107,14 @@ async def lifespan(app: FastAPI):
     logger.info("Closed MongoDB connection")
 
 
+# Optional crash reporting: set SENTRY_DSN (free plan at sentry.io) and `pip install sentry-sdk`. Does nothing otherwise.
+if os.getenv("SENTRY_DSN"):
+    try:
+        import sentry_sdk
+        sentry_sdk.init(dsn=os.environ["SENTRY_DSN"], traces_sample_rate=0.0, send_default_pii=False)
+    except Exception:
+        logging.getLogger(__name__).warning("SENTRY_DSN is set but sentry-sdk is not installed")
+
 app = FastAPI(lifespan=lifespan)
 
 # Compress API responses (recipe lists shrink 3-5x)
@@ -138,6 +147,7 @@ from routes.translation_routes import router as translation_router
 from routes.community_routes import router as community_router
 from routes.social_routes import router as social_router
 from routes.admin_routes import router as admin_router
+from routes.monitoring_routes import router as monitoring_router
 from routes.localisation_routes import router as localisation_router
 from import_queue import router as import_queue_router
 
@@ -145,7 +155,7 @@ for router in (
     auth_router, recipe_router, pantry_router, shopping_router,
     import_workflow_router, cookbook_router, meal_plan_router,
     instagram_router, translation_router, community_router,
-    localisation_router, import_queue_router, social_router, admin_router,
+    localisation_router, import_queue_router, social_router, admin_router, monitoring_router,
 ):
     api_router.include_router(router)
 

@@ -170,3 +170,10 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Recipe photos lazy-load (hero images still load immediately).
 - Comments and admin report lists are capped at 300 per request.
 - New `scripts/mirror_images.py` downloads hotlinked master-recipe images, shrinks them and rewrites `data/master_recipes.json` (run on your own computer).
+
+## Safety net: backups and error reports
+- Admin page: **Download backup** (one file with all user data; master recipes, caches and login sessions are left out) and **Show recent app errors**.
+- `scripts/restore_backup.py` puts a backup file back (`--dry-run` only counts).
+- Browser crashes are reported to `/api/monitoring/client-error` (rate-limited, kept 30 days).
+- Optional backend crash alerts: set `SENTRY_DSN` and install `sentry-sdk`.
+- `docs/legal-review-brief.md`: what to give a lawyer for the Terms/Privacy review.

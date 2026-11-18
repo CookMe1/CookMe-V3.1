@@ -1,7 +1,7 @@
 """Admin review queue: reported users, recipes and comments. Admins are set with the ADMIN_EMAILS env var."""
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
 
 import account_ops
@@ -142,3 +142,23 @@ async def test_email(request: Request):
     except Exception as e:
         return {"sent": False, "error": str(e)[:300]}
     return {"sent": True}
+
+
+@router.get("/backup")
+async def download_backup(request: Request):
+    """One-click backup of all user data (admins only). Keep the file somewhere private: it holds personal data."""
+    import backup_ops
+    db = request.app.state.db
+    await require_admin(request, db)
+    blob, counts = await backup_ops.build_backup(db)
+    name = "cookme-backup-" + datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M") + ".jsonl.gz"
+    return Response(blob, media_type="application/gzip", headers={
+        "Content-Disposition": f'attachment; filename="{name}"', "X-Backup-Counts": ",".join(f"{k}={v}" for k, v in counts.items())})
+
+
+@router.get("/errors")
+async def recent_errors(request: Request):
+    db = request.app.state.db
+    await require_admin(request, db)
+    rows = await db.client_errors.find({}, {"_id": 0}).sort("created_at", -1).to_list(30)
+    return {"errors": rows}
