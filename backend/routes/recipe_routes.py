@@ -753,25 +753,15 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
                 _fetch_headers['User-Agent'] = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
                 _fetch_headers['Referer'] = 'https://www.google.com/'
 
-            async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as http_client:
-                response = await http_client.get(extract_data.recipe_url, headers=_fetch_headers)
-                page_content = response.text
-                # Some sites refuse the first identity; retry once as a normal browser, then as Googlebot.
-                if response.status_code >= 400 or len(page_content) < 2000:
-                    alt = dict(_fetch_headers)
-                    alt['User-Agent'] = (
-                        'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
-                        if 'Googlebot' not in _fetch_headers['User-Agent']
-                        else 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15'
-                    )
-                    alt['Referer'] = 'https://www.google.com/'
-                    retry = await http_client.get(extract_data.recipe_url, headers=alt)
-                    if retry.status_code < 400 and len(retry.text) > len(page_content):
-                        response, page_content = retry, retry.text
-            if response.status_code >= 400:
+            from page_fetch import fetch_page_html
+            page_content, _how = await fetch_page_html(
+                extract_data.recipe_url,
+                prefer_googlebot='Googlebot' in _fetch_headers['User-Agent'],
+            )
+            if not page_content:
                 raise HTTPException(
                     status_code=422,
-                    detail="That website blocked CookMe from reading the recipe. Try copying the recipe text into 'Paste text', or use another link.",
+                    detail="That website blocked CookMe from reading the recipe. Paste the recipe text instead, or try another link.",
                 )
 
             # ── Try JSON-LD first (free, no AI) ──────────────────────────────

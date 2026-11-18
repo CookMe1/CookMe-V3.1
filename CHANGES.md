@@ -226,3 +226,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 ## Import: blocked sites and blank results
 - If a website refuses CookMe, it retries with another identity, then shows a clear message instead of a fake recipe.
 - The AI's blank template ("Recipe name", "Step 1 text") is rejected and never saved or cached.
+
+## Harder-to-read recipe sites
+- New `page_fetch.py`: tries a normal browser, then Googlebot, then Jina Reader, then ScrapingBee (only if `SCRAPINGBEE_API_KEY` is set) before giving up.
+- If every method fails, the share page opens the paste box straight away with the link kept, instead of a dead end.

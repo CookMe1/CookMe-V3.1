@@ -413,6 +413,19 @@ const ShareHandler = () => {
       
     } catch (err) {
       console.error('Extract error:', err);
+      if (/blocked|could not find a recipe|paste/i.test(err.message || '')) {
+        // The site would not let CookMe read it: go straight to "paste the recipe text" with the link kept.
+        setRecipe({
+          title: '', description: '', ingredients: [], steps: [], image: '',
+          source_url: targetUrl, source: detected.name, tags: ['Imported'],
+          prep_time: '30 min', cook_time: '30 min', servings: 4, difficulty: 'Medium',
+          confidence: 'user-assisted', needs_user_input: true,
+        });
+        setShowPasteBox(true);
+        setMode('success');
+        toast.info("That site blocked CookMe. Paste the recipe text below and we'll read it.");
+        return;
+      }
       setError(err.message || 'Failed to extract recipe');
       setMode('error');
       toast.error(err.message || 'Extraction failed');
@@ -635,7 +648,16 @@ const ShareHandler = () => {
     } else {
       // No link at all: the app shared plain recipe text, so open the paste box with it filled in.
       const plain = (fields[1] || fields[0]).trim();
-      if (plain) { setPasteText(plain); setShowPasteBox(true); }
+      if (plain) {
+        setPasteText(plain);
+        setShowPasteBox(true);
+        setRecipe({
+          title: '', description: '', ingredients: [], steps: [], image: '', source_url: '', source: 'Shared text',
+          tags: ['Imported'], prep_time: '30 min', cook_time: '30 min', servings: 4, difficulty: 'Medium',
+          confidence: 'user-assisted', needs_user_input: true,
+        });
+        setMode('success');
+      }
     }
   }, [searchParams, extractFromUrl]);
 
