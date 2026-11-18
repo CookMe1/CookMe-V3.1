@@ -47,3 +47,15 @@ def test_split_ingredient():
     assert sp("1 (15-ounce) can white beans, drained") == ("1 (15-ounce) can", "white beans, drained")
     assert sp("Salt and pepper") == ("", "Salt and pepper")
     assert sp("½ teaspoon cumin") == ("½ teaspoon", "cumin")
+
+
+def test_library_style_ingredients():
+    from amounts import parse_amount_to_grams as g, fry_factor
+    assert g("1", "Red Pepper") == 150                      # a vegetable, not a seasoning
+    assert g("1", "Black Pepper") == 1
+    assert g("2 tblsp", "Red Wine Vinegar") == 30
+    assert g("10", "Almonds") == 12
+    assert g("1 cup", "salt") == 30                         # capped
+    assert g("1 Handfull", "Pork") == 30
+    assert fry_factor("Sunflower Oil", 1000, 4) == 0.12
+    assert fry_factor("Olive Oil", 30, 4) == 1.0

@@ -864,6 +864,15 @@ Content:
                     detail="CookMe could not find a recipe on that page. Select the recipe text on the page and share it to CookMe again, or paste it here.",
                 )
 
+            if not recipe_data.get("ingredients") and not (recipe_data.get("steps") or recipe_data.get("instructions")):
+                raise HTTPException(
+                    status_code=422,
+                    detail="CookMe could not find a recipe on that page. Select the recipe text on the page and share it to CookMe again, or paste it here.",
+                )
+            for _k in ("prep_time", "cook_time"):
+                if str(recipe_data.get(_k, "")).strip().lower() in ("not specified", "n/a", "unknown", "none"):
+                    recipe_data[_k] = ""
+
             # Use WPRM data if more complete
             if wprm_data["ingredients"] and len(wprm_data["ingredients"]) > len(recipe_data.get("ingredients", [])):
                 recipe_data["ingredients"] = wprm_data["ingredients"]

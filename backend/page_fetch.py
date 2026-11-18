@@ -1,6 +1,6 @@
 """Get a recipe page's HTML even when the site blocks plain server requests.
 
-Order: direct (normal browser) -> Googlebot identity -> Jina Reader (HTML mode). All free; no paid services.
+Order: direct (normal browser) -> Googlebot identity -> Jina Reader (HTML mode) -> Internet Archive copy. All free; no paid services.
 Each step is tried only if the previous one failed or returned a near-empty page.
 """
 import logging
@@ -28,18 +28,23 @@ def looks_usable(html: str) -> bool:
     return True
 
 
-async def fetch_page_html(url: str, prefer_googlebot: bool = False):
-    """Returns (html, how). html is "" when every method failed."""
+async def fetch_page_html(url: str, prefer_googlebot: bool = False, diag: list | None = None):
+    """Returns (html, how). html is "" when every method failed. diag (a list) collects what each method did."""
+    def note(method, status, text="", err=""):
+        if diag is not None:
+            diag.append({"method": method, "status": status, "chars": len(text or ""), "usable": looks_usable(text or ""), "error": str(err)[:120]})
     uas = [GOOGLEBOT_UA, BROWSER_UA] if prefer_googlebot else [BROWSER_UA, GOOGLEBOT_UA]
     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
         for ua in uas:
             headers = {**BASE_HEADERS, "User-Agent": ua, "Referer": "https://www.google.com/"}
             try:
                 r = await client.get(url, headers=headers)
+                note("googlebot" if ua == GOOGLEBOT_UA else "browser", r.status_code, r.text)
                 if r.status_code < 400 and looks_usable(r.text):
                     return r.text, "direct"
             except Exception as e:  # network error: try next method
                 logger.info(f"direct fetch failed: {e}")
+                note("googlebot" if ua == GOOGLEBOT_UA else "browser", 0, err=e)
 
         try:  # Jina Reader in HTML mode renders the page from its own servers
             r = await client.get(
@@ -47,9 +52,20 @@ async def fetch_page_html(url: str, prefer_googlebot: bool = False):
                 headers={"X-Return-Format": "html", "Accept": "text/html"},
                 timeout=45.0,
             )
+            note("jina", r.status_code, r.text)
             if r.status_code < 400 and looks_usable(r.text):
                 return r.text, "reader"
         except Exception as e:
             logger.info(f"reader fetch failed: {e}")
+            note("jina", 0, err=e)
+
+        try:  # the Internet Archive keeps copies of most popular recipe pages (id_ = untouched original HTML)
+            r = await client.get(f"https://web.archive.org/web/2id_/{url}", headers={"User-Agent": BROWSER_UA}, timeout=40.0)
+            note("archive", r.status_code, r.text)
+            if r.status_code < 400 and looks_usable(r.text):
+                return r.text, "archive"
+        except Exception as e:
+            logger.info(f"archive fetch failed: {e}")
+            note("archive", 0, err=e)
 
     return "", "failed"

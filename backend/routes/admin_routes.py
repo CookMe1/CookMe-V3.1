@@ -217,6 +217,21 @@ async def ai_test(request: Request):
                 "seconds": round(time.time() - started, 2), "error": str(e)[:300]}
 
 
+@router.post("/fetch-test")
+async def fetch_test(request: Request):
+    """Shows what each way of fetching a page did (status, size, usable) so blocked sites can be diagnosed."""
+    from page_fetch import fetch_page_html
+    db = request.app.state.db
+    await require_admin(request, db)
+    body = await request.json()
+    url = str(body.get("url", "")).strip()
+    if not url.startswith("http"):
+        raise HTTPException(status_code=400, detail="url required")
+    diag: list = []
+    html, how = await fetch_page_html(url, diag=diag)
+    return {"how": how, "chars": len(html), "has_recipe_data": '"Recipe"' in html, "steps": diag}
+
+
 # ── AI recipes that people cooked: review, add a free photo, publish to the shared library ────────────
 
 class AiRecipeAction(BaseModel):

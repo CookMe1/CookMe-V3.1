@@ -275,7 +275,7 @@ async def lookup_edamam(ingredient_text: str) -> Optional[dict]:
 
 # ── Amount parser ─────────────────────────────────────────────────────────────
 
-from amounts import parse_amount_to_grams, adjust_cups  # noqa: E402  (whole-word units, per-item weights), adjust_cups
+from amounts import parse_amount_to_grams, adjust_cups, split_ingredient, fry_factor  # noqa: E402  (whole-word units, per-item weights), adjust_cups
 
 
 # ── Recipe-level nutrition calculation ───────────────────────────────────────
@@ -318,6 +318,10 @@ async def calculate_recipe_nutrition_free(
 
         if not item_name:
             continue
+        if not str(amount_str or "").strip():            # "2 tbsp olive oil" written as one line
+            _a, _n = split_ingredient(item_name)
+            if _a and _n:
+                amount_str, item_name = _a, _n
 
         # Non-English names (e.g. "pollo", "Zwiebel") -> English via our own dictionary before looking them up
         try:
@@ -351,6 +355,7 @@ async def calculate_recipe_nutrition_free(
 
         grams = parse_amount_to_grams(amount_str, item_name)
         grams, factor = adjust_cups(amount_str, item_name, grams, servings)
+        factor *= fry_factor(item_name, grams, servings)
         ratio = grams / 100.0 * factor
 
         totals["calories"] += (nutriments.get("calories_per_100g") or 0) * ratio

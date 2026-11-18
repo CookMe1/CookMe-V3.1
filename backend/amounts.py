@@ -11,11 +11,11 @@ UNICODE_FRACTIONS = {"½": 0.5, "¼": 0.25, "¾": 0.75, "⅓": 1 / 3, "⅔": 2 /
 UNITS = {
     "kg": 1000, "kilo": 1000, "kilos": 1000, "g": 1, "gram": 1, "grams": 1, "gr": 1, "mg": 0.001,
     "l": 1000, "litre": 1000, "litres": 1000, "liter": 1000, "liters": 1000, "ml": 1, "cl": 10, "dl": 100,
-    "cup": 240, "cups": 240, "tbsp": 15, "tbs": 15, "tablespoon": 15, "tablespoons": 15,
+    "cup": 240, "cups": 240, "tbsp": 15, "tbs": 15, "tblsp": 15, "tbl": 15, "tbls": 15, "tbsps": 15, "tblsps": 15, "dsp": 10, "tsps": 5, "tablespoon": 15, "tablespoons": 15,
     "tsp": 5, "teaspoon": 5, "teaspoons": 5, "fl oz": 30, "floz": 30,
     "oz": 28, "ounce": 28, "ounces": 28, "lb": 454, "lbs": 454, "pound": 454, "pounds": 454,
     "clove": 4, "cloves": 4, "slice": 30, "slices": 30, "piece": 100, "pieces": 100,
-    "can": 400, "cans": 400, "tin": 400, "tins": 400, "handful": 30, "handfuls": 30,
+    "can": 400, "cans": 400, "tin": 400, "tins": 400, "handful": 30, "handfuls": 30, "handfull": 30,
     "bunch": 60, "bunches": 60, "sprig": 2, "sprigs": 2, "stick": 110, "sticks": 110,
     "pinch": 0.4, "pinches": 0.4, "dash": 0.6, "splash": 10, "drizzle": 7, "knob": 15, "glug": 15,
     "pack": 250, "packet": 250, "packets": 250, "jar": 300, "stalk": 40, "stalks": 40, "head": 500,
@@ -24,7 +24,7 @@ UNITS = {
 }
 SERVING_WORDS = {"serving", "servings", "portion", "portions"}
 # seasonings are tiny: "4 servings salt" is about 4 g, not 4 whole items
-SEASONING = re.compile(r"\b(salt|pepper|paprika|cumin|oregano|thyme|basil|parsley|cinnamon|nutmeg|turmeric|"
+SEASONING = re.compile(r"\b(salt|sazon|adobo|bouillon|(?:^|(?<=black )|(?<=white )|(?<=ground )|(?<=cracked )|(?<=cayenne ))pepper|paprika|cumin|oregano|thyme|basil|parsley|cinnamon|nutmeg|turmeric|"
                        r"coriander|chilli powder|chili powder|garlic powder|onion powder|spice|spices|seasoning|herbs?)\b")
 VAGUE = ("to taste", "to serve", "for serving", "for garnish", "as needed", "some", "a little", "optional")
 
@@ -32,13 +32,13 @@ VAGUE = ("to taste", "to serve", "for serving", "for garnish", "as needed", "som
 COUNT_WEIGHTS = [
     ("egg", 50), ("onion", 110), ("shallot", 40), ("spring onion", 15), ("garlic", 4), ("tomato", 120),
     ("potato", 170), ("sweet potato", 200), ("carrot", 70), ("lemon", 60), ("lime", 45), ("orange", 150),
-    ("apple", 180), ("banana", 120), ("pear", 170), ("avocado", 150), ("pepper", 150), ("chilli", 15),
+    ("apple", 180), ("banana", 120), ("pear", 170), ("avocado", 150), ("pepper", 150), ("grape", 5), ("strawberry", 15), ("strawberries", 15), ("almonds", 1.2), ("hazelnuts", 1.5), ("prawn", 15), ("shrimp", 15), ("meatball", 30), ("cherry tomato", 15), ("sage leaf", 0.5), ("chilli", 15),
     ("chili", 15), ("jalapeno", 15), ("jalapeño", 15), ("courgette", 200), ("zucchini", 200),
     ("aubergine", 250), ("eggplant", 250), ("cucumber", 300), ("celery", 40), ("leek", 150),
     ("baguette", 250), ("bread", 30), ("roll", 60), ("bun", 60), ("tortilla", 40), ("pitta", 60),
     ("chicken breast", 170), ("chicken thigh", 120), ("sausage", 60), ("bacon", 25), ("burger", 120),
     ("steak", 200), ("chop", 150), ("fillet", 150), ("mushroom", 20), ("beetroot", 80), ("turnip", 120),
-    ("peach", 150), ("plum", 60), ("mango", 200), ("kiwi", 75), ("date", 8), ("fig", 50),
+    ("almond", 1.2), ("hazelnut", 1.5), ("walnut", 4), ("cashew", 1.5), ("pecan", 3), ("olive", 4), ("peach", 150), ("plum", 60), ("mango", 200), ("kiwi", 75), ("date", 8), ("fig", 50),
     ("star anise", 1), ("bay leaf", 0.5), ("bay leaves", 0.5), ("cinnamon stick", 3), ("cardamom", 0.5),
     ("clove", 1), ("tomato", 120), ("cabbage", 600), ("cauliflower", 600), ("broccoli", 300),
 ]
@@ -95,7 +95,10 @@ def parse_amount_to_grams(amount: str, item_name: str = "") -> float:
     if qty is None:                                   # "pinch", "drizzle", "handful", "to taste"
         return unit_g if unit_g is not None else 5.0
     if unit_g is not None:
-        return qty * unit_g
+        grams = qty * unit_g
+        if SEASONING.search((item_name or "").lower()):
+            grams = min(grams, 30.0)                 # no recipe uses a cup of salt
+        return grams
     if any(v in text for v in VAGUE):
         return 5.0
     # no unit: either grams written bare ("400") or a count of items ("8" eggs, "1 sliced" onion)
@@ -150,3 +153,13 @@ def split_ingredient(line: str):
         rest = f"{unit} {rest}"                    # the word was part of the name ("1 large onion")
         unit = ""
     return f"{m.group('q').strip()} {unit}".strip(), rest
+
+
+OILS = re.compile(r"\b(oil|lard|dripping|frying fat|ghee)\b")
+
+
+def fry_factor(item_name: str, grams: float, servings: int) -> float:
+    """Oil for deep frying is mostly left in the pan: above ~40 g per serving, count only a share of it."""
+    if OILS.search((item_name or "").lower()) and grams / max(1, servings) > 40:
+        return 0.12
+    return 1.0
