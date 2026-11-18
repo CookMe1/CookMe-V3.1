@@ -162,3 +162,37 @@ async def recent_errors(request: Request):
     await require_admin(request, db)
     rows = await db.client_errors.find({}, {"_id": 0}).sort("created_at", -1).to_list(30)
     return {"errors": rows}
+
+
+class ImproveBody(BaseModel):
+    limit: int = 25
+
+
+@router.post("/improve-descriptions")
+async def improve_descriptions(body: ImproveBody, request: Request):
+    """Upgrade the plain auto-written descriptions of the library recipes with short AI-written ones, a batch at a time."""
+    import asyncio
+    from description_quality import improved_description
+    db = request.app.state.db
+    await require_admin(request, db)
+    q = {"user_id": "system_seeder", "description_auto": True}
+    rows = await db.recipes.find(q, {"_id": 0, "recipe_id": 1, "title": 1, "cuisine": 1, "ingredients": 1, "steps": 1}).limit(max(1, min(body.limit, 50))).to_list(50)
+    sem = asyncio.Semaphore(5)
+
+    async def one(r):
+        async with sem:
+            text, src = await improved_description(r, use_ai=True)
+        if src != "ai":
+            return False
+        await db.recipes.update_one({"recipe_id": r["recipe_id"]}, {"$set": {"description": text, "description_auto": False, "description_source": "ai"}})
+        return True
+
+    results = await asyncio.gather(*(one(r) for r in rows))
+    return {"updated": sum(results), "failed": len(results) - sum(results), "remaining": await db.recipes.count_documents(q)}
+
+
+@router.get("/description-status")
+async def description_status(request: Request):
+    db = request.app.state.db
+    await require_admin(request, db)
+    return {"plain_descriptions": await db.recipes.count_documents({"user_id": "system_seeder", "description_auto": True})}

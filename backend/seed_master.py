@@ -31,7 +31,7 @@ async def seed_master_recipes(db, path=None) -> int:
     return len(recipes)
 
 
-SYNC_FIELDS = ("image", "prep_time", "cook_time", "time_estimated", "description")
+SYNC_FIELDS = ("image", "prep_time", "cook_time", "time_estimated", "description", "description_auto")
 SYNC_VERSION = 2   # bump when data/master_recipes.json gets new corrections that existing databases should receive
 
 

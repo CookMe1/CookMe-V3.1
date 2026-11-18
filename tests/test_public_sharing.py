@@ -53,7 +53,7 @@ def test_incomplete_recipe_goes_back_with_a_list(env):
     res = env.post(f"/api/recipes/{rid}/publish", json={"consent": True, "terms_version": ps.TERMS_VERSION}).json()
     assert res["status"] == "needs_changes"
     fields = {i["field"] for i in res["issues"]}
-    assert {"description", "image", "steps", "ingredients"} <= fields
+    assert {"image", "steps", "ingredients"} <= fields        # a blank description is now filled in when the recipe is saved
     stored = env.get(f"/api/recipes/{rid}").json()
     assert stored["visibility"] != "public" and stored["publish_status"] == "needs_changes" and stored["publish_issues"]
 

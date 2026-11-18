@@ -505,6 +505,16 @@ async def create_recipe(recipe_data: RecipeCreate, request: Request):
     except Exception as e:
         logger.info(f"auto-tag skipped: {e}")
 
+    # Every recipe gets a decent description: keep a good one, otherwise write one (AI, or a plain fallback)
+    try:
+        from description_quality import description_is_weak, improved_description
+        if description_is_weak(payload.get("description"), payload.get("title", "")):
+            payload["description"], src = await improved_description(payload)
+            payload["description_auto"] = True
+            payload["description_source"] = src
+    except Exception as e:
+        logger.info(f"description check skipped: {e}")
+
     recipe_doc = {
         "recipe_id": recipe_id,
         "user_id": user["user_id"],

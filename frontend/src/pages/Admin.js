@@ -58,6 +58,7 @@ const Admin = () => {
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState(null);
   const [errors, setErrors] = useState(null);
+  const [descBusy, setDescBusy] = useState(false);
 
   const load = useCallback(async () => {
     const res = await fetch(`${API_URL}/api/admin/reports`, { headers: headers() });
@@ -86,6 +87,24 @@ const Admin = () => {
       const res = await fetch(`${API_URL}/api/admin/errors`, { headers: headers() });
       if (res.ok) setErrors((await res.json()).errors); else toast.error('Could not load errors.');
     } catch (e) { toast.error('Could not reach the server.'); }
+  };
+
+  const improveDescriptions = async () => {
+    setDescBusy(true);
+    try {
+      let left = null, total = 0;
+      for (let i = 0; i < 40; i++) {                      // up to 40 batches of 25 per click
+        const res = await fetch(`${API_URL}/api/admin/improve-descriptions`, { method: 'POST', headers: headers(), body: JSON.stringify({ limit: 25 }) });
+        if (!res.ok) throw new Error();
+        const r = await res.json();
+        total += r.updated; left = r.remaining;
+        toast.message(`${total} descriptions improved, ${left} left`);
+        if (!r.updated || !left) break;
+      }
+      if (left === 0) toast.success('All library descriptions are improved.');
+      else if (total === 0) toast.error('The AI did not answer. Try again later.');
+    } catch (e) { toast.error('Could not improve descriptions. Please try again.'); }
+    setDescBusy(false);
   };
 
   const sendTest = async () => {
@@ -117,6 +136,7 @@ const Admin = () => {
           <button onClick={sendTest} className="text-xs text-orange-400 underline" data-testid="test-email-btn">Send me a test email</button>
           <button onClick={downloadBackup} className="text-xs text-orange-400 underline" data-testid="backup-btn">Download backup</button>
           <button onClick={loadErrors} className="text-xs text-orange-400 underline" data-testid="errors-btn">Show recent app errors</button>
+          <button onClick={improveDescriptions} disabled={descBusy} className="text-xs text-orange-400 underline disabled:opacity-50" data-testid="improve-desc-btn">{descBusy ? 'Improving descriptions…' : 'Improve library descriptions (AI)'}</button>
         </div>
         {errors && (
           <Card className="bg-zinc-900 border-zinc-800 mb-6" data-testid="errors-list"><CardContent className="pt-5 text-xs text-zinc-400 space-y-2">

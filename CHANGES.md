@@ -201,3 +201,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - **Existing databases get the corrections automatically** on the next start (`sync_master_updates`, runs once): local image paths, times and descriptions.
 - Deleting your own recipe now really deletes it (it used to only hide it). The Home counter "N of your own" no longer counts hidden recipes.
 - Smaller photo banners on phones (Recipes, Planner, Shopping, Pantry, Social, Cookbooks, Add Recipe); Home banner a little shorter.
+
+## Every recipe gets a decent description
+- When a recipe is saved (URL, YouTube, photo or typed in) and its description is missing, too short, just the title, a generic template, or full of junk (links, "subscribe", hashtags), the app writes one: a 25-45 word AI description (gpt-4o-mini, a fraction of a cent) from the title, ingredients and method; if the AI is unavailable, a plain sentence from the ingredients. Good descriptions written by the person or the source site are never changed.
+- Library recipes with plain template descriptions (583) are flagged; **Admin → "Improve library descriptions (AI)"** upgrades them 25 at a time (progress shown, safe to stop and resume).
