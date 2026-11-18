@@ -275,69 +275,7 @@ async def lookup_edamam(ingredient_text: str) -> Optional[dict]:
 
 # ── Amount parser ─────────────────────────────────────────────────────────────
 
-# Rough gram conversions for common volume/count measures
-VOLUME_TO_GRAMS = {
-    "cup": 240, "cups": 240,
-    "tbsp": 15, "tablespoon": 15, "tablespoons": 15,
-    "tsp": 5, "teaspoon": 5, "teaspoons": 5,
-    "ml": 1, "l": 1000,
-    "fl oz": 30,
-    "oz": 28, "lb": 454,
-    "piece": 100, "pieces": 100,
-    "clove": 5, "cloves": 5,
-    "slice": 30, "slices": 30,
-    "can": 400, "handful": 40,
-    "bunch": 80,
-}
-
-UNICODE_FRACTIONS = {
-    "½": 0.5, "¼": 0.25, "¾": 0.75,
-    "⅓": 0.333, "⅔": 0.667, "⅛": 0.125,
-}
-
-def parse_amount_to_grams(amount_str: str) -> float:
-    """
-    Convert an ingredient amount string to approximate grams.
-    Examples: "200g" → 200, "1 cup" → 240, "2 tbsp" → 30, "½" → ~50
-    Returns 100 (default serving) if parsing fails.
-    """
-    if not amount_str:
-        return 100.0
-
-    text = amount_str.strip().lower()
-
-    # Replace unicode fractions
-    for frac, val in UNICODE_FRACTIONS.items():
-        text = text.replace(frac, str(val))
-
-    # Extract numeric value
-    num_match = re.search(r'([\d.]+(?:\s*/\s*[\d.]+)?)', text)
-    if not num_match:
-        return 100.0
-
-    num_str = num_match.group(1)
-    try:
-        if '/' in num_str:
-            parts = num_str.split('/')
-            quantity = float(parts[0].strip()) / float(parts[1].strip())
-        else:
-            quantity = float(num_str)
-    except Exception:
-        quantity = 1.0
-
-    # Direct grams/kg
-    if re.search(r'\d\s*g\b', text):
-        return quantity
-    if re.search(r'\d\s*kg\b', text):
-        return quantity * 1000
-
-    # Volume/count conversions
-    for unit, grams in VOLUME_TO_GRAMS.items():
-        if unit in text:
-            return quantity * grams
-
-    # Fallback: assume grams if numeric only
-    return quantity if quantity >= 1 else 100.0
+from amounts import parse_amount_to_grams  # noqa: E402  (whole-word units, per-item weights)
 
 
 # ── Recipe-level nutrition calculation ───────────────────────────────────────
@@ -411,7 +349,7 @@ async def calculate_recipe_nutrition_free(
         if not nutriments:
             continue
 
-        grams = parse_amount_to_grams(amount_str)
+        grams = parse_amount_to_grams(amount_str, item_name)
         ratio = grams / 100.0
 
         totals["calories"] += (nutriments.get("calories_per_100g") or 0) * ratio
@@ -438,4 +376,5 @@ async def calculate_recipe_nutrition_free(
         "sugar":    round(totals["sugar"]    / servings, 1),
         "sodium":   round(totals["sodium"]   / servings),
         "source":   "usda" if _USDA else "api",
+        "calc_v":   2,
     }

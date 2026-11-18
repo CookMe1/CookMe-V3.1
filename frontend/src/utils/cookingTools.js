@@ -211,8 +211,12 @@ export const proteinTypeById = (id) => PROTEIN_TYPES.find((t) => t.id === id) ||
 
 // Which protein a recipe is about (title first, then ingredients). Order matters: more specific kinds come first.
 const NOT_WHOLE_CUT = /\b(pulled|belly|shoulder|stew|casserole|curry|soup|stock|broth|minced?|ground|sausage|burger)\b/i;
+// Slow-cooked, minced, sauced or pastry dishes: the "how do you like it cooked" plan does not apply.
+const NOT_A_SIMPLE_CUT = /\b(shanks?|braise[ds]?|braising|stews?|casseroles?|curr(?:y|ies)|tagines?|ragu|ragout|pies?|pasties|soups?|broth|stock|mince[d]?|meatballs?|kebabs?|koftas?|hotpot|goulash|stroganoff|bolognese|lasagn[ae]|pulled|slow[- ]cook(?:er|ed)?|stir[- ]fr(?:y|ied)|salad|sandwich(?:es)?|wraps?|tacos?|fried rice|noodles?|risotto|paella)\b/i;
+
 export function detectProteinType(recipe) {
   const title = String(recipe?.title || '');
+  if (NOT_A_SIMPLE_CUT.test(title)) return null;
   const ings = (recipe?.ingredients || []).map((i) => (typeof i === 'string' ? i : i.item || i.name || '')).join(' ; ');
   for (const [text, strict] of [[title, true], [ings, false]]) {
     for (const t of PROTEIN_TYPES) {

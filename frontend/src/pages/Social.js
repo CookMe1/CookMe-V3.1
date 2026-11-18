@@ -145,35 +145,18 @@ const Social = () => {
           </Dialog>
         </div>
 
-        {/* Create post stub */}
-        {socialEnabled && user && (
-          <Card className="mb-6 bg-zinc-900 border-zinc-800">
-            <CardContent className="pt-5">
-              <div className="flex items-center gap-3">
-                <img loading="lazy" decoding="async"
-                  src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=D35400&color=fff`}
-                  alt={user.name}
-                  className="w-10 h-10 rounded-full"
-                  onError={e => { e.target.src = `https://ui-avatars.com/api/?name=U&background=D35400&color=fff`; }}
-                />
-                <button
-                  onClick={() => setShowCreatePost(true)}
-                  className="flex-1 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-full text-left text-zinc-500 text-sm transition-colors"
-                >
-                  What's cooking, {(user.name || '').split(' ')[0] || 'Chef'}?
-                </button>
+        {/* Share a recipe: the real way to post is from a recipe page */}
+        {user && (
+          <Card className="mb-6 bg-zinc-900 border-zinc-800" data-testid="share-prompt">
+            <CardContent className="pt-5 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-orange-600/20 flex items-center justify-center shrink-0">
+                <UsersIcon className="w-5 h-5 text-orange-500" />
               </div>
-              <div className="flex justify-around mt-4 pt-4 border-t border-zinc-800">
-                <button onClick={() => setShowCreatePost(true)} className="flex items-center gap-2 px-4 py-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-sm text-zinc-400">
-                  <Image className="w-4 h-4 text-green-500" />Photo
-                </button>
-                <button onClick={() => setShowCreatePost(true)} className="flex items-center gap-2 px-4 py-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-sm text-zinc-400">
-                  <Video className="w-4 h-4 text-red-500" />Video
-                </button>
-                <button onClick={() => setShowCreatePost(true)} className="flex items-center gap-2 px-4 py-1.5 hover:bg-zinc-800 rounded-lg transition-colors text-sm text-zinc-400">
-                  <Smile className="w-4 h-4 text-orange-500" />Recipe
-                </button>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-zinc-100">Share a recipe with the community</p>
+                <p className="text-sm text-zinc-500">Open one of your recipes and tap <span className="text-orange-400">Share to Social</span>.</p>
               </div>
+              <Link to="/recipes" className="shrink-0 px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium">My recipes</Link>
             </CardContent>
           </Card>
         )}
@@ -243,8 +226,8 @@ const Social = () => {
         ) : communityRecipes.length === 0 ? (
           <div className="text-center py-16">
             <ChefHat className="w-12 h-12 text-zinc-700 mx-auto mb-4" />
-            <p className="text-zinc-400">No community recipes yet</p>
-            <p className="text-zinc-600 text-sm mt-1">Run the community seeder to populate the feed</p>
+            <p className="text-zinc-400">No recipes shared yet</p>
+            <p className="text-zinc-600 text-sm mt-1">Be the first: share one of your recipes above.</p>
           </div>
         ) : (
           <div className="space-y-4">

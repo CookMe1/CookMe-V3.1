@@ -45,6 +45,7 @@ const RecipeDetail = () => {
   const getToken = () => localStorage.getItem('token') || sessionStorage.getItem('token');
 
   useEffect(() => {
+    setNutrition(null);   // a different recipe: never keep the previous recipe's numbers
     fetchRecipe();
     fetchGalleryImages();
     fetchSimilarRecipes();
@@ -75,9 +76,10 @@ const RecipeDetail = () => {
         setOriginalServings(parseInt(data.servings) || 4);
         
         // Set nutrition if available
-        if (data.nutrition) {
-          setNutrition(data.nutrition);
-        }
+        // Values calculated by an older, inaccurate version are recalculated (calc_v 2 = fixed)
+        const n = data.nutrition;
+        const stale = n && n.source && n.source !== 'ai' && n.calc_v !== 2;
+        setNutrition(n && !stale ? n : null);
       } else {
         toast.error('Recipe not found');
       }

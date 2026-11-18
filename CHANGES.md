@@ -186,3 +186,9 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 
 ## Fix: importing a link (or looking up nutrition) a second time failed
 - Saved lookups crashed with "can't compare offset-naive and offset-aware datetimes" whenever the same link/ingredient was requested again. Fixed in `cache.py` (with a test).
+
+## Fixes from a walk through the live preview
+- **Nutrition was badly wrong** (e.g. Spanish tortilla showed 2,823 kcal per serving; it is about 450). The amount reader treated "1 sliced" onion as 1 kg, "6 cloves" garlic as 6 kg, "8" eggs as 8 g, "drizzle" as 100 g. New `backend/amounts.py` reads units as whole words, uses typical weights for counted items, and treats pinch/drizzle as small. Old calculated values are recalculated automatically (`calc_v: 2`); values published by recipe sites are kept.
+- Recipe page no longer keeps the previous recipe's nutrition when you move to another recipe.
+- Slow-cooked and sauced dishes (shanks, stews, curries, pies, soups...) no longer get a steak-style "how do you like it cooked" plan.
+- Social page: the Photo/Video/"What's cooking" box (which only said "coming soon") is replaced by a real "Share a recipe" card; the empty-state message no longer mentions a seeder.

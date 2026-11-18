@@ -99,3 +99,15 @@ test('which recipes get an air fryer option', () => {
 });
 
 test('clock format', () => { expect(fmtClock(65)).toBe('1:05'); expect(fmtClock(3725)).toBe('1:02:05'); });
+
+describe('detectProteinType skips dishes the plan does not fit', () => {
+  const { detectProteinType } = require('./cookingTools');
+  test('braised lamb shanks, stews and curries get no steak-style plan', () => {
+    expect(detectProteinType({ title: 'Vietnamese lamb shanks with sweet potatoes', ingredients: [{ item: 'Lamb' }] })).toBeNull();
+    expect(detectProteinType({ title: 'Beef stew', ingredients: [{ item: 'beef' }] })).toBeNull();
+    expect(detectProteinType({ title: 'Chicken curry', ingredients: [{ item: 'chicken breast' }] })).toBeNull();
+  });
+  test('a plain steak still gets one', () => {
+    expect(detectProteinType({ title: 'Pan-seared ribeye steak', ingredients: [] })?.id).toBe('steak');
+  });
+});
