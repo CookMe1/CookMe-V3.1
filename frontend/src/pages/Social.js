@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import MemberRecipes from '../components/MemberRecipes';
+import { totalTimeLabel } from '../utils/time';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -105,11 +106,11 @@ const Social = () => {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24 md:pb-0">
       {/* Hero */}
-      <div className="relative h-[25vh] min-h-[200px]">
+      <div className="relative h-[20vh] min-h-[150px] md:h-[25vh] md:min-h-[200px]">
         <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1920&h=600&fit=crop"
           alt="Social" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 gradient-overlay" />
-        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-12">
           <div className="max-w-4xl mx-auto">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-zinc-100">Community</h1>
             <p className="text-zinc-400 mt-2">Discover and save recipes from the community</p>
@@ -267,7 +268,7 @@ const Social = () => {
                       <span>{(recipe.likes_count || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex gap-2">
-                      {recipe.prep_time && <span>⏱ {recipe.prep_time}</span>}
+                      {totalTimeLabel(recipe) !== '—' && <span>⏱ {totalTimeLabel(recipe)}</span>}
                       {recipe.servings && <span>👥 {recipe.servings}</span>}
                     </div>
                   </div>

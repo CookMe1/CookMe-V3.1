@@ -29,3 +29,30 @@ async def seed_master_recipes(db, path=None) -> int:
         await db.recipes.update_one({"recipe_id": r["recipe_id"]}, {"$setOnInsert": r}, upsert=True)
     logger.info("Loaded %d master recipes into an empty database", len(recipes))
     return len(recipes)
+
+
+SYNC_FIELDS = ("image", "prep_time", "cook_time", "time_estimated", "description")
+SYNC_VERSION = 2   # bump when data/master_recipes.json gets new corrections that existing databases should receive
+
+
+async def sync_master_updates(db, path=None) -> int:
+    """One-time per version: copy corrected image / time / description fields from data/master_recipes.json into the
+    master recipes already in the database (e.g. the local image copies and the estimated times).
+    Never touches users' own recipes or anything else on a master recipe (likes, comments, hidden_by...)."""
+    if os.environ.get("AUTO_SEED_MASTER", "1") == "0":
+        return 0
+    state = await db.release_state.find_one({"_id": "master_sync"})
+    if state and state.get("version", 0) >= SYNC_VERSION:
+        return 0
+    path = Path(path or DATA)
+    if not path.exists():
+        return 0
+    changed = 0
+    for r in json.loads(path.read_text(encoding="utf-8")):
+        fields = {k: r[k] for k in SYNC_FIELDS if k in r}
+        if fields and r.get("recipe_id"):
+            res = await db.recipes.update_one({"recipe_id": r["recipe_id"], "user_id": "system_seeder"}, {"$set": fields})
+            changed += res.modified_count
+    await db.release_state.update_one({"_id": "master_sync"}, {"$set": {"version": SYNC_VERSION}}, upsert=True)
+    logger.info("Master recipe update: %d recipes corrected", changed)
+    return changed

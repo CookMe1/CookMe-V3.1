@@ -63,6 +63,7 @@ async def get_recipes(
         "image": 1,
         "prep_time": 1,
         "cook_time": 1,
+        "time_estimated": 1,
         "servings": 1,
         "difficulty": 1,
         "ingredients": 1,
@@ -115,6 +116,7 @@ async def get_master_recipes(request: Request, search: Optional[str] = None):
         "image": 1,
         "prep_time": 1,
         "cook_time": 1,
+        "time_estimated": 1,
         "servings": 1,
         "difficulty": 1,
         "ingredients": 1,
@@ -177,7 +179,7 @@ async def search_recipes(
     if quick:
         and_q.append({"tags": "quick"})
     query = {"$and": and_q}
-    proj = {"_id": 0, "recipe_id": 1, "title": 1, "description": 1, "image": 1, "prep_time": 1, "cook_time": 1,
+    proj = {"_id": 0, "recipe_id": 1, "title": 1, "description": 1, "image": 1, "prep_time": 1, "cook_time": 1, "time_estimated": 1,
             "difficulty": 1, "servings": 1, "tags": 1, "cuisine": 1, "user_id": 1}
     total = await db.recipes.count_documents(query)
     recipes = await db.recipes.find(query, proj).sort("title", 1).skip(skip).limit(limit).to_list(limit)
@@ -190,7 +192,7 @@ async def recipe_stats(request: Request):
     db = request.app.state.db
     user = await get_current_user(request, db)
     total = await db.recipes.count_documents(ps.SHARED)
-    mine = await db.recipes.count_documents({"user_id": user["user_id"]})
+    mine = await db.recipes.count_documents({"user_id": user["user_id"], "hidden_by": {"$ne": user["user_id"]}})
     return {"total": total, "mine": mine}
 
 
@@ -220,7 +222,7 @@ async def get_featured_master(request: Request, count: int = 3):
         return {"recipes": []}
     out = await db.recipes.find(
         {"recipe_id": {"$in": picked}},
-        {"_id": 0, "recipe_id": 1, "title": 1, "image": 1, "prep_time": 1, "cook_time": 1, "servings": 1, "difficulty": 1, "description": 1},
+        {"_id": 0, "recipe_id": 1, "title": 1, "image": 1, "prep_time": 1, "cook_time": 1, "time_estimated": 1, "servings": 1, "difficulty": 1, "description": 1},
     ).to_list(len(picked))
     out.sort(key=lambda r: picked.index(r["recipe_id"]))
     return {"recipes": out}
@@ -240,6 +242,7 @@ async def get_favorite_recipes(request: Request):
         "image": 1,
         "prep_time": 1,
         "cook_time": 1,
+        "time_estimated": 1,
         "servings": 1,
         "difficulty": 1,
         "ingredients": 1,
@@ -448,12 +451,18 @@ async def delete_recipe(recipe_id: str, request: Request):
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
     
-    # Add user to hidden_by list (soft delete)
+    if recipe.get("user_id") == user["user_id"]:
+        # Your own recipe: really delete it (and the comments on it), not just hide it
+        await db.recipes.delete_one({"recipe_id": recipe_id})
+        await db.comments.delete_many({"recipe_id": recipe_id})
+        return {"message": "Recipe removed from your collection", "recipe_id": recipe_id, "deleted": True}
+
+    # Shared / master recipe: only hide it for this person
     await db.recipes.update_one(
         {"recipe_id": recipe_id},
         {"$addToSet": {"hidden_by": user["user_id"]}}
     )
-    
+
     return {"message": "Recipe removed from your collection", "recipe_id": recipe_id}
 
 # Restore a hidden recipe back to user's view
@@ -1179,17 +1188,42 @@ The image should be:
 
 
 # Get recipes by category
+# Dishes that suit an air fryer when the method says oven / grill / deep-fry (shown with the real air-fryer recipes)
+_AF_FOODS = r"\b(wings?|drumsticks?|chicken (?:thighs?|breasts?|tenders?|nuggets?|strips?|legs?)|fries|chips|wedges|(?:roast(?:ed)?|jacket|baked) potato(?:es)?|salmon|cod|haddock|fish (?:fillets?|fingers?|cakes?)|prawns?|falafel|samosas?|spring rolls?|schnitzel|meatballs?|sausages?|burgers?|halloumi|cauliflower|broccoli|brussels|bacon|kievs?|croquettes?|bhajis?|pakoras?)\b"
+_AF_METHOD = r"\b(oven|roast|bake|baked|grill|broil|deep[- ]?fr(?:y|ied)|crisp)\b"
+_AF_NOT = r"\b(soups?|stews?|casseroles?|curry|cakes?|pudding|pies?|bread|dough|risotto|pasta|smoothie|ice cream|jam|sauce|shanks?|tagines?|stir[- ]?fry|noodles?|salad|wraps?|omelette|tortilla|gratin|tempura|mash(?:ed)?|loaf|empanadas?|chowder|kofta|kebabs?|pizzas?|dips?|polenta|coleslaw|marsala|hash)\b|[^\x00-\x7F]"
+
+
 @router.get("/type/{cooking_type}")
 async def get_recipes_by_cooking_type(cooking_type: str, request: Request, limit: int = 60, skip: int = 0):
     """Shared master recipes for a cooking type: quick, student, budget, instapot, airfryer."""
     db = request.app.state.db
     user = await get_current_user(request, db)
     tags = {"quick": ["quick"], "student": ["student"], "budget": ["budget"],
-            "instapot": ["instant pot", "pressure cooker", "slow cooker", "one pot"], "airfryer": ["air fryer"]}.get(cooking_type)
+            "instapot": ["instant pot", "pressure cooker", "slow cooker", "one pot"], "airfryer": ["air fryer", "airfryer"]}.get(cooking_type)
     if not tags:
         raise HTTPException(status_code=404, detail="Unknown cooking type")
-    q = {"$and": [ps.SHARED, {"tags": {"$in": tags}}]}
-    recipes = await db.recipes.find(q, {"_id": 0}).sort("title", 1).skip(skip).limit(min(limit, 200)).to_list(min(limit, 200))
+    limit = max(1, min(limit, 200))
+    tagged = {"tags": {"$regex": "^(" + "|".join(re.escape(t) for t in tags) + ")$", "$options": "i"}}
+    if cooking_type == "student":
+        # Student meals: the budget-friendly ones that are also simple (few ingredients)
+        q = {"$and": [ps.SHARED, tagged, {"$expr": {"$lte": [{"$size": {"$ifNull": ["$ingredients", []]}}, 9]}}]}
+    elif cooking_type == "airfryer":
+        # Real air-fryer recipes first, then everyday dishes that convert well from the oven
+        q = {"$and": [ps.SHARED, {"$or": [tagged, {"$and": [
+            {"title": {"$regex": _AF_FOODS, "$options": "i"}},
+            {"title": {"$not": {"$regex": _AF_NOT, "$options": "i"}}},
+            {"category": {"$ne": "dessert"}},
+            {"steps": {"$elemMatch": {"$regex": _AF_METHOD, "$options": "i"}}},
+        ]}]}]}
+    else:
+        q = {"$and": [ps.SHARED, tagged]}
+    sort = [("title", 1)]
+    recipes = await db.recipes.find(q, {"_id": 0}).sort(sort).skip(max(skip, 0)).limit(limit).to_list(limit)
+    if cooking_type == "airfryer":
+        for r in recipes:
+            r["air_fryer_convertible"] = not any(str(t).lower() in ("air fryer", "airfryer") for t in (r.get("tags") or []))
+        recipes.sort(key=lambda r: (r["air_fryer_convertible"], r.get("title", "")))
     return {"recipes": [ps.mask_owner(r, user["user_id"]) for r in recipes], "total": await db.recipes.count_documents(q)}
 
 @router.get("/category/{category}")

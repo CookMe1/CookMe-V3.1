@@ -266,8 +266,24 @@ const MealPlanner = () => {
       toast.info('Add some recipes to your plan first');
       return;
     }
-    toast.success(`Adding ingredients from ${recipeIds.length} recipes to shopping list`);
-    navigate('/shopping-list');
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/shopping-list/from-recipes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ recipe_ids: recipeIds, skip_pantry: true }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const have = (data.in_pantry || []).length;
+      toast.success(
+        `Added ${data.added_count} item${data.added_count === 1 ? '' : 's'} to your shopping list` +
+        (have ? ` · skipped ${have} you already have in your pantry` : '')
+      );
+      navigate('/shopping-list');
+    } catch (e) {
+      toast.error('Could not build the shopping list. Please try again.');
+    }
   };
 
   const isThisWeek = toISODate(getMondayOfWeek(new Date())) === weekStart;
@@ -287,14 +303,14 @@ const MealPlanner = () => {
       )}
 
       {/* Hero */}
-      <div className="relative h-[25vh] min-h-[200px]">
+      <div className="relative h-[20vh] min-h-[150px] md:h-[25vh] md:min-h-[200px]">
         <img
           src="https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1920&h=600&fit=crop"
           alt="Meal Planning"
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute inset-0 gradient-overlay" />
-        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-12">
           <div className="max-w-7xl mx-auto">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-zinc-100">Meal Planner</h1>
             <p className="text-zinc-400 mt-2">Plan your weekly meals and stay organised</p>
@@ -365,7 +381,52 @@ const MealPlanner = () => {
             <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
           </div>
         ) : (
-          <Card className="bg-zinc-900 border-zinc-800 overflow-hidden mb-6">
+          <>
+          {/* Phone: one card per day, meals stacked */}
+          <div className="md:hidden space-y-3 mb-6" data-testid="planner-cards">
+            {days.map((day, dayIndex) => {
+              const isToday = day.date === toISODate(new Date());
+              return (
+                <Card key={day.date} className={`bg-zinc-900 border-zinc-800 ${isToday ? 'ring-1 ring-orange-600/60' : ''}`}>
+                  <div className="px-4 pt-3 pb-2 flex items-baseline gap-2">
+                    <p className={`font-semibold ${isToday ? 'text-orange-400' : 'text-zinc-100'}`}>{day.day_name}</p>
+                    <p className="text-xs text-zinc-500">{new Date(day.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}{isToday ? ' · Today' : ''}</p>
+                  </div>
+                  <div className="px-3 pb-3 space-y-2">
+                    {MEAL_TYPES.map(mealType => {
+                      const slot = day[mealType];
+                      return (
+                        <div key={mealType} className="flex items-center gap-3">
+                          <span className="w-16 shrink-0 text-xs uppercase tracking-wide text-zinc-500">{mealType}</span>
+                          {slot ? (
+                            <div className="flex-1 min-w-0 flex items-center gap-2">
+                              {slot.recipe_id ? (
+                                <Link to={`/recipe/${slot.recipe_id}`} className="flex-1 min-w-0 flex items-center gap-2 p-1.5 rounded-lg bg-zinc-800/60">
+                                  {slot.recipe_image ? (
+                                    <img loading="lazy" decoding="async" src={slot.recipe_image} alt="" className="w-10 h-10 rounded-md object-cover shrink-0" onError={e => { e.target.style.display = 'none'; }} />
+                                  ) : <div className="w-10 h-10 rounded-md bg-zinc-700 shrink-0 flex items-center justify-center">🍽️</div>}
+                                  <span className="text-sm text-zinc-200 line-clamp-2">{slot.recipe_title || slot.custom_meal}</span>
+                                </Link>
+                              ) : (
+                                <div className="flex-1 min-w-0 p-1.5 rounded-lg bg-zinc-800/60 text-sm text-zinc-300 line-clamp-2">{slot.custom_meal}</div>
+                              )}
+                              <button onClick={() => removeSlot(dayIndex, mealType)} aria-label={`Remove ${mealType}`} className="p-2 rounded-full text-zinc-500 hover:text-red-400"><X className="w-4 h-4" /></button>
+                            </div>
+                          ) : (
+                            <button onClick={() => setPicker({ dayIndex, mealType })} className="flex-1 flex items-center justify-center gap-1 py-2 border border-dashed border-zinc-700 rounded-lg text-xs text-zinc-500 hover:border-orange-600 hover:text-orange-400">
+                              <Plus className="w-4 h-4" /> Add
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+          {/* Tablet / laptop: the week as a table */}
+          <Card className="hidden md:block bg-zinc-900 border-zinc-800 overflow-hidden mb-6">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[700px]">
                 <thead className="bg-zinc-800/50">
@@ -445,6 +506,7 @@ const MealPlanner = () => {
               </table>
             </div>
           </Card>
+          </>
         )}
 
         {/* Tips */}
@@ -459,7 +521,7 @@ const MealPlanner = () => {
             <ul className="space-y-2 text-sm text-zinc-400">
               <li className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span>Tap the + button to add recipes from your collection</li>
               <li className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span>Use AI Generate to fill a full week based on your pantry</li>
-              <li className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span>Shopping List creates a list from all recipes in your plan</li>
+              <li className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span>Shopping List builds your list from every recipe in the plan and leaves out what is already in your pantry</li>
               <li className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span>Plans are saved automatically as you make changes</li>
             </ul>
           </CardContent>

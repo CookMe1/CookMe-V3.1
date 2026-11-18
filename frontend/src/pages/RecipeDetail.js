@@ -511,7 +511,12 @@ const RecipeDetail = () => {
             <div className="flex flex-wrap items-center gap-6 text-zinc-400">
               <span className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                {getScaledTime(recipe.prep_time)}
+                {(() => {
+                  const f = recipe.time_estimated ? '~' : '';
+                  const p = recipe.prep_time ? getScaledTime(recipe.prep_time) : '';
+                  const c = recipe.cook_time || '';
+                  return p && c ? `Prep ${f}${p} · Cook ${f}${c}` : (p || c || '—');
+                })()}
               </span>
               <span className="flex items-center gap-2">
                 <Users className="w-5 h-5" />

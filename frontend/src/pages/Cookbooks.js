@@ -127,7 +127,7 @@ const Cookbooks = () => {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24">
       {/* Header */}
-      <div className="relative h-[25vh] min-h-[180px]">
+      <div className="relative h-[20vh] min-h-[150px] md:h-[25vh] md:min-h-[180px]">
         <img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1920" alt="Cookbooks" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/60 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-8">

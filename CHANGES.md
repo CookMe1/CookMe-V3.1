@@ -192,3 +192,12 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Recipe page no longer keeps the previous recipe's nutrition when you move to another recipe.
 - Slow-cooked and sauced dishes (shanks, stews, curries, pies, soups...) no longer get a steak-style "how do you like it cooked" plan.
 - Social page: the Photo/Video/"What's cooking" box (which only said "coming soon") is replaced by a real "Share a recipe" card; the empty-state message no longer mentions a seeder.
+
+## All fixes from the app walk-through
+- **Shopping list from the meal planner now works** (the button used to only show a message). It combines the week's recipes (same item added up, e.g. "3 onions"), **leaves out anything marked in stock in your pantry**, skips items already on the list, and tells you how many it skipped. New endpoint `POST /api/shopping-list/from-recipes`.
+- **Meal Planner on phones**: one card per day instead of a wide table (table kept on tablet/laptop).
+- **Category pages**: Quick, Student, Budget, One Pot and Air Fryer now share one layout (`CategoryPage`) with their own colours, tips, search and filter chips, and "Show more" paging (24 at a time). The Air Fryer page was a copy of the One Pot page; it now lists real air-fryer recipes plus oven dishes that convert well (~30 recipes). Student meals now means budget recipes with 9 or fewer ingredients.
+- **Master recipe times**: 1,065 recipes had placeholder times (prep 15 min, cook 30/45 min). Times are now estimated from the method text and shown as a total with "~" (e.g. "~2h 55m"); the recipe page shows "Prep ~25 min · Cook ~2h 30m". 579 generic descriptions ("A delicious lamb recipe from Vietnamese cuisine.") replaced. Re-run `python scripts/enrich_master.py` is safe.
+- **Existing databases get the corrections automatically** on the next start (`sync_master_updates`, runs once): local image paths, times and descriptions.
+- Deleting your own recipe now really deletes it (it used to only hide it). The Home counter "N of your own" no longer counts hidden recipes.
+- Smaller photo banners on phones (Recipes, Planner, Shopping, Pantry, Social, Cookbooks, Add Recipe); Home banner a little shorter.

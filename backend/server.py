@@ -86,8 +86,12 @@ async def lifespan(app: FastAPI):
     seed_task = None
     try:
         import asyncio
-        from seed_master import seed_master_recipes
-        seed_task = asyncio.create_task(seed_master_recipes(db))   # background: first start on an empty database only
+        from seed_master import seed_master_recipes, sync_master_updates
+
+        async def _seed_then_sync():
+            await seed_master_recipes(db)      # first start on an empty database only
+            await sync_master_updates(db)      # one-time corrections (local images, times, descriptions)
+        seed_task = asyncio.create_task(_seed_then_sync())
     except Exception:
         logger.exception("Could not start the master recipe seeding")
 

@@ -924,7 +924,7 @@ const Pantry = () => {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24 md:pb-0">
       {/* Hero Header */}
-      <div className="relative h-[25vh] min-h-[200px]">
+      <div className="relative h-[24vh] min-h-[200px]">
         <img 
           src="https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=1920&h=600&fit=crop"
           alt="Pantry"
@@ -932,7 +932,7 @@ const Pantry = () => {
         />
         <div className="absolute inset-0 gradient-overlay" />
         
-        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-12">
           <div className="max-w-6xl mx-auto">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-zinc-100">
               My Pantry

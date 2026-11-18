@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { CATEGORIES } from '../constants/categories';
 import LoadingScreen from '../components/LoadingScreen';
 import BottomNavigation from '../components/BottomNavigation';
+import { totalTimeLabel } from '../utils/time';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -84,7 +85,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24 md:pb-0">
       {/* Hero Section - Cinematic Style */}
-      <div className="relative h-[60vh] min-h-[500px]">
+      <div className="relative h-[52vh] min-h-[380px] md:h-[60vh] md:min-h-[500px]">
         <img 
           src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&h=1080&fit=crop"
           alt="Culinary hero"
@@ -93,7 +94,7 @@ const Dashboard = () => {
         <div className="absolute inset-0 gradient-overlay" />
         
         {/* Welcome Content */}
-        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-12">
           <div className="max-w-7xl mx-auto">
             <p className="text-xs font-medium text-zinc-400 uppercase tracking-[3px] mb-2">
               Welcome back
@@ -156,7 +157,7 @@ const Dashboard = () => {
                   <p className="text-zinc-400 text-sm flex items-center gap-4">
                     <span className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      {featured[0].prep_time || '—'}
+                      {totalTimeLabel(featured[0])}
                     </span>
                     <span className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
@@ -191,7 +192,7 @@ const Dashboard = () => {
                       <h4 className="font-semibold text-zinc-100 group-hover:text-orange-400 transition-colors">
                         {recipe.title}
                       </h4>
-                      <p className="text-xs text-zinc-500">{recipe.prep_time || '—'}</p>
+                      <p className="text-xs text-zinc-500">{totalTimeLabel(recipe)}</p>
                     </div>
                   </div>
                 </Link>
@@ -236,7 +237,7 @@ const Dashboard = () => {
                         <h4 className="font-medium text-zinc-100 text-sm group-hover:text-orange-400 transition-colors line-clamp-2">
                           {recipe.title}
                         </h4>
-                        <p className="text-xs text-zinc-500 mt-1">{recipe.prep_time || '30 min'}</p>
+                        <p className="text-xs text-zinc-500 mt-1">{totalTimeLabel(recipe)}</p>
                       </div>
                     </div>
                   </Link>

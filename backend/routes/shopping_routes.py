@@ -87,6 +87,11 @@ class AddItemsRequest(BaseModel):
     items: List[str]  # List of ingredient names to add
 
 
+class FromRecipesRequest(BaseModel):
+    recipe_ids: List[str]
+    skip_pantry: bool = True
+
+
 class AisleRequest(BaseModel):
     name: str  # Single ingredient name
 
@@ -212,3 +217,52 @@ Return ONLY: {{"aisle": "Aisle Name"}}"""
         "added_count": len(new_items),
         "skipped_count": len(request_data.items) - len(new_items)
     }
+
+
+# ── Build the list from recipes (e.g. a week's meal plan), leaving out what is already in the pantry ──
+@router.post("/from-recipes")
+async def add_from_recipes(body: FromRecipesRequest, request: Request):
+    from shopping_merge import merge_ingredients
+    from routes.pantry_routes import _tokens, _pantry_groups
+    import public_sharing as ps
+
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    ids = list(dict.fromkeys(body.recipe_ids))[:60]
+    recipes = await db.recipes.find(
+        {"$and": [{"recipe_id": {"$in": ids}}, ps.shared_or_own(user["user_id"])]},
+        {"_id": 0, "recipe_id": 1, "ingredients": 1}).to_list(len(ids))
+    # a recipe planned twice counts twice
+    by_id = {r["recipe_id"]: r.get("ingredients") or [] for r in recipes}
+    wanted = [by_id[i] for i in body.recipe_ids[:60] if i in by_id]
+    merged = merge_ingredients(wanted)
+
+    in_pantry, groups = [], []
+    if body.skip_pantry:
+        pantry = await db.pantry_items.find({"user_id": user["user_id"], "in_stock": True}, {"_id": 0, "name": 1}).to_list(500)
+        groups = _pantry_groups([p["name"] for p in pantry if p.get("name")])
+
+    shopping_list = await db.shopping_lists.find_one({"user_id": user["user_id"]})
+    if not shopping_list:
+        shopping_list = {"list_id": f"list_{uuid.uuid4().hex[:12]}", "user_id": user["user_id"], "items": [],
+                         "created_at": datetime.now(timezone.utc), "updated_at": datetime.now(timezone.utc)}
+        await db.shopping_lists.insert_one(shopping_list)
+    existing = {i.get("name", "").lower() for i in shopping_list.get("items", [])}
+
+    new_items, already = [], 0
+    for m in merged:
+        t = _tokens(m["name"])
+        if groups and t and any(p <= t or t <= p for grp in groups for p in grp):
+            in_pantry.append(m["name"])
+            continue
+        if m["name"].lower() in existing:
+            already += 1
+            continue
+        aisle = await get_aisle(db, m["name"]) or "Other"
+        new_items.append({"item_id": f"item_{uuid.uuid4().hex[:8]}", "name": m["name"], "amount": m["amount"],
+                          "category": aisle, "checked": False, "added_at": datetime.now(timezone.utc).isoformat()})
+    if new_items:
+        await db.shopping_lists.update_one({"user_id": user["user_id"]},
+                                           {"$push": {"items": {"$each": new_items}}, "$set": {"updated_at": datetime.now(timezone.utc)}})
+    return {"added_count": len(new_items), "already_on_list": already, "in_pantry": in_pantry,
+            "recipes_used": len(wanted), "recipes_missing": len(body.recipe_ids[:60]) - len(wanted)}

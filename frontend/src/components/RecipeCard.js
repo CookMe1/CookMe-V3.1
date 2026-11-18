@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Bookmark, Clock, Users, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PLACEHOLDER_IMAGE, onImageError } from '../utils/placeholder';
+import { totalTimeLabel } from '../utils/time';
 
 // ── Nutrition mini-strip shown on every card that has nutrition data ──────────
 const NutritionStrip = ({ nutrition }) => (
@@ -156,7 +157,7 @@ const RecipeCard = ({ recipe, showNutrition = false, onLikeChange, onSaveChange,
           <div className="flex items-center gap-4 text-xs text-zinc-500">
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
-              {recipe.prep_time || recipe.prepTime || '30 min'}
+              {totalTimeLabel(recipe)}
             </span>
             <span className="flex items-center gap-1">
               <Users className="w-3.5 h-3.5" />

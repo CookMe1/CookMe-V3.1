@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import RecipeCard from '../components/RecipeCard';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { totalTimeLabel } from '../utils/time';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -289,7 +290,7 @@ const Recipes = () => {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24 md:pb-0">
       {/* Hero Header */}
-      <div className="relative h-[30vh] min-h-[250px]">
+      <div className="relative h-[26vh] min-h-[210px] md:h-[30vh] md:min-h-[250px]">
         <img 
           src="https://images.unsplash.com/photo-1466637574441-749b8f19452f?w=1920&h=600&fit=crop"
           alt="Recipes"
@@ -297,7 +298,7 @@ const Recipes = () => {
         />
         <div className="absolute inset-0 gradient-overlay" />
         
-        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-12">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
               <h1 className="font-display text-4xl md:text-5xl font-bold text-zinc-100 mb-2">
@@ -659,7 +660,7 @@ const Recipes = () => {
                         </h3>
                         <p className="text-xs text-zinc-500 line-clamp-2 mb-2">{recipe.description}</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-zinc-600">{recipe.prep_time || '—'}</span>
+                          <span className="text-xs text-zinc-600">{totalTimeLabel(recipe)}</span>
                           <button
                             onClick={async () => {
                               try {
