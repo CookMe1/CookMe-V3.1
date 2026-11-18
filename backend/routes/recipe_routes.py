@@ -724,7 +724,7 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
             # ── Cache check (normalised URL — strips UTM params etc) ──────────
             cache_key = url_import_key(extract_data.recipe_url)
             cached = await get_cache(db, cache_key)
-            if cached and not any(str(x).strip() in ("@type", "itemListElement", "name") for x in (cached.get("steps") or cached.get("instructions") or [])):
+            if cached and str(cached.get("title", "")).strip().lower() != "recipe name" and not any(str(x).strip() in ("@type", "itemListElement", "name") for x in (cached.get("steps") or cached.get("instructions") or [])):
                 return cached
 
             # Scrape URL content
@@ -756,6 +756,23 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
             async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as http_client:
                 response = await http_client.get(extract_data.recipe_url, headers=_fetch_headers)
                 page_content = response.text
+                # Some sites refuse the first identity; retry once as a normal browser, then as Googlebot.
+                if response.status_code >= 400 or len(page_content) < 2000:
+                    alt = dict(_fetch_headers)
+                    alt['User-Agent'] = (
+                        'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+                        if 'Googlebot' not in _fetch_headers['User-Agent']
+                        else 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15'
+                    )
+                    alt['Referer'] = 'https://www.google.com/'
+                    retry = await http_client.get(extract_data.recipe_url, headers=alt)
+                    if retry.status_code < 400 and len(retry.text) > len(page_content):
+                        response, page_content = retry, retry.text
+            if response.status_code >= 400:
+                raise HTTPException(
+                    status_code=422,
+                    detail="That website blocked CookMe from reading the recipe. Try copying the recipe text into 'Paste text', or use another link.",
+                )
 
             # ── Try JSON-LD first (free, no AI) ──────────────────────────────
             from urllib.parse import urlparse as _urlparse
@@ -833,6 +850,15 @@ Content:
                 recipe_data = json.loads(json_match.group())
             else:
                 recipe_data = json.loads(response_text)
+
+            # The AI sometimes hands back the blank template when the page had no recipe in it.
+            _tpl_steps = {"step 1 text", "step 2 text"}
+            if (str(recipe_data.get("title", "")).strip().lower() in ("recipe name", "")
+                    or any(str(x).strip().lower() in _tpl_steps for x in recipe_data.get("steps", []))):
+                raise HTTPException(
+                    status_code=422,
+                    detail="CookMe could not find a recipe on that page. Try copying the recipe text into 'Paste text'.",
+                )
 
             # Use WPRM data if more complete
             if wprm_data["ingredients"] and len(wprm_data["ingredients"]) > len(recipe_data.get("ingredients", [])):

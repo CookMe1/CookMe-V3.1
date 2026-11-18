@@ -222,3 +222,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 
 ## Re-importing a link no longer replays an old broken result
 - Saved URL imports now use a new cache version, and any saved result with garbled steps ("@type / itemListElement / name") is ignored and re-read.
+
+## Import: blocked sites and blank results
+- If a website refuses CookMe, it retries with another identity, then shows a clear message instead of a fake recipe.
+- The AI's blank template ("Recipe name", "Step 1 text") is rejected and never saved or cached.
