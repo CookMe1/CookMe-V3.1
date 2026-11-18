@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from auth import get_current_user
 from cache import get_aisle, set_aisle
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from ai_client import model_for
 
 router = APIRouter(prefix="/shopping-list", tags=["shopping-list"])
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
@@ -119,7 +120,7 @@ async def assign_aisle(body: AisleRequest, request: Request):
             api_key=EMERGENT_KEY,
             session_id=f"aisle_{uuid.uuid4().hex[:8]}",
             system_message="You assign grocery store aisles to ingredients. Return ONLY valid JSON."
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
 
         prompt = f"""Which supermarket aisle does "{body.name}" belong to?
 
@@ -183,7 +184,7 @@ async def add_items_to_shopping_list(request_data: AddItemsRequest, request: Req
                     api_key=EMERGENT_KEY,
                     session_id=f"aisle_{uuid.uuid4().hex[:8]}",
                     system_message="You assign grocery store aisles to ingredients. Return ONLY valid JSON."
-                ).with_model("openai", "gpt-4o-mini")
+                ).with_model(*model_for())
                 prompt = f"""Which supermarket aisle does "{item_name}" belong to?
 Choose from: Produce, Meat & Seafood, Dairy, Bakery, Grains, Canned, Frozen, Spices, Oils, Condiments, Baking, Beverages, Snacks, Other
 Return ONLY: {{"aisle": "Aisle Name"}}"""

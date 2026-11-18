@@ -423,7 +423,7 @@ const ShareHandler = () => {
         });
         setShowPasteBox(true);
         setMode('success');
-        toast.info("That site blocked CookMe. Paste the recipe text below and we'll read it.");
+        toast.info("That site blocks imports. Paste the recipe text below, or select the text on the page and share it to CookMe again.");
         return;
       }
       setError(err.message || 'Failed to extract recipe');

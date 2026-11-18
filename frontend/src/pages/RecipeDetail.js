@@ -16,6 +16,7 @@ import { convertAmount } from '../utils/units';
 import { PLACEHOLDER_IMAGE, onImageError } from '../utils/placeholder';
 import { validateImageQuality, getRejectMessage, compressImage } from '../utils/imageValidator';
 import { useLanguage } from '../context/LanguageContext';
+import { SwapButton, DietConvert } from '../components/AiHelpers';
 import { askConfirm } from '../utils/confirm';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
@@ -594,7 +595,7 @@ const RecipeDetail = () => {
               <h3 className="font-semibold text-zinc-100 mb-1">Adjust Servings</h3>
               <p className="text-sm text-zinc-500">Ingredients and nutrition will scale automatically</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
               <button
                 onClick={() => setServings(Math.max(1, servings - 1))}
                 className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
@@ -626,7 +627,7 @@ const RecipeDetail = () => {
               <Button
                 variant="outline"
                 onClick={() => window.print()}
-                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 ml-4"
+                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 sm:ml-4"
               >
                 <Printer className="w-4 h-4 mr-2" />
                 Print
@@ -705,6 +706,9 @@ const RecipeDetail = () => {
         {/* Tab Content */}
         {activeTab === 'ingredients' && (
           <div className="space-y-3" data-testid="ingredients-list">
+            {ingredients.length > 0 && getToken() && recipe?.recipe_id && !String(recipe.recipe_id).startsWith('ai_') && (
+              <DietConvert recipeId={recipe.recipe_id} />
+            )}
             {ingredients.length > 0 && getToken() && (
               <button
                 data-testid="add-missing-to-shopping"
@@ -759,6 +763,7 @@ const RecipeDetail = () => {
                             + Pantry
                           </button>
                         )}
+                        <SwapButton ingredient={ingName} recipeTitle={recipe?.title} />
                         <button
                           title="Add to shopping list"
                           aria-label={`Add ${ingName} to shopping list`}

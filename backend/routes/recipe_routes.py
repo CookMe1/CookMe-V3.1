@@ -15,6 +15,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
 from cache import get_cache, set_cache, nutrition_key, url_import_key, youtube_key, recipe_fingerprint, TTL_NUTRITION, TTL_URL_IMPORT, TTL_YOUTUBE
 from html_sanitiser import sanitise_html, extract_best_image
 from image_optimiser import optimise_image_url
+from ai_client import model_for
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/recipes", tags=["recipes"])
@@ -727,7 +728,7 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
             if cached and cached.get("_fetch_failed"):
                 raise HTTPException(
                     status_code=422,
-                    detail="That website blocked CookMe from reading the recipe. Paste the recipe text instead, or try another link.",
+                    detail="That website blocked CookMe from reading the recipe. Select the recipe text on the page and share it to CookMe again, or paste it here.",
                 )
             if cached and str(cached.get("title", "")).strip().lower() != "recipe name" and not any(str(x).strip() in ("@type", "itemListElement", "name") for x in (cached.get("steps") or cached.get("instructions") or [])):
                 return cached
@@ -767,7 +768,7 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
                 await set_cache(db, cache_key, {"_fetch_failed": True}, ttl_days=0.25)  # don't hammer a blocking site
                 raise HTTPException(
                     status_code=422,
-                    detail="That website blocked CookMe from reading the recipe. Paste the recipe text instead, or try another link.",
+                    detail="That website blocked CookMe from reading the recipe. Select the recipe text on the page and share it to CookMe again, or paste it here.",
                 )
 
             # ── Try JSON-LD first (free, no AI) ──────────────────────────────
@@ -822,7 +823,7 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
                 api_key=EMERGENT_KEY,
                 session_id=f"extract_{uuid.uuid4().hex[:8]}",
                 system_message="You are a recipe extraction assistant. Extract recipe information and return ONLY valid JSON."
-            ).with_model("openai", "gpt-4o-mini")
+            ).with_model(*model_for())
 
             prompt = f"""Extract the recipe from this content and provide ONLY a JSON response:
 {{
@@ -857,7 +858,7 @@ Content:
                     or any(str(x).strip().lower() in _tpl_steps for x in recipe_data.get("steps", []))):
                 raise HTTPException(
                     status_code=422,
-                    detail="CookMe could not find a recipe on that page. Try copying the recipe text into 'Paste text'.",
+                    detail="CookMe could not find a recipe on that page. Select the recipe text on the page and share it to CookMe again, or paste it here.",
                 )
 
             # Use WPRM data if more complete
@@ -916,7 +917,7 @@ async def analyze_photo(request: Request):
             api_key=EMERGENT_KEY,
             session_id=f"photo_{uuid.uuid4().hex[:8]}",
             system_message="You are a cooking assistant that analyzes food photos. You can read text from images including recipe cards, cookbook pages, and handwritten recipes. Extract all visible text accurately."
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
         
         target_lang = str(body.get("language") or "English")[:30]
         lang_rule = (
@@ -1035,7 +1036,7 @@ async def validate_image_quality(request: Request):
             api_key=EMERGENT_KEY,
             session_id=f"validate_{uuid.uuid4().hex[:8]}",
             system_message="You are an image quality assessor for a cooking app. Be practical - accept most reasonable photos."
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
         
         prompt = """Evaluate this image for a cooking/recipe app. The image could be:
 - A photo of ingredients/groceries/food items
@@ -1127,7 +1128,7 @@ async def translate_ingredient(request: Request):
             api_key=EMERGENT_KEY,
             session_id=f"translate_{uuid.uuid4().hex[:8]}",
             system_message="You are a culinary translator expert who knows food ingredients in all languages."
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
         
         prompt = f"""Translate this ingredient name to English and provide alternative names/spellings.
 
@@ -1489,7 +1490,7 @@ async def extract_from_social(request: Request):
             api_key=EMERGENT_KEY,
             session_id=f"social_{uuid.uuid4().hex[:8]}",
             system_message="You are a recipe extraction assistant. Extract recipe details from social media content. Return ONLY valid JSON."
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
 
         prompt = f"""Extract a recipe from this {platform} post.
 If ingredients and steps are present, use them exactly.
@@ -1631,7 +1632,7 @@ async def extract_from_youtube(request: Request):
             api_key=EMERGENT_KEY,
             session_id=f"youtube_{uuid.uuid4().hex[:8]}",
             system_message="You are a recipe extraction assistant. Extract recipe details from cooking video information. Create a complete recipe based on the video title."
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
         
         prompt = f"""Extract a recipe from this YouTube cooking video:
 
@@ -1751,7 +1752,7 @@ async def calculate_nutrition(request: Request):
             api_key=EMERGENT_KEY,
             session_id=f"nutrition_{uuid.uuid4().hex[:8]}",
             system_message="You are a nutrition calculation assistant. Provide accurate nutritional estimates."
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
 
         ingredients_text = ", ".join([
             f"{i.get('amount', '')} {i.get('item', i)}" for i in ingredients
@@ -1803,7 +1804,7 @@ async def get_pantry_suggestions(request: Request):
             api_key=EMERGENT_KEY,
             session_id=f"suggestions_{user['user_id']}",
             system_message="You are a creative recipe suggestion assistant. Provide recipes in JSON format."
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
         
         prompt = f"""Based on these pantry ingredients: {', '.join(ingredients_list)}, suggest 3 recipes I can make. 
         

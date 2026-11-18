@@ -13,6 +13,7 @@ from auth import get_current_user
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from cache import get_cache, set_cache
 from localisation import normalise_ingredient
+from ai_client import model_for, spend_one, uses_left, COOKING_STYLE
 
 router = APIRouter(prefix="/pantry", tags=["pantry"])
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
@@ -32,6 +33,8 @@ class PantryItemCreate(BaseModel):
 class MealSuggestionRequest(BaseModel):
     match_type: str = "all"
     extra_ingredients: int = 0
+    fresh: bool = False                      # "give me something new": always ask the AI, skip the cache
+    avoid_titles: Optional[list] = None      # ideas the person has already seen
 
 
 # ── CRUD ──────────────────────────────────────────────────────────────────────
@@ -367,22 +370,27 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
 
     # 3. AI — only if not enough DB results
     ai_suggestions = []
-    if (len(matched_saved) + len(master_matches) + len(community_matches)) < 3:
+    ai_remaining = await uses_left(db, user["user_id"])
+    if ((len(matched_saved) + len(master_matches) + len(community_matches)) < 3 or suggestion_request.fresh):
         fingerprint = hashlib.sha256(
             ("|".join(sorted(pantry_names)) + f"|{mt}|{extra}").encode()
         ).hexdigest()[:24]
         ai_cache_key = f"meal_suggest:{user['user_id']}:{fingerprint}"
 
-        cached = await get_cache(db, ai_cache_key)
+        cached = None if suggestion_request.fresh else await get_cache(db, ai_cache_key)
         if cached:
             ai_suggestions = cached
+        elif ai_remaining <= 0:
+            if suggestion_request.fresh:
+                await spend_one(db, user["user_id"])  # raises the friendly "used today's allowance" error
         else:
             try:
+                await spend_one(db, user["user_id"])
                 chat = LlmChat(
                     api_key=EMERGENT_KEY,
                     session_id=f"meal_suggest_{uuid.uuid4().hex[:8]}",
                     system_message="You are a creative chef assistant. Suggest practical, delicious recipes based on available ingredients.",
-                ).with_model("openai", "gpt-4o-mini")
+                ).with_model(*model_for())
 
                 if mt == "all":
                     match_instruction = "Only suggest recipes that primarily use the available ingredients."
@@ -393,11 +401,17 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
 
                 extra_context = f"\nThe user is willing to buy up to {extra} additional ingredients." if extra > 0 else ""
 
+                avoid_line = (
+                    "\nDo NOT suggest any of these again: " + "; ".join(str(t) for t in (suggestion_request.avoid_titles or [])[:15])
+                    if suggestion_request.avoid_titles else ""
+                )
                 prompt = f"""Based on these pantry ingredients: {', '.join(pantry_names)}
 
 {match_instruction}{extra_context}
 
-Suggest 3 different meal ideas that can be made with these ingredients.
+Suggest 3 different meal ideas that can be made with these ingredients.{avoid_line}
+
+{COOKING_STYLE}
 
 Return ONLY valid JSON:
 {{
@@ -410,7 +424,7 @@ Return ONLY valid JSON:
       "difficulty": "Easy/Medium/Hard",
       "servings": 4,
       "ingredients": [{{"item": "ingredient name", "amount": "1 cup"}}],
-      "steps": ["Step 1 instruction", "Step 2 instruction", "Step 3 instruction"],
+      "steps": ["Preheat/prep step with heat, time and cue", "Next step ...", "... 6 to 10 steps in total"],
       "matched_ingredients": ["list of pantry items used"],
       "additional_ingredients_needed": ["list of items not in pantry, if any"],
       "tags": ["Dinner", "Quick", "Healthy"]
@@ -436,11 +450,12 @@ Make the recipes practical and delicious. Include clear, actionable steps."""
                         s["missing_count"] = len(additional)
 
                 # Cache for 1 hour
-                await set_cache(db, ai_cache_key, ai_suggestions, ttl_days=0)
-                await db.ai_cache.update_one(
+                if not suggestion_request.fresh:
+                  await set_cache(db, ai_cache_key, ai_suggestions, ttl_days=0)
+                  await db.ai_cache.update_one(
                     {"key": ai_cache_key},
                     {"$set": {"expires_at": datetime.now(timezone.utc) + timedelta(hours=1)}}
-                )
+                  )
 
             except Exception as e:
                 logger.info(f"AI suggestion error: {e}")
@@ -450,5 +465,6 @@ Make the recipes practical and delicious. Include clear, actionable steps."""
         "saved_recipe_matches": matched_saved[:5] + master_matches,
         "community_recipe_matches": community_matches,
         "ai_suggestions": ai_suggestions,
+        "ai_uses_left_today": await uses_left(db, user["user_id"]),
         "match_criteria": {"type": mt, "extra_ingredients_allowed": extra},
     }

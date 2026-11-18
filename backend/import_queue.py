@@ -24,6 +24,7 @@ from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional
 from auth import get_current_user
+from ai_client import model_for
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/recipes", tags=["import"])
@@ -164,7 +165,7 @@ async def _extract_website(url: str, db) -> dict:
         api_key=EMERGENT_KEY,
         session_id=f"async_extract_{_uuid.uuid4().hex[:8]}",
         system_message="Extract recipe information and return ONLY valid JSON."
-    ).with_model("openai", "gpt-4o-mini")
+    ).with_model(*model_for())
 
     prompt = f"""Extract the recipe from this content:
 {{"title":"","description":"","prep_time":"","cook_time":"","servings":4,"difficulty":"Easy","ingredients":[{{"item":"","amount":""}}],"steps":[],"tags":[]}}
@@ -233,7 +234,7 @@ async def _extract_youtube(url: str, db) -> dict:
     EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
     chat = LlmChat(api_key=EMERGENT_KEY, session_id=f"yt_{_uuid.uuid4().hex[:8]}",
                    system_message="Extract recipe details from cooking video info. Return ONLY valid JSON."
-                   ).with_model("openai", "gpt-4o-mini")
+                   ).with_model(*model_for())
 
     prompt = f"""Extract recipe from YouTube video:
 Title: {title}  Author: {author}
@@ -310,7 +311,7 @@ async def _extract_social(url: str, platform: str, db) -> dict:
     EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
     chat = LlmChat(api_key=EMERGENT_KEY, session_id=f"social_{_uuid.uuid4().hex[:8]}",
                    system_message="Extract recipe from social media. Return ONLY valid JSON."
-                   ).with_model("openai", "gpt-4o-mini")
+                   ).with_model(*model_for())
 
     prompt = f"""Extract recipe from {platform} post:
 {{"title":"","description":"","prep_time":"","cook_time":"","servings":4,"difficulty":"Easy","ingredients":[],"steps":[],"tags":["{platform}"]}}

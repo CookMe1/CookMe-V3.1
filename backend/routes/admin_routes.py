@@ -196,3 +196,21 @@ async def description_status(request: Request):
     db = request.app.state.db
     await require_admin(request, db)
     return {"plain_descriptions": await db.recipes.count_documents({"user_id": "system_seeder", "description_auto": True})}
+
+
+@router.post("/ai-test")
+async def ai_test(request: Request):
+    """One tiny AI call with the configured model, so a model change can be checked before relying on it."""
+    import time
+    from ai_client import model_for, ask_json
+    db = request.app.state.db
+    await require_admin(request, db)
+    provider, model = model_for()
+    started = time.time()
+    try:
+        data = await ask_json("Return only valid JSON.", 'Reply with exactly {"ok": true, "word": "ready"}', "test")
+        return {"ok": bool(data.get("ok")), "provider": provider, "model": model,
+                "seconds": round(time.time() - started, 2), "reply": data}
+    except Exception as e:
+        return {"ok": False, "provider": provider, "model": model,
+                "seconds": round(time.time() - started, 2), "error": str(e)[:300]}

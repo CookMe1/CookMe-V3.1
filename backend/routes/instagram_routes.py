@@ -26,6 +26,7 @@ from typing import Optional
 from auth import get_current_user
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from image_optimiser import optimise_image_url
+from ai_client import model_for
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/instagram", tags=["instagram"])
@@ -95,7 +96,7 @@ async def parse_caption_with_ai(caption: str, author: str) -> dict:
         api_key=EMERGENT_KEY,
         session_id=f"ig_{uuid.uuid4().hex[:8]}",
         system_message="You extract structured recipes from social media captions. Return ONLY valid JSON, no markdown, no backticks.",
-    ).with_model("openai", "gpt-4o-mini")
+    ).with_model(*model_for())
 
     prompt = f"""Extract the recipe from this Instagram caption by @{author}.
 If the caption doesn't contain a full recipe, infer one from the dish name/description.

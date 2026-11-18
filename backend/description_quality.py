@@ -11,6 +11,7 @@ import re
 import uuid
 
 from master_enrich import GENERIC_DESC, make_description
+from ai_client import model_for
 
 logger = logging.getLogger(__name__)
 MIN_LEN = 40
@@ -51,7 +52,7 @@ async def _ask_llm(recipe: dict) -> str:
               "No emoji, no exclamation marks, no brand names, do not start with the dish title or the word 'Delicious'. "
               "Reply with the description only.")
     chat = LlmChat(api_key=key, session_id=f"desc_{uuid.uuid4().hex[:8]}",
-                   system_message="You write short, accurate, appetising recipe descriptions.").with_model("openai", "gpt-4o-mini")
+                   system_message="You write short, accurate, appetising recipe descriptions.").with_model(*model_for())
     return await asyncio.wait_for(chat.send_message(UserMessage(text=prompt)), timeout=15)
 
 

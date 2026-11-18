@@ -782,7 +782,7 @@ const Pantry = () => {
   };
 
   // Fetch meal suggestions based on pantry
-  const fetchMealSuggestions = async () => {
+  const fetchMealSuggestions = async (fresh = false) => {
     const token = getToken();
     if (!token) return;
     
@@ -791,9 +791,10 @@ const Pantry = () => {
       return;
     }
     
+    const seenTitles = fresh ? (mealSuggestions?.ai_suggestions || []).map(a => a.title).filter(Boolean) : [];
     setLoadingMealSuggestions(true);
     setShowMealSuggestions(true);
-    setMealSuggestions(null);
+    if (!fresh) setMealSuggestions(null);
     
     try {
       const response = await fetch(`${API_URL}/api/pantry/suggest-meal`, {
@@ -804,7 +805,9 @@ const Pantry = () => {
         },
         body: JSON.stringify({
           match_type: matchType,
-          extra_ingredients: extraIngredients
+          extra_ingredients: extraIngredients,
+          fresh,
+          avoid_titles: seenTitles
         })
       });
       
@@ -1194,7 +1197,7 @@ const Pantry = () => {
                 
                 {/* Search Button */}
                 <Button 
-                  onClick={fetchMealSuggestions}
+                  onClick={() => fetchMealSuggestions(false)}
                   disabled={loadingMealSuggestions || pantry.length === 0}
                   className="w-full bg-orange-600 hover:bg-orange-700"
                   data-testid="find-recipes-btn"
@@ -1280,6 +1283,7 @@ const Pantry = () => {
                       <h4 className="text-sm font-medium text-zinc-400 mb-3 flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-purple-400" />
                         AI-Generated Recipe Ideas
+                        <span className="text-[11px] font-normal text-purple-300/80 border border-purple-600/30 rounded-full px-2 py-0.5">AI-made: check before cooking</span>
                       </h4>
                       <div className="space-y-4">
                         {mealSuggestions.ai_suggestions.map((suggestion, idx) => (
@@ -1359,12 +1363,9 @@ const Pantry = () => {
                                   View recipe steps ({suggestion.steps.length} steps)
                                 </summary>
                                 <ol className="mt-2 space-y-1 text-xs text-zinc-400 list-decimal list-inside">
-                                  {suggestion.steps.slice(0, 5).map((step, stepIdx) => (
-                                    <li key={stepIdx} className="line-clamp-1">{step}</li>
+                                  {suggestion.steps.map((step, stepIdx) => (
+                                    <li key={stepIdx} className="leading-relaxed">{step}</li>
                                   ))}
-                                  {suggestion.steps.length > 5 && (
-                                    <li className="text-zinc-500">...and {suggestion.steps.length - 5} more steps</li>
-                                  )}
                                 </ol>
                               </details>
                             )}
@@ -1374,6 +1375,23 @@ const Pantry = () => {
                     </div>
                   )}
                   
+                  {/* Ask the AI for something new, even when the library already has matches */}
+                  <div className="flex flex-col items-center gap-1 pt-2">
+                    <Button
+                      variant="outline"
+                      className="border-purple-600/50 text-purple-300 hover:bg-purple-600/10"
+                      onClick={() => fetchMealSuggestions(true)}
+                      disabled={loadingMealSuggestions}
+                      data-testid="suggest-something-new"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      {loadingMealSuggestions ? 'Thinking...' : 'Give me something new'}
+                    </Button>
+                    {typeof mealSuggestions.ai_uses_left_today === 'number' && (
+                      <span className="text-xs text-zinc-500">{mealSuggestions.ai_uses_left_today} AI requests left today</span>
+                    )}
+                  </div>
+
                   {/* No results */}
                   {(!mealSuggestions.saved_recipe_matches?.length && !mealSuggestions.ai_suggestions?.length) && (
                     <div className="text-center py-8">

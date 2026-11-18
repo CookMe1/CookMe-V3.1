@@ -8,6 +8,7 @@ import re
 from pydantic import BaseModel
 from auth import get_current_user
 from emergentintegrations.llm.chat import LlmChat, UserMessage
+from ai_client import model_for
 
 router = APIRouter(prefix="/meal-plans", tags=["meal-plans"])
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
@@ -218,7 +219,7 @@ Use 7 entries (Monday through Sunday). Vary the meals, keep them practical."""
             api_key=EMERGENT_KEY,
             session_id=f"mealplan_{uuid.uuid4().hex[:8]}",
             system_message="You are a meal planning assistant. Return only valid JSON.",
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
 
         response_text = await chat.send_message(UserMessage(text=prompt))
         clean = re.sub(r"```json|```", "", response_text).strip()

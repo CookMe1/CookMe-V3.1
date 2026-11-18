@@ -235,3 +235,12 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - The app now checks for a new version each time it is opened or comes back to the foreground, and reloads itself once when one arrives (old saved copy is cleared). Fixes the stale-version problem after pulls.
 - All delete/remove confirmations (recipe, comment, cookbook, gallery image, account, admin actions) now use an in-app dialog instead of the browser's plain pop-up.
 - Cooking timers: louder alarm that repeats every few seconds until dismissed (up to a minute), a phone notification if the app is in the background, and the screen stays awake while a timer runs.
+
+## AI helpers, daily limit, model switch
+- New `ai_client.py`: one setting decides the AI model for every everyday AI call. Set `AI_PROVIDER` and `AI_MODEL` in the backend environment to switch (e.g. `anthropic` / `claude-haiku-5-5`); unset keeps `openai` / `gpt-4o-mini`. `AI_DAILY_LIMIT` (default 20) caps AI requests per person per day.
+- Admin → "Test AI model" does one tiny call with the current setting and reports whether it works.
+- Recipe page: swap button on every ingredient ("what can I use instead?") and "Make it vegan, gluten-free and more" (vegan, vegetarian, gluten-free, dairy-free, low-carb, nut-free) with a preview and "Save as my recipe". Cached, so repeats cost nothing and do not count against the daily limit.
+- Pantry "suggest a meal": new "Give me something new" button (always asks the AI, avoids ideas already seen), shows requests left today, labels AI recipes "AI-made: check before cooking", shows every step (no longer cut off at 5).
+- Much better cooking instructions in AI recipes: 6 to 10 steps with prep, heat level, times, pan size, doneness cues, °C and °F, one common-mistake tip.
+- Blocked-site message now tells people to select the recipe text and share again, or paste it.
+- Fixed: Original/Metric/US toggle was cut off on phones.

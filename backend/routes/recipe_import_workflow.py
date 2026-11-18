@@ -31,6 +31,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 # HTML sanitisation and image optimisation
 from html_sanitiser import sanitise_html, sanitise_stats, extract_best_image
 from image_optimiser import optimise_image_url
+from ai_client import model_for
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -630,7 +631,7 @@ Return valid JSON only, no markdown."""
             api_key=emergent_key,
             session_id=session_id,
             system_message="Extract recipe data from text. Return valid JSON only."
-        ).with_model("openai", "gpt-4o-mini")
+        ).with_model(*model_for())
         
         response_text = await llm.send_message(UserMessage(text=prompt))
         

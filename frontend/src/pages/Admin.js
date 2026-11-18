@@ -60,6 +60,7 @@ const Admin = () => {
   const [busy, setBusy] = useState(null);
   const [errors, setErrors] = useState(null);
   const [descBusy, setDescBusy] = useState(false);
+  const [aiTest, setAiTest] = useState(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`${API_URL}/api/admin/reports`, { headers: headers() });
@@ -88,6 +89,14 @@ const Admin = () => {
       const res = await fetch(`${API_URL}/api/admin/errors`, { headers: headers() });
       if (res.ok) setErrors((await res.json()).errors); else toast.error('Could not load errors.');
     } catch (e) { toast.error('Could not reach the server.'); }
+  };
+
+  const testAi = async () => {
+    setAiTest({ busy: true });
+    try {
+      const res = await fetch(`${API_URL}/api/admin/ai-test`, { method: 'POST', headers: headers() });
+      setAiTest(await res.json());
+    } catch (e) { setAiTest({ ok: false, error: 'Could not reach the server.' }); }
   };
 
   const improveDescriptions = async () => {
@@ -138,7 +147,14 @@ const Admin = () => {
           <button onClick={downloadBackup} className="text-xs text-orange-400 underline" data-testid="backup-btn">Download backup</button>
           <button onClick={loadErrors} className="text-xs text-orange-400 underline" data-testid="errors-btn">Show recent app errors</button>
           <button onClick={improveDescriptions} disabled={descBusy} className="text-xs text-orange-400 underline disabled:opacity-50" data-testid="improve-desc-btn">{descBusy ? 'Improving descriptions…' : 'Improve library descriptions (AI)'}</button>
+          <button onClick={testAi} className="text-xs text-orange-400 underline" data-testid="ai-test-btn">Test AI model</button>
         </div>
+        {aiTest && !aiTest.busy && (
+          <p className={`text-xs mb-4 ${aiTest.ok ? 'text-green-400' : 'text-red-400'}`} data-testid="ai-test-result">
+            {aiTest.ok ? `AI works: ${aiTest.provider} / ${aiTest.model} answered in ${aiTest.seconds}s.` : `AI test failed (${aiTest.provider} / ${aiTest.model}): ${aiTest.error || 'no answer'}`}
+          </p>
+        )}
+        {aiTest?.busy && <p className="text-xs mb-4 text-zinc-400">Testing the AI model…</p>}
         {errors && (
           <Card className="bg-zinc-900 border-zinc-800 mb-6" data-testid="errors-list"><CardContent className="pt-5 text-xs text-zinc-400 space-y-2">
             {errors.length === 0 ? <p>No errors reported in the last 30 days. 🎉</p> : errors.map((e, i) => (
