@@ -422,14 +422,15 @@ const RecipeDetail = () => {
         <CookingMode title={recipe.title} steps={steps} ingredients={cookingIngredients} setup={setup} onClose={() => setCooking(false)} />
       )}
       {/* Hero Image */}
-      <div className="relative h-[50vh] min-h-[400px]">
+      <div className="relative h-[42vh] min-h-[260px] md:h-[55vh]">
         <img 
           src={recipe.image || PLACEHOLDER_IMAGE}
           alt={recipe.title}
           className="absolute inset-0 w-full h-full object-cover"
           onError={onImageError}
         />
-        <div className="absolute inset-0 gradient-overlay" />
+        {/* light shade at the top only, so the buttons stay readable; the photo itself is clear */}
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
         
         {/* Back Button */}
         <Link 
@@ -467,8 +468,10 @@ const RecipeDetail = () => {
           </button>
         </div>
         
-        {/* Recipe Info */}
-        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
+      </div>
+
+      {/* Recipe Info: below the photo so the photo stays clear */}
+      <div className="px-6 md:px-8 pt-6">
           <div className="max-w-4xl mx-auto">
             <div className="flex flex-wrap gap-2 mb-4">
               <span className="inline-block px-3 py-1 bg-orange-600 text-white text-xs font-semibold rounded-full">
@@ -526,7 +529,6 @@ const RecipeDetail = () => {
               )}
             </div>
           </div>
-        </div>
       </div>
 
       {/* Content */}

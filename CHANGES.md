@@ -180,3 +180,6 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 
 ## Fix: imported recipes showing "@type / itemListElement / name" as the method
 - Some sites (e.g. NYT Cooking) give the method as one nested block. A shared reader (`backend/schema_steps.py`) now handles every shape (text, lists, steps, sections, nested lists) and is used by all three importers. Existing broken recipes need re-importing.
+
+## Recipe page: photo is clear
+- The title, description and tags now sit below the photo instead of on top of it. Only a light shade at the very top keeps the back/like/save buttons readable.
