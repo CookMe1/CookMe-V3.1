@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import RecipeCard from '../components/RecipeCard';
+import { askConfirm } from '../utils/confirm';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -70,7 +71,7 @@ const Cookbooks = () => {
   };
 
   const deleteCookbook = async (id, name) => {
-    if (!window.confirm(`Delete "${name}"? Recipes won't be deleted.`)) return;
+    if (!(await askConfirm(`Delete "${name}"? Recipes won't be deleted.`, { confirmLabel: 'Delete' }))) return;
     try {
       const token = getToken();
       await fetch(`${API_URL}/api/cookbooks/${id}`, {

@@ -28,9 +28,21 @@
         <!-- Register Service Worker for PWA -->
         <script>
             if ('serviceWorker' in navigator) {
+                // When a new version of the app takes over, reload once so nobody keeps running the old one.
+                var hadController = !!navigator.serviceWorker.controller;
+                var reloaded = false;
+                navigator.serviceWorker.addEventListener('controllerchange', function() {
+                    if (!hadController || reloaded) return;
+                    reloaded = true;
+                    window.location.reload();
+                });
                 window.addEventListener('load', function() {
                     navigator.serviceWorker.register('/sw.js').then(function(registration) {
                         console.log('CookMe SW registered:', registration.scope);
+                        registration.update();
+                        document.addEventListener('visibilitychange', function() {
+                            if (!document.hidden) registration.update();
+                        });
                     }).catch(function(err) {
                         console.log('CookMe SW registration failed:', err);
                     });

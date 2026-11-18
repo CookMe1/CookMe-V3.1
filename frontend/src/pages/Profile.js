@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import LanguagePicker from '../components/LanguagePicker';
 import RecipeCard from '../components/RecipeCard';
 import { toast } from 'sonner';
+import { askConfirm } from '../utils/confirm';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -83,7 +84,7 @@ const Profile = () => {
   };
 
   const deleteMyAccount = async () => {
-    if (!window.confirm('Delete your account and everything you created? This can’t be undone.')) return;
+    if (!(await askConfirm('Delete your account and everything you created? This can’t be undone.', { confirmLabel: 'Delete my account' }))) return;
     if (window.prompt('Type DELETE to confirm') !== 'DELETE') return;
     try {
       const res = await fetch(`${API_URL}/api/auth/me`, { method: 'DELETE', headers: authFetchHeaders(), body: JSON.stringify({ confirm: true }) });

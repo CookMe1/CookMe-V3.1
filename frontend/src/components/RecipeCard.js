@@ -4,6 +4,7 @@ import { Heart, Bookmark, Clock, Users, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PLACEHOLDER_IMAGE, onImageError } from '../utils/placeholder';
 import { totalTimeLabel } from '../utils/time';
+import { askConfirm } from '../utils/confirm';
 
 // ── Nutrition mini-strip shown on every card that has nutrition data ──────────
 const NutritionStrip = ({ nutrition }) => (
@@ -72,7 +73,7 @@ const RecipeCard = ({ recipe, showNutrition = false, onLikeChange, onSaveChange,
   const handleDelete = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!window.confirm(`Remove "${recipe.title}" from your collection? It will still be available in the master recipe list.`)) return;
+    if (!(await askConfirm(`Remove "${recipe.title}" from your collection? It will still be available in the master recipe list.`, { confirmLabel: 'Remove' }))) return;
     try {
       const token = getToken();
       const response = await fetch(`${API_URL}/api/recipes/${recipeId}`, {

@@ -16,6 +16,7 @@ import { convertAmount } from '../utils/units';
 import { PLACEHOLDER_IMAGE, onImageError } from '../utils/placeholder';
 import { validateImageQuality, getRejectMessage, compressImage } from '../utils/imageValidator';
 import { useLanguage } from '../context/LanguageContext';
+import { askConfirm } from '../utils/confirm';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -250,7 +251,7 @@ const RecipeDetail = () => {
   };
 
   const handleDeleteGalleryImage = async (imageId) => {
-    if (!window.confirm('Delete this image from the gallery?')) return;
+    if (!(await askConfirm('Delete this image from the gallery?', { confirmLabel: 'Delete' }))) return;
     
     try {
       const token = getToken();

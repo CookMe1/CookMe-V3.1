@@ -9,17 +9,44 @@ export function findStepSeconds(text) {
   return d ? d.seconds : null;
 }
 
-const beep = (n = 3) => {
+// One shared audio context, unlocked by the first tap (phones keep a fresh context silent otherwise).
+let sharedCtx = null;
+export const unlockAudio = () => {
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
-    const ctx = new Ctx();
-    for (let i = 0; i < n; i += 1) {
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination); o.frequency.value = 880; g.gain.value = 0.2;
-      o.start(ctx.currentTime + i * 0.35); o.stop(ctx.currentTime + i * 0.35 + 0.2);
+    if (!Ctx) return;
+    if (!sharedCtx) sharedCtx = new Ctx();
+    if (sharedCtx.state === 'suspended') sharedCtx.resume();
+  } catch (e) { /* sound not available */ }
+};
+
+const beep = (n = 3) => {
+  try {
+    unlockAudio();
+    const ctx = sharedCtx;
+    if (ctx) {
+      for (let i = 0; i < n; i += 1) {
+        const t0 = ctx.currentTime + i * 0.35;
+        const o = ctx.createOscillator(); const g = ctx.createGain();
+        o.type = 'square';
+        o.connect(g); g.connect(ctx.destination);
+        o.frequency.value = 988;
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.5, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.25);
+        o.start(t0); o.stop(t0 + 0.28);
+      }
     }
   } catch (e) { /* sound not available */ }
-  try { navigator.vibrate && navigator.vibrate([300, 150, 300]); } catch (e) { /* ignore */ }
+  try { navigator.vibrate && navigator.vibrate([400, 150, 400, 150, 400]); } catch (e) { /* ignore */ }
+};
+
+const notifyDone = (text) => {
+  try {
+    if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification('CookMe timer', { body: text, tag: 'cookme-timer', requireInteraction: true });
+    }
+  } catch (e) { /* ignore */ }
 };
 
 const sideTwo = (label) => (/side 1/i.test(label) ? label.replace(/side 1/i, 'side 2') : `${label} (side 2)`);
@@ -87,6 +114,24 @@ const CookingMode = ({ title, steps, ingredients, setup, onClose }) => {
     return () => clearInterval(id);
   }, [timers]);
 
+  // Keep ringing every few seconds until the finished timer is cleared (up to a minute).
+  const anyDone = timers.some((t) => t.done);
+  useEffect(() => {
+    if (!anyDone) return undefined;
+    let rings = 0;
+    const id = setInterval(() => { rings += 1; if (rings > 12) { clearInterval(id); return; } beep(3); }, 5000);
+    return () => clearInterval(id);
+  }, [anyDone]);
+
+  // Stop the screen sleeping while a timer is running, so the alarm is not missed.
+  const anyRunning = timers.some((t) => t.running);
+  useEffect(() => {
+    if (!anyRunning || !('wakeLock' in navigator)) return undefined;
+    let lock = null; let cancelled = false;
+    navigator.wakeLock.request('screen').then((l) => { if (cancelled) l.release(); else lock = l; }).catch(() => {});
+    return () => { cancelled = true; try { lock && lock.release(); } catch (e) { /* ignore */ } };
+  }, [anyRunning]);
+
   useEffect(() => {
     let changed = false; let msg = ''; let big = false;
     const next = timers.map((t) => {
@@ -96,10 +141,12 @@ const CookingMode = ({ title, steps, ingredients, setup, onClose }) => {
       if (t.halfway && !t.halfDone && left <= t.total / 2) { changed = true; msg = `${t.label}: halfway. Turn or shake it now.`; return { ...t, halfDone: true }; }
       return t;
     });
-    if (changed) { setTimers(next); setAlertMsg(msg); beep(big ? 3 : 1); }
+    if (changed) { setTimers(next); setAlertMsg(msg); beep(big ? 4 : 1); notifyDone(msg); }
   }, [now, timers]);
 
   const startTimer = useCallback((c) => {
+    unlockAudio();
+    try { if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission(); } catch (e) { /* ignore */ }
     setNow(Date.now());
     setTimers((ts) => [...ts, { id: nextId.current++, label: c.label, total: c.seconds, left: c.seconds, endsAt: Date.now() + c.seconds * 1000, running: true, done: false, after: c.after || null, halfway: !!c.halfway, halfDone: false }]);
   }, []);

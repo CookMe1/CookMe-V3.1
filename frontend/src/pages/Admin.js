@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { useAuth } from '../context/AuthContext';
+import { askConfirm } from '../utils/confirm';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 const headers = () => {
@@ -117,7 +118,7 @@ const Admin = () => {
   };
 
   const act = async (item, action, confirmText) => {
-    if (confirmText && !window.confirm(confirmText)) return;
+    if (confirmText && !(await askConfirm(confirmText))) return;
     setBusy(item.target_id + action);
     try {
       const res = await fetch(`${API_URL}/api/admin/resolve`, { method: 'POST', headers: headers(), body: JSON.stringify({ kind: item.kind, target_id: item.target_id, action }) });

@@ -230,3 +230,8 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 ## Harder-to-read recipe sites
 - New `page_fetch.py`: tries a normal browser, then Googlebot, then Jina Reader (all free) before giving up. A failed site is remembered for 6 hours so it is not retried on every tap.
 - If every method fails, the share page opens the paste box straight away with the link kept, instead of a dead end.
+
+## App updates, delete pop-ups, timer alarm
+- The app now checks for a new version each time it is opened or comes back to the foreground, and reloads itself once when one arrives (old saved copy is cleared). Fixes the stale-version problem after pulls.
+- All delete/remove confirmations (recipe, comment, cookbook, gallery image, account, admin actions) now use an in-app dialog instead of the browser's plain pop-up.
+- Cooking timers: louder alarm that repeats every few seconds until dismissed (up to a minute), a phone notification if the app is in the background, and the screen stays awake while a timer runs.

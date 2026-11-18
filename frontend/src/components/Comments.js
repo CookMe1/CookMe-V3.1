@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import ReportDialog from './ReportDialog';
+import { askConfirm } from '../utils/confirm';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 const headers = () => {
@@ -80,7 +81,7 @@ const Comments = ({ recipeId, isOwner }) => {
   };
 
   const del = async (id) => {
-    if (!window.confirm('Delete this comment?')) return;
+    if (!(await askConfirm('Delete this comment?', { confirmLabel: 'Delete' }))) return;
     const res = await fetch(`${API_URL}/api/social/comments/${id}`, { method: 'DELETE', headers: headers() });
     if (res.ok) { toast.success('Deleted'); load(); } else toast.error('Could not delete.');
   };
