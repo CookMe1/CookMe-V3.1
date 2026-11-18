@@ -22,6 +22,7 @@ Estimated time: 20-40 minutes for 500 recipes
 Estimated cost: $0 (all JSON-LD)
 """
 
+from schema_steps import extract_steps
 import asyncio
 import os
 import re
@@ -167,14 +168,7 @@ def extract_json_ld(html: str) -> dict | None:
 
                 ingredients = [str(i).strip() for i in item.get("recipeIngredient", []) if i]
 
-                steps = []
-                for inst in item.get("recipeInstructions", []):
-                    if isinstance(inst, str):
-                        steps.append(inst.strip())
-                    elif isinstance(inst, dict):
-                        text = inst.get("text", "") or inst.get("name", "")
-                        if text:
-                            steps.append(text.strip())
+                steps = extract_steps(item.get("recipeInstructions"))
 
                 imgs = item.get("image", "")
                 if isinstance(imgs, list): imgs = imgs[0]

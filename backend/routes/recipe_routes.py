@@ -8,6 +8,7 @@ import uuid
 from models import Recipe, RecipeCreate, RecipeExtractRequest, RecipeUpdate
 from auth import get_current_user
 import content_filter
+from schema_steps import extract_steps
 import public_sharing as ps
 import os
 from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
@@ -558,14 +559,7 @@ def _extract_json_ld_recipe(html: str) -> dict | None:
 
                 ingredients = [str(i).strip() for i in item.get("recipeIngredient", []) if i]
 
-                steps = []
-                for inst in item.get("recipeInstructions", []):
-                    if isinstance(inst, str):
-                        steps.append(inst.strip())
-                    elif isinstance(inst, dict):
-                        text = inst.get("text", "") or inst.get("name", "")
-                        if text:
-                            steps.append(text.strip())
+                steps = extract_steps(item.get("recipeInstructions"))
 
                 # Image
                 imgs = item.get("image", "")

@@ -177,3 +177,6 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Browser crashes are reported to `/api/monitoring/client-error` (rate-limited, kept 30 days).
 - Optional backend crash alerts: set `SENTRY_DSN` and install `sentry-sdk`.
 - `docs/legal-review-brief.md`: what to give a lawyer for the Terms/Privacy review.
+
+## Fix: imported recipes showing "@type / itemListElement / name" as the method
+- Some sites (e.g. NYT Cooking) give the method as one nested block. A shared reader (`backend/schema_steps.py`) now handles every shape (text, lists, steps, sections, nested lists) and is used by all three importers. Existing broken recipes need re-importing.

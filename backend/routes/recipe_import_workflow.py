@@ -14,6 +14,7 @@ RULES:
 
 import os
 import re
+from schema_steps import extract_steps
 import json
 import logging
 import uuid
@@ -470,21 +471,8 @@ async def fetch_external_recipe(url: str) -> RecipeOutput:
                 ingredients = r.get('recipeIngredient', [])
                 recipe.ingredients = [str(i).strip() for i in ingredients if i]
 
-                instructions = r.get('recipeInstructions', [])
-                if isinstance(instructions, str):
-                    recipe.instructions = instructions
-                    recipe.steps = [s.strip() for s in instructions.split('\n') if s.strip()]
-                elif isinstance(instructions, list):
-                    steps = []
-                    for inst in instructions:
-                        if isinstance(inst, str):
-                            steps.append(inst.strip())
-                        elif isinstance(inst, dict):
-                            text = inst.get('text', '') or inst.get('name', '')
-                            if text:
-                                steps.append(text.strip())
-                    recipe.steps = [s for s in steps if s]
-                    recipe.instructions = '\n'.join(recipe.steps)
+                recipe.steps = extract_steps(r.get('recipeInstructions'))
+                recipe.instructions = '\n'.join(recipe.steps)
 
                 images = r.get('image', [])
                 if isinstance(images, str):
