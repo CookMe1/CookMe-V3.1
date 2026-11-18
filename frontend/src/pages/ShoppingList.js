@@ -352,7 +352,7 @@ const ShoppingList = () => {
     return (
       <div className="min-h-screen bg-[#09090b] text-zinc-100">
         {/* Header */}
-        <div className="sticky top-0 z-20 bg-zinc-900 border-b border-zinc-800 px-4 py-4">
+        <div className="sticky z-20 bg-zinc-900 border-b border-zinc-800 px-4 py-4" style={{ top: 'var(--top-nav-h)' }}>
           <div className="max-w-2xl mx-auto flex items-center justify-between">
             <button
               onClick={() => setShoppingMode(false)}
