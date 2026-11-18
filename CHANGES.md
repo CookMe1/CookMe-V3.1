@@ -183,3 +183,6 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 
 ## Recipe page: photo is clear
 - The title, description and tags now sit below the photo instead of on top of it. Only a light shade at the very top keeps the back/like/save buttons readable.
+
+## Fix: importing a link (or looking up nutrition) a second time failed
+- Saved lookups crashed with "can't compare offset-naive and offset-aware datetimes" whenever the same link/ingredient was requested again. Fixed in `cache.py` (with a test).

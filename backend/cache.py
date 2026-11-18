@@ -102,7 +102,10 @@ async def get_cache(db, key: str) -> Optional[Any]:
     doc = await db.ai_cache.find_one({"key": key})
     if not doc:
         return None
-    if doc.get("expires_at") and doc["expires_at"] < datetime.now(timezone.utc):
+    exp = doc.get("expires_at")
+    if exp is not None and exp.tzinfo is None:      # MongoDB hands back naive datetimes
+        exp = exp.replace(tzinfo=timezone.utc)
+    if exp is not None and exp < datetime.now(timezone.utc):
         await db.ai_cache.delete_one({"key": key})
         return None
     return doc.get("value")
