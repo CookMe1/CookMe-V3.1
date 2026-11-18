@@ -132,3 +132,21 @@ def adjust_cups(amount: str, item_name: str, grams: float, servings: int):
                 return qty * COOKED_CUP_G, COOKED_FACTOR
             return qty * per_cup, 1.0
     return grams, 1.0
+
+
+_QTY = r"(?:\d+\s+\d+/\d+|\d+/\d+|\d+(?:\.\d+)?(?:\s*(?:-|to)\s*\d+(?:\.\d+)?)?|[½¼¾⅓⅔⅛])"
+_SPLIT = re.compile(
+    rf"^\s*(?P<q>{_QTY}(?:\s*[½¼¾⅓⅔⅛])?)\s*(?P<u>(?:\([^)]*\)\s*)?(?:[a-zA-Z]+\.?)?)\s+(?P<rest>.+)$")
+
+
+def split_ingredient(line: str):
+    """"2 tablespoons olive oil" -> ("2 tablespoons", "olive oil"); "1 large onion, chopped" -> ("1", "large onion, chopped")."""
+    m = _SPLIT.match(line or "")
+    if not m:
+        return "", (line or "").strip()
+    unit = (m.group("u") or "").strip()
+    rest = m.group("rest").strip()
+    if unit and unit.lower().rstrip(".") not in {u for u in UNITS} | {"oz", "ounce", "can", "cans"} and not unit.startswith("("):
+        rest = f"{unit} {rest}"                    # the word was part of the name ("1 large onion")
+        unit = ""
+    return f"{m.group('q').strip()} {unit}".strip(), rest

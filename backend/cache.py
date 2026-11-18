@@ -79,7 +79,7 @@ def nutrition_key(ingredients: list, servings: int) -> str:
 
 def url_import_key(url: str) -> str:
     """Cache key using normalised URL — strips tracking params, www, trailing slashes."""
-    return f"url_import:v2:{_hash(normalise_url(url))}"  # v2: older entries held garbled steps
+    return f"url_import:v3:{_hash(normalise_url(url))}"  # v2: older entries held garbled steps
 
 
 def youtube_key(video_id: str) -> str:

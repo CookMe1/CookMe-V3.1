@@ -1,4 +1,5 @@
 import json
+from amounts import split_ingredient
 import logging
 import re
 from fastapi import APIRouter, HTTPException, Request
@@ -650,11 +651,11 @@ def _extract_json_ld_recipe(html: str) -> dict | None:
                     "cook_time":   _dur(item.get("cookTime")),
                     "servings":    servings,
                     "difficulty":  "Medium",
-                    "ingredients": [{"item": i, "amount": ""} for i in ingredients],
+                    "ingredients": [dict(zip(("amount", "item"), split_ingredient(i))) for i in ingredients],
                     "steps":       steps,
                     "tags":        list(set(t for t in tags if t)),
                     "nutrition":   nutrition,  # free if site provides it
-                    "source_url":  item.get("url", ""),
+                    "source_url":  item.get("url", "") if str(item.get("url", "")).startswith("http") else "",
                     "confidence":  "high",
                     "confidence_score": 1.0,
                 }

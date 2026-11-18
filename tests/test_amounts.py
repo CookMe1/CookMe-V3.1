@@ -37,3 +37,13 @@ def test_cups_of_dry_goods_and_cooked_rice():
     assert round(g) == 948 and f == 0.36
     assert adjust_cups("2 cups", "cooked rice", 480, 4) == (480, 1.0)
     assert adjust_cups("2 tbsp", "rice vinegar", 30, 4) == (30, 1.0)
+
+
+def test_split_ingredient():
+    from amounts import split_ingredient as sp
+    assert sp("2 tablespoons olive oil") == ("2 tablespoons", "olive oil")
+    assert sp("1 large yellow onion, chopped") == ("1", "large yellow onion, chopped")
+    assert sp("1 1/2 cups chicken broth") == ("1 1/2 cups", "chicken broth")
+    assert sp("1 (15-ounce) can white beans, drained") == ("1 (15-ounce) can", "white beans, drained")
+    assert sp("Salt and pepper") == ("", "Salt and pepper")
+    assert sp("½ teaspoon cumin") == ("½ teaspoon", "cumin")

@@ -262,3 +262,4 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - "4 servings salt/marinade" no longer counted as 4 whole items; cups of rice/flour/sugar etc. use realistic weights; large amounts of rice per person are treated as cooked rice (Korean Beef Rice Bowl: 1928 -> ~744 kcal/serving).
 - Stored nutrition is recalculated (calc_v 3, cache key nutrition:v3).
 - Ingredient rows on phones: buttons wrap onto their own line so names are not squeezed.
+- Imports from sites with structured data (NYT etc.) now split "2 tablespoons olive oil" into amount + ingredient, so scaling, pantry and nutrition work; bad relative source links dropped; import cache key v3.
