@@ -46,6 +46,22 @@ async def get_pantry_items(request: Request):
     return items
 
 
+def _qty_of(amount) -> Optional[float]:
+    """Leading number of an amount like '0', '2 kg', '1/2 cup'. None when there is no number."""
+    m = re.match(r"^\s*(\d+(?:\.\d+)?)", str(amount or ""))
+    return float(m.group(1)) if m else None
+
+
+async def _restock_if_empty(db, request: Request, name: str, amount, in_stock: bool) -> bool:
+    """A pantry item at zero is out of stock and goes straight onto the shopping list."""
+    q = _qty_of(amount)
+    if (q is not None and q <= 0) or not in_stock:
+        from routes.shopping_routes import add_items_to_shopping_list, AddItemsRequest
+        await add_items_to_shopping_list(AddItemsRequest(items=[name]), request)
+        return True
+    return False
+
+
 @router.post("")
 async def add_pantry_item(item_data: PantryItemCreate, request: Request):
     db = request.app.state.db
@@ -55,6 +71,9 @@ async def add_pantry_item(item_data: PantryItemCreate, request: Request):
     if item_data.quantity is not None:
         amount = f"{item_data.quantity} {item_data.unit}".strip() if item_data.unit else str(item_data.quantity)
 
+    q = _qty_of(amount)
+    if q is not None and q <= 0:
+        item_data.in_stock = False
     item_doc = {
         "item_id": f"item_{uuid.uuid4().hex[:12]}",
         "user_id": user["user_id"],
@@ -66,6 +85,7 @@ async def add_pantry_item(item_data: PantryItemCreate, request: Request):
     }
     await db.pantry_items.insert_one(item_doc)
     item_doc.pop("_id", None)
+    item_doc["added_to_shopping_list"] = await _restock_if_empty(db, request, item_data.name, amount, item_data.in_stock)
     return item_doc
 
 
@@ -73,13 +93,23 @@ async def add_pantry_item(item_data: PantryItemCreate, request: Request):
 async def update_pantry_item(item_id: str, item_data: dict, request: Request):
     db = request.app.state.db
     user = await get_current_user(request, db)
+    item_data = {k: v for k, v in item_data.items() if k not in ("item_id", "user_id", "_id")}
+    if "amount" in item_data:
+        q = _qty_of(item_data["amount"])
+        if q is not None:
+            item_data["in_stock"] = q > 0
     result = await db.pantry_items.update_one(
         {"item_id": item_id, "user_id": user["user_id"]},
         {"$set": item_data}
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Item not found")
-    return {"message": "Item updated"}
+    added = False
+    if item_data.get("in_stock") is False:
+        doc = await db.pantry_items.find_one({"item_id": item_id, "user_id": user["user_id"]}, {"_id": 0})
+        if doc:
+            added = await _restock_if_empty(db, request, doc["name"], doc.get("amount"), False)
+    return {"message": "Item updated", "added_to_shopping_list": added}
 
 
 @router.delete("/{item_id}")

@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ShareRecipe from '../components/ShareRecipe';
 import Comments from '../components/Comments';
-import { Clock, Users, ChefHat, Heart, Bookmark, Share2, Minus, Plus, Printer, Loader2, Camera, ImageIcon, Trash2, Upload, AlertCircle } from 'lucide-react';
+import { Clock, Users, ChefHat, Heart, Bookmark, Share2, Minus, Plus, Printer, Loader2, Camera, ImageIcon, Trash2, Upload, AlertCircle, ShoppingCart, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
@@ -43,6 +43,50 @@ const RecipeDetail = () => {
   const fileInputRef = useRef(null);
 
   const getToken = () => localStorage.getItem('token') || sessionStorage.getItem('token');
+  const [pantryNames, setPantryNames] = useState([]);
+  const [onList, setOnList] = useState({});
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) return;
+    fetch(`${API_URL}/api/pantry`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => (r.ok ? r.json() : []))
+      .then(items => setPantryNames(
+        (Array.isArray(items) ? items : []).filter(i => i.in_stock !== false).map(i => (i.name || '').toLowerCase())
+      ))
+      .catch(() => {});
+  }, [id]);
+
+  const inPantry = (name) => {
+    const n = (name || '').toLowerCase();
+    return !!n && pantryNames.some(p => p && (p === n || n.includes(p) || p.includes(n)));
+  };
+
+  const authedPost = (path, body) => fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+    body: JSON.stringify(body),
+  });
+
+  const addToShopping = async (names) => {
+    try {
+      const r = await authedPost('/api/shopping-list/add-items', { items: names });
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      setOnList(prev => ({ ...prev, ...Object.fromEntries(names.map(n => [n, true])) }));
+      toast.success(d.added_count ? `Added ${d.added_count} to your shopping list` : 'Already on your shopping list');
+    } catch { toast.error('Could not add to shopping list'); }
+  };
+
+  const addToPantry = async (ing) => {
+    const name = ing.item || (typeof ing === 'string' ? ing : '');
+    try {
+      const r = await authedPost('/api/pantry', { name, category: ing.category || 'Other', amount: '1', in_stock: true });
+      if (!r.ok) throw new Error();
+      setPantryNames(prev => [...prev, name.toLowerCase()]);
+      toast.success(`${name} added to your pantry`);
+    } catch { toast.error('Could not add to pantry'); }
+  };
 
   useEffect(() => {
     setNutrition(null);   // a different recipe: never keep the previous recipe's numbers
@@ -658,6 +702,19 @@ const RecipeDetail = () => {
         {/* Tab Content */}
         {activeTab === 'ingredients' && (
           <div className="space-y-3" data-testid="ingredients-list">
+            {ingredients.length > 0 && getToken() && (
+              <button
+                data-testid="add-missing-to-shopping"
+                onClick={() => {
+                  const missing = ingredients.map(i => i.item || (typeof i === 'string' ? i : '')).filter(n => n && !inPantry(n));
+                  if (!missing.length) { toast.success('You already have everything in your pantry'); return; }
+                  addToShopping(missing);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 text-sm font-medium hover:bg-orange-500/20"
+              >
+                <ShoppingCart className="w-4 h-4" /> Add what I'm missing to shopping list
+              </button>
+            )}
             {ingredients.length > 0 ? (
               ingredients.map((ing, index) => {
                 const ingName = ing.item || (typeof ing === 'string' ? ing : '');
@@ -681,6 +738,34 @@ const RecipeDetail = () => {
                       <span className="text-orange-500 font-medium shrink-0" data-testid={`amount-${index}`}>
                         {scaleAmount(convertAmount(ing.amount, units))}
                       </span>
+                    )}
+                    {ingName && getToken() && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        {inPantry(ingName) ? (
+                          <span title="In your pantry" className="text-xs text-emerald-400 flex items-center gap-1 px-1">
+                            <Check className="w-4 h-4" /> Have
+                          </span>
+                        ) : (
+                          <button
+                            title="I have this: add to pantry"
+                            aria-label={`Add ${ingName} to pantry`}
+                            data-testid={`pantry-add-${index}`}
+                            onClick={() => addToPantry(ing)}
+                            className="text-xs px-2 py-1.5 rounded-md border border-zinc-700 text-zinc-300 hover:border-emerald-500 hover:text-emerald-400"
+                          >
+                            + Pantry
+                          </button>
+                        )}
+                        <button
+                          title="Add to shopping list"
+                          aria-label={`Add ${ingName} to shopping list`}
+                          data-testid={`shop-add-${index}`}
+                          onClick={() => addToShopping([ingName])}
+                          className={`p-2 rounded-md border ${onList[ingName] ? 'border-orange-500 text-orange-400' : 'border-zinc-700 text-zinc-300 hover:border-orange-500 hover:text-orange-400'}`}
+                        >
+                          {onList[ingName] ? <Check className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
+                        </button>
+                      </div>
                     )}
                   </div>
                 );

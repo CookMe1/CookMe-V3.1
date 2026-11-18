@@ -561,7 +561,8 @@ const Pantry = () => {
       });
 
       if (response.ok) {
-        toast.success('Item updated');
+        const data = await response.json().catch(() => ({}));
+        toast.success(data.added_to_shopping_list ? `${editName} is out, added to your shopping list` : 'Item updated');
         closeModal();
       } else {
         fetchPantry();
@@ -751,19 +752,18 @@ const Pantry = () => {
     const { quantity, unit } = parseAmount(item.amount);
     const newQuantity = Math.max(0, quantity + delta);
     
-    if (newQuantity === 0) {
-      handleDeleteItem(item.item_id);
-      return;
-    }
-    
     const newAmount = `${newQuantity} ${unit}`;
     
     setPantry(prev => prev.map(i => 
       i.item_id === item.item_id ? { ...i, amount: newAmount } : i
     ));
 
+    if (newQuantity === 0) {
+      setPantry(prev => prev.map(i => i.item_id === item.item_id ? { ...i, amount: newAmount, in_stock: false } : i));
+    }
+
     try {
-      await fetch(`${API_URL}/api/pantry/${item.item_id}`, {
+      const res = await fetch(`${API_URL}/api/pantry/${item.item_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -771,6 +771,8 @@ const Pantry = () => {
         },
         body: JSON.stringify({ amount: newAmount })
       });
+      const data = res.ok ? await res.json().catch(() => ({})) : {};
+      if (data.added_to_shopping_list) toast.success(`${item.name} ran out, added to your shopping list`);
     } catch (err) {
       fetchPantry();
     }

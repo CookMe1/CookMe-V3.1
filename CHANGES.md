@@ -214,3 +214,8 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - The share page now finds the recipe link whether the app sends it as `url`, `text` or `title` (Facebook, WhatsApp, Instagram, Pinterest, browsers), including bare `www.` links.
 - Fixed the import running twice on a share.
 - If an app shares plain recipe text with no link, it opens the paste box pre-filled.
+
+## Pantry and shopping list from the ingredients list
+- Each ingredient on a recipe now has "+ Pantry" and a shopping-cart button; ingredients already in the pantry show "Have".
+- New "Add what I'm missing to shopping list" button on the ingredients tab.
+- A pantry item at quantity 0 is marked out of stock and added to the shopping list automatically (pressing minus to 0 used to delete it). Works in the quick +/- and in the edit window; restocking marks it in stock again.
