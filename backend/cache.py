@@ -74,7 +74,7 @@ def _hash(text: str) -> str:
 
 def nutrition_key(ingredients: list, servings: int) -> str:
     canonical = json.dumps(ingredients, sort_keys=True) + f"|{servings}"
-    return f"nutrition:v2:{_hash(canonical)}"   # v2: fixed amount parsing
+    return f"nutrition:v3:{_hash(canonical)}"   # v3: cups of rice, servings
 
 
 def url_import_key(url: str) -> str:

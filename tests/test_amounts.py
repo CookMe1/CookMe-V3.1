@@ -19,3 +19,21 @@ def test_vague_amounts_are_small():
 def test_range_uses_average_and_unit_words_need_whole_match():
     assert g("2-3", "Carrots") == pytest.approx(175)
     assert g("1 large", "Onion") == 110       # "l" in "large" is not litres
+
+
+def test_servings_and_bare_seasonings_are_small():
+    from amounts import parse_amount_to_grams as g
+    assert g("4 servings", "salt") == 4          # was 320 g
+    assert g("4 servings", "korean marinade") == 120
+    assert g("2", "salt") == 2
+    assert g("2", "onion") == 220                # real counts are unchanged
+
+
+def test_cups_of_dry_goods_and_cooked_rice():
+    from amounts import adjust_cups
+    assert adjust_cups("1 cup", "plain flour", 240, 4) == (125, 1.0)
+    assert adjust_cups("1 cup", "basmati rice", 240, 4) == (185, 1.0)          # 1/4 cup each: raw
+    g, f = adjust_cups("6 cups", "rice", 1440, 4)                                # 1.5 cups each: cooked
+    assert round(g) == 948 and f == 0.36
+    assert adjust_cups("2 cups", "cooked rice", 480, 4) == (480, 1.0)
+    assert adjust_cups("2 tbsp", "rice vinegar", 30, 4) == (30, 1.0)

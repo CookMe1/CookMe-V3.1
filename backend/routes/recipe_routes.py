@@ -1722,7 +1722,7 @@ async def calculate_nutrition(request: Request):
         stored = (recipe_doc or {}).get("nutrition")
         # Values the site published (no "source") or calculated with the fixed parser (calc_v 2) are kept;
         # older calculated values were wrong for many recipes and get recalculated.
-        if stored and (not stored.get("source") or stored.get("calc_v") == 2 or stored.get("source") == "ai"):
+        if stored and (not stored.get("source") or stored.get("calc_v") == 3 or stored.get("source") == "ai"):
             return stored
 
     # ── 1. Check AI cache ─────────────────────────────────────────────────────

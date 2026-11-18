@@ -729,10 +729,10 @@ const RecipeDetail = () => {
                 return (
                   <div
                     key={index}
-                    className="flex items-center gap-4 p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg"
+                    className="flex flex-wrap items-center gap-x-4 gap-y-2 p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg"
                   >
                     <div className="w-6 h-6 rounded-full border-2 border-zinc-700 flex-shrink-0" />
-                    <span className="text-zinc-300 flex-1">{ingName}</span>
+                    <span className="text-zinc-300 flex-1 min-w-[8rem]">{ingName}</span>
                     {inSeason === true && (
                       <span
                         title="In season this month"
@@ -747,7 +747,7 @@ const RecipeDetail = () => {
                       </span>
                     )}
                     {ingName && getToken() && (
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0 w-full justify-end sm:w-auto">
                         {inPantry(ingName) ? (
                           <span title="In your pantry" className="text-xs text-emerald-400 flex items-center gap-1 px-1">
                             <Check className="w-4 h-4" /> Have

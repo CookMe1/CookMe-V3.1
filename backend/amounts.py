@@ -20,7 +20,12 @@ UNITS = {
     "pinch": 0.4, "pinches": 0.4, "dash": 0.6, "splash": 10, "drizzle": 7, "knob": 15, "glug": 15,
     "pack": 250, "packet": 250, "packets": 250, "jar": 300, "stalk": 40, "stalks": 40, "head": 500,
     "fillet": 150, "fillets": 150, "rasher": 25, "rashers": 25, "leaf": 1, "leaves": 1,
+    "serving": 30, "servings": 30, "portion": 30, "portions": 30,      # "4 servings" of a sauce: about a spoonful each
 }
+SERVING_WORDS = {"serving", "servings", "portion", "portions"}
+# seasonings are tiny: "4 servings salt" is about 4 g, not 4 whole items
+SEASONING = re.compile(r"\b(salt|pepper|paprika|cumin|oregano|thyme|basil|parsley|cinnamon|nutmeg|turmeric|"
+                       r"coriander|chilli powder|chili powder|garlic powder|onion powder|spice|spices|seasoning|herbs?)\b")
 VAGUE = ("to taste", "to serve", "for serving", "for garnish", "as needed", "some", "a little", "optional")
 
 # typical weight of one whole item, matched against the ingredient name
@@ -84,6 +89,8 @@ def parse_amount_to_grams(amount: str, item_name: str = "") -> float:
         w = re.sub(r"[^a-z]", "", w)
         if w in UNITS:
             unit_g = UNITS[w]
+            if w in SERVING_WORDS and SEASONING.search((item_name or "").lower()):
+                unit_g = 1
             break
     if qty is None:                                   # "pinch", "drizzle", "handful", "to taste"
         return unit_g if unit_g is not None else 5.0
@@ -94,4 +101,34 @@ def parse_amount_to_grams(amount: str, item_name: str = "") -> float:
     # no unit: either grams written bare ("400") or a count of items ("8" eggs, "1 sliced" onion)
     if qty >= 25:
         return qty
+    if SEASONING.search((item_name or "").lower()):      # "2 salt" or "3 pepper": a few grams, never 80 g each
+        return qty * 1.0
     return qty * _count_weight(item_name)
+
+
+# A cup of dry goods weighs much less than a cup of water (the default above): grams per cup
+CUP_GRAMS = [("rice", 185), ("quinoa", 170), ("couscous", 175), ("oats", 90), ("flour", 125),
+             ("sugar", 200), ("pasta", 100), ("lentil", 190), ("breadcrumb", 110)]
+COOKED_GRAINS = ("rice", "quinoa", "couscous")
+COOKED_CUP_G = 158          # a cup of cooked rice
+COOKED_FACTOR = 0.36        # cooked rice carries about 36% of the calories of the same weight of raw rice
+
+
+def adjust_cups(amount: str, item_name: str, grams: float, servings: int):
+    """Better weight for cups of dry goods, and a cooked-rice correction.
+
+    "6 cups rice" for 4 servings is cooked rice (1.5 cups raw per person would be a huge portion), so it is
+    weighed as cooked and its raw nutrition values are scaled down. Returns (grams, nutrition_factor)."""
+    text = (amount or "").lower()
+    name = (item_name or "").lower()
+    if not re.search(r"\bcups?\b", text) or re.search(r"\bcooked\b", name + " " + text):
+        return grams, 1.0
+    qty, _, _ = _number(text)
+    if not qty:
+        return grams, 1.0
+    for key, per_cup in CUP_GRAMS:
+        if re.search(rf"\b{key}s?\b", name):
+            if key in COOKED_GRAINS and qty / max(1, servings) > 0.75:
+                return qty * COOKED_CUP_G, COOKED_FACTOR
+            return qty * per_cup, 1.0
+    return grams, 1.0

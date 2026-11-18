@@ -275,7 +275,7 @@ async def lookup_edamam(ingredient_text: str) -> Optional[dict]:
 
 # ── Amount parser ─────────────────────────────────────────────────────────────
 
-from amounts import parse_amount_to_grams  # noqa: E402  (whole-word units, per-item weights)
+from amounts import parse_amount_to_grams, adjust_cups  # noqa: E402  (whole-word units, per-item weights), adjust_cups
 
 
 # ── Recipe-level nutrition calculation ───────────────────────────────────────
@@ -350,7 +350,8 @@ async def calculate_recipe_nutrition_free(
             continue
 
         grams = parse_amount_to_grams(amount_str, item_name)
-        ratio = grams / 100.0
+        grams, factor = adjust_cups(amount_str, item_name, grams, servings)
+        ratio = grams / 100.0 * factor
 
         totals["calories"] += (nutriments.get("calories_per_100g") or 0) * ratio
         totals["protein"]  += (nutriments.get("protein_per_100g")  or 0) * ratio
@@ -376,5 +377,5 @@ async def calculate_recipe_nutrition_free(
         "sugar":    round(totals["sugar"]    / servings, 1),
         "sodium":   round(totals["sodium"]   / servings),
         "source":   "usda" if _USDA else "api",
-        "calc_v":   2,
+        "calc_v":   3,
     }

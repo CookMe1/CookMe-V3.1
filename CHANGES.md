@@ -257,3 +257,8 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Safety net: when the backend starts it tests the model once; if it does not answer, the whole app switches to `openai` / `gpt-4o-mini` for that run and logs a warning. A wrong model name can never break imports.
 - To force the old model: set `AI_PROVIDER=openai` and `AI_MODEL=gpt-4o-mini`. Admin -> "Test AI model" shows which model is in use.
 - Unchanged: recipe photo creation (Gemini) and the full-recipe translation backup (`gpt-5.2`).
+
+## Nutrition fix + phone ingredient rows
+- "4 servings salt/marinade" no longer counted as 4 whole items; cups of rice/flour/sugar etc. use realistic weights; large amounts of rice per person are treated as cooked rice (Korean Beef Rice Bowl: 1928 -> ~744 kcal/serving).
+- Stored nutrition is recalculated (calc_v 3, cache key nutrition:v3).
+- Ingredient rows on phones: buttons wrap onto their own line so names are not squeezed.
