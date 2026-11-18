@@ -219,3 +219,6 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Each ingredient on a recipe now has "+ Pantry" and a shopping-cart button; ingredients already in the pantry show "Have".
 - New "Add what I'm missing to shopping list" button on the ingredients tab.
 - A pantry item at quantity 0 is marked out of stock and added to the shopping list automatically (pressing minus to 0 used to delete it). Works in the quick +/- and in the edit window; restocking marks it in stock again.
+
+## Re-importing a link no longer replays an old broken result
+- Saved URL imports now use a new cache version, and any saved result with garbled steps ("@type / itemListElement / name") is ignored and re-read.

@@ -724,7 +724,7 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
             # ── Cache check (normalised URL — strips UTM params etc) ──────────
             cache_key = url_import_key(extract_data.recipe_url)
             cached = await get_cache(db, cache_key)
-            if cached:
+            if cached and not any(str(x).strip() in ("@type", "itemListElement", "name") for x in (cached.get("steps") or cached.get("instructions") or [])):
                 return cached
 
             # Scrape URL content
