@@ -9,6 +9,7 @@ import { Card, CardContent } from '../components/ui/card';
 import { toast } from 'sonner';
 import { validateImageQuality, getRejectMessage, compressImage } from '../utils/imageValidator';
 import { useLanguage } from '../context/LanguageContext';
+import { saveReturnPath } from '../utils/returnPath';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -260,6 +261,7 @@ const ShareHandler = () => {
     
     const token = getToken();
     if (!token) {
+      saveReturnPath(`/share?url=${encodeURIComponent(targetUrl)}`);
       navigate('/login', { state: { returnTo: `/share?url=${encodeURIComponent(targetUrl)}` } });
       return;
     }

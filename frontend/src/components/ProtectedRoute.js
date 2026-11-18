@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AccountRestricted from './AccountRestricted';
+import { saveReturnPath } from '../utils/returnPath';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading, user } = useAuth();
@@ -21,6 +22,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    saveReturnPath(location.pathname + location.search);
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
+import { takeReturnPath } from '../utils/returnPath';
 
 // Email login via Auth0. Only active when REACT_APP_AUTH0_DOMAIN and REACT_APP_AUTH0_CLIENT_ID are set.
 export const AUTH0_ENABLED = !!(process.env.REACT_APP_AUTH0_DOMAIN && process.env.REACT_APP_AUTH0_CLIENT_ID);
@@ -52,7 +53,7 @@ const Handler = () => {
       try {
         const claims = await getIdTokenClaims();
         await handleOAuthCallback('auth0', { id_token: claims.__raw });
-        window.location.replace('/dashboard');
+        window.location.replace(takeReturnPath());
       } catch (e) {
         toast.error('Could not log in. If you just signed up, verify your email first, then try again.');
       }

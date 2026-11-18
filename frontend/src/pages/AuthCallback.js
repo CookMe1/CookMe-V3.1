@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
+import { takeReturnPath } from '../utils/returnPath';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const AuthCallback = () => {
         if (sessionId) {
           await handleOAuthCallback('google', { session_id: sessionId });
           await checkAuth();
-          navigate('/dashboard', { replace: true });
+          navigate(takeReturnPath(), { replace: true });
           return;
         }
 
@@ -35,7 +36,7 @@ const AuthCallback = () => {
           const provider = path.includes('instagram') ? 'instagram' : 'facebook';
           await handleOAuthCallback(provider, { access_token: fbToken });
           await checkAuth();
-          navigate('/dashboard', { replace: true });
+          navigate(takeReturnPath(), { replace: true });
           return;
         }
 
@@ -45,7 +46,7 @@ const AuthCallback = () => {
           // Exchange code for token via backend (PKCE)
           await handleOAuthCallback('twitter', { access_token: twitterCode });
           await checkAuth();
-          navigate('/dashboard', { replace: true });
+          navigate(takeReturnPath(), { replace: true });
           return;
         }
 
@@ -59,7 +60,7 @@ const AuthCallback = () => {
           }
           await handleOAuthCallback('apple', { id_token: appleIdToken, user: appleUser });
           await checkAuth();
-          navigate('/dashboard', { replace: true });
+          navigate(takeReturnPath(), { replace: true });
           return;
         }
 

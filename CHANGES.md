@@ -205,3 +205,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 ## Every recipe gets a decent description
 - When a recipe is saved (URL, YouTube, photo or typed in) and its description is missing, too short, just the title, a generic template, or full of junk (links, "subscribe", hashtags), the app writes one: a 25-45 word AI description (gpt-4o-mini, a fraction of a cent) from the title, ingredients and method; if the AI is unavailable, a plain sentence from the ingredients. Good descriptions written by the person or the source site are never changed.
 - Library recipes with plain template descriptions (583) are flagged; **Admin → "Improve library descriptions (AI)"** upgrades them 25 at a time (progress shown, safe to stop and resume).
+
+## Sharing from Facebook (and other apps) now survives sign-in
+- Before: sharing a recipe to CookMe while signed out sent you to login, then always to the dashboard, so the shared link was dropped.
+- Now: the shared page is remembered (`utils/returnPath.js`, 30 minutes) and restored after Google or email sign-in.
