@@ -724,6 +724,11 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
             # ── Cache check (normalised URL — strips UTM params etc) ──────────
             cache_key = url_import_key(extract_data.recipe_url)
             cached = await get_cache(db, cache_key)
+            if cached and cached.get("_fetch_failed"):
+                raise HTTPException(
+                    status_code=422,
+                    detail="That website blocked CookMe from reading the recipe. Paste the recipe text instead, or try another link.",
+                )
             if cached and str(cached.get("title", "")).strip().lower() != "recipe name" and not any(str(x).strip() in ("@type", "itemListElement", "name") for x in (cached.get("steps") or cached.get("instructions") or [])):
                 return cached
 
@@ -759,6 +764,7 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
                 prefer_googlebot='Googlebot' in _fetch_headers['User-Agent'],
             )
             if not page_content:
+                await set_cache(db, cache_key, {"_fetch_failed": True}, ttl_days=0.25)  # don't hammer a blocking site
                 raise HTTPException(
                     status_code=422,
                     detail="That website blocked CookMe from reading the recipe. Paste the recipe text instead, or try another link.",
@@ -784,7 +790,11 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
                         recipe_data["import_fingerprint"] = fp
                 if recipe_data.get("image"):
                     _, recipe_data["image"] = await optimise_image_url(recipe_data["image"])
-                await set_cache(db, cache_key, recipe_data, ttl_days=TTL_URL_IMPORT)
+                await set_cache(
+                    db, cache_key,
+                    {k: v for k, v in recipe_data.items() if k not in ("_duplicate", "_existing_recipe_id", "import_fingerprint")},
+                    ttl_days=TTL_URL_IMPORT,
+                )
                 return recipe_data
 
             # ── Sanitise HTML — remove nav/ads/footer before AI ──────────────

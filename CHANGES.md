@@ -228,5 +228,5 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - The AI's blank template ("Recipe name", "Step 1 text") is rejected and never saved or cached.
 
 ## Harder-to-read recipe sites
-- New `page_fetch.py`: tries a normal browser, then Googlebot, then Jina Reader, then ScrapingBee (only if `SCRAPINGBEE_API_KEY` is set) before giving up.
+- New `page_fetch.py`: tries a normal browser, then Googlebot, then Jina Reader (all free) before giving up. A failed site is remembered for 6 hours so it is not retried on every tap.
 - If every method fails, the share page opens the paste box straight away with the link kept, instead of a dead end.

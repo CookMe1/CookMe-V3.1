@@ -1,12 +1,9 @@
 """Get a recipe page's HTML even when the site blocks plain server requests.
 
-Order: direct (normal browser) -> Googlebot identity -> Jina Reader (HTML mode) -> ScrapingBee (only if SCRAPINGBEE_API_KEY is set).
+Order: direct (normal browser) -> Googlebot identity -> Jina Reader (HTML mode). All free; no paid services.
 Each step is tried only if the previous one failed or returned a near-empty page.
 """
 import logging
-import os
-import re
-from urllib.parse import quote
 
 import httpx
 
@@ -55,16 +52,4 @@ async def fetch_page_html(url: str, prefer_googlebot: bool = False):
         except Exception as e:
             logger.info(f"reader fetch failed: {e}")
 
-        key = os.environ.get("SCRAPINGBEE_API_KEY")
-        if key:
-            try:
-                r = await client.get(
-                    "https://app.scrapingbee.com/api/v1/",
-                    params={"api_key": key, "url": url, "render_js": "false"},
-                    timeout=60.0,
-                )
-                if r.status_code < 400 and looks_usable(r.text):
-                    return r.text, "scraper"
-            except Exception as e:
-                logger.info(f"scraper fetch failed: {e}")
     return "", "failed"
