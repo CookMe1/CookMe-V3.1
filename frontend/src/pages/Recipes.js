@@ -33,6 +33,7 @@ const Recipes = () => {
   // Fetch filter options on mount
   useEffect(() => {
     fetchFilterOptions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, []);
 
   // Update filters from URL params when they change
@@ -58,6 +59,7 @@ const Recipes = () => {
   // Fetch recipes from database
   useEffect(() => {
     fetchRecipes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, [viewMode, selectedCategory, selectedCuisine]);
 
   // Fetch community recipes when that tab is active
@@ -65,6 +67,7 @@ const Recipes = () => {
     if (viewMode === 'community') {
       fetchCommunityRecipes(0);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, [viewMode, selectedCategory, selectedCuisine]);
 
   const fetchCommunityRecipes = async (skip = 0) => {

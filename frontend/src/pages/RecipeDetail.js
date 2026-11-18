@@ -94,6 +94,7 @@ const RecipeDetail = () => {
     fetchRecipe();
     fetchGalleryImages();
     fetchSimilarRecipes();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, [id]);
 
   // Auto-calculate nutrition when recipe loads without nutrition data
@@ -101,6 +102,7 @@ const RecipeDetail = () => {
     if (recipe && recipe.ingredients && recipe.ingredients.length > 0 && !nutrition && !loadingNutrition) {
       calculateNutrition();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, [recipe]);
 
   const fetchRecipe = async () => {

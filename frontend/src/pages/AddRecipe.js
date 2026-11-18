@@ -76,6 +76,7 @@ const AddRecipe = () => {
   // Fetch filter options on mount
   React.useEffect(() => {
     fetchFilterOptions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, []);
 
   const fetchFilterOptions = async () => {

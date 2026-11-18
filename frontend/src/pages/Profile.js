@@ -29,6 +29,7 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, [userId]);
 
   const fetchProfile = async () => {

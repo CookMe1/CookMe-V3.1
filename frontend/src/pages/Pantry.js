@@ -370,8 +370,10 @@ const Pantry = () => {
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- we want the timers that exist when leaving the page
       Object.values(deleteTimeoutsRef.current).forEach(timeout => clearTimeout(timeout));
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, []);
 
   // Fetch pantry items from backend
@@ -488,6 +490,7 @@ const Pantry = () => {
       setShowSuggestions(false);
       setAddTranslationResult(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, [searchQuery, pantry]);
 
   // Click outside handlers

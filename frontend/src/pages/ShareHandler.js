@@ -430,6 +430,7 @@ const ShareHandler = () => {
       setMode('error');
       toast.error(err.message || 'Extraction failed');
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, [url, navigate]);
 
   // ============================================================================

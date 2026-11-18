@@ -32,6 +32,7 @@ const Cookbooks = () => {
 
   useEffect(() => {
     fetchAll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, []);
 
   const fetchAll = async () => {

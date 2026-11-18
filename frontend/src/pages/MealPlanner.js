@@ -168,6 +168,7 @@ const MealPlanner = () => {
       setDays(buildEmptyWeek(monday));
     }
     setLoading(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, [weekStart]);
 
   useEffect(() => { loadPlan(); }, [loadPlan]);
