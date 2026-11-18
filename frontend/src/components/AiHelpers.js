@@ -79,7 +79,7 @@ export const SwapButton = ({ ingredient, recipeTitle }) => {
                 </div>
               ))}
               <p className="text-xs text-zinc-500">AI suggestions. Check allergies and taste before cooking.
-                {typeof data.left_today === 'number' && ` ${data.left_today} AI requests left today.`}</p>
+                {typeof data.left_today === 'number' && ` ${data.left_today} swaps left today.`}</p>
             </div>
           )}
         </Sheet>
@@ -94,18 +94,26 @@ const DIETS = [
   ['dairy-free', 'Dairy-free'], ['low-carb', 'Low-carb'], ['nut-free', 'Nut-free'],
 ];
 
+// Vegan already covers vegetarian and dairy-free, so ticking it ticks (and locks) those.
+const COVERED_BY_VEGAN = ['vegetarian', 'dairy-free'];
+
 export const DietConvert = ({ recipeId }) => {
   const [show, setShow] = useState(false);
-  const [busy, setBusy] = useState('');
+  const [picked, setPicked] = useState([]);
+  const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
   const [saving, setSaving] = useState(false);
 
-  const run = async (diet) => {
-    setBusy(diet);
+  const toggle = (key) => setPicked((p) => (p.includes(key) ? p.filter((k) => k !== key) : [...p, key]));
+  const covered = (key) => picked.includes('vegan') && COVERED_BY_VEGAN.includes(key);
+
+  const run = async () => {
+    if (!picked.length) { toast.error('Tick at least one option'); return; }
+    setBusy(true);
     try {
-      setResult(await call('/convert-recipe', { recipe_id: recipeId, diet }));
+      setResult(await call('/convert-recipe', { recipe_id: recipeId, diets: picked.filter((k) => !covered(k)) }));
     } catch (e) { toast.error(e.message); }
-    finally { setBusy(''); }
+    finally { setBusy(false); }
   };
 
   const save = async () => {
@@ -116,7 +124,7 @@ export const DietConvert = ({ recipeId }) => {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({
           title: result.title,
-          description: `${result.diet} version. ${(result.changes || []).slice(0, 2).join('; ')}`.slice(0, 300),
+          description: `${(result.diets || [result.diet]).join(' + ')} version. ${(result.changes || []).slice(0, 2).join('; ')}`.slice(0, 300),
           prep_time: result.prep_time || '15 min',
           cook_time: result.cook_time || '30 min',
           servings: result.servings || 4,
@@ -124,7 +132,8 @@ export const DietConvert = ({ recipeId }) => {
           image: result.image || '',
           ingredients: result.ingredients,
           steps: result.steps,
-          tags: ['AI Converted', result.diet],
+          tags: ['AI Converted', ...(result.diets || [result.diet])],
+          ai_generated: true,
         }),
       });
       if (!res.ok) throw new Error();
@@ -144,17 +153,33 @@ export const DietConvert = ({ recipeId }) => {
         <Sparkles className="w-4 h-4" /> Make it vegan, gluten-free and more
       </button>
       {show && (
-        <div className="flex flex-wrap gap-2 mt-2" data-testid="diet-options">
-          {DIETS.map(([key, label]) => (
-            <button
-              key={key}
-              disabled={!!busy}
-              onClick={() => run(key)}
-              className="px-3 h-10 rounded-full border border-zinc-700 text-sm text-zinc-200 hover:border-purple-500 disabled:opacity-60 flex items-center gap-2"
-            >
-              {busy === key && <Loader2 className="w-3 h-3 animate-spin" />}{label}
-            </button>
-          ))}
+        <div className="mt-2 p-3 rounded-lg bg-zinc-900/60 border border-zinc-800" data-testid="diet-options">
+          <p className="text-xs text-zinc-500 mb-2">Tick everything you need. It is done in one go.</p>
+          <div className="flex flex-wrap gap-2">
+            {DIETS.map(([key, label]) => {
+              const on = picked.includes(key) || covered(key);
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={on}
+                  disabled={busy || covered(key)}
+                  onClick={() => toggle(key)}
+                  className={`px-3 h-10 rounded-full border text-sm ${on ? 'border-purple-500 bg-purple-500/20 text-purple-200' : 'border-zinc-700 text-zinc-200 hover:border-purple-500'} disabled:opacity-80`}
+                >
+                  {on ? '✓ ' : ''}{label}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            onClick={run}
+            disabled={busy || !picked.length}
+            data-testid="diet-run"
+            className="mt-3 w-full h-11 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {busy && <Loader2 className="w-4 h-4 animate-spin" />}{busy ? 'Converting…' : 'Convert recipe'}
+          </button>
         </div>
       )}
       {result && (

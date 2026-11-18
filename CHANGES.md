@@ -244,3 +244,10 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Much better cooking instructions in AI recipes: 6 to 10 steps with prep, heat level, times, pan size, doneness cues, °C and °F, one common-mistake tip.
 - Blocked-site message now tells people to select the recipe text and share again, or paste it.
 - Fixed: Original/Metric/US toggle was cut off on phones.
+
+## Library first, tick-several diets, AI recipes into the shared library (with admin review)
+- **Limits:** 3 big AI actions (new recipe ideas, diet conversions) and 4 ingredient swaps per person per day, counted separately. Defaults are in the code (`AI_DAILY_LIMIT`=3, `AI_SWAP_LIMIT`=4), so no setting is needed. Cached repeats are free and never count.
+- **Pantry:** "Show me more recipes" pages through further library matches (saved, shared, community) without the AI. "Ask AI for a new idea" is a separate, explicit button. The normal Find Recipes still checks the library first.
+- **Diet conversion:** tick several at once (e.g. vegan + gluten-free) for one AI call. Vegan automatically covers vegetarian and dairy-free. Combinations are cached.
+- **AI recipes into the shared library:** recipes the AI wrote for a user are marked `ai_generated`. When a user finishes Cooking Mode on one ("Done"), it goes into Admin -> "AI recipes ready for review". You read it, optionally pick a free Pixabay/Pexels photo (needs `PIXABAY_API_KEY` and/or `PEXELS_API_KEY` in the backend settings), and "Publish to library" makes your own copy for everyone (labelled AI-made, no user name, photo credited). Nothing goes public without your approval. Photos are saved in our own database, never hotlinked.
+- **Terms:** new section 2A explains AI-written recipes and that cooked ones may be reviewed and added to the shared library.

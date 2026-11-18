@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import AiRecipeReview from '../components/AiRecipeReview';
 import { Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, ShieldCheck, Check, Trash2, Ban } from 'lucide-react';
 import { toast } from 'sonner';
@@ -155,6 +156,7 @@ const Admin = () => {
           </p>
         )}
         {aiTest?.busy && <p className="text-xs mb-4 text-zinc-400">Testing the AI model…</p>}
+        <AiRecipeReview />
         {errors && (
           <Card className="bg-zinc-900 border-zinc-800 mb-6" data-testid="errors-list"><CardContent className="pt-5 text-xs text-zinc-400 space-y-2">
             {errors.length === 0 ? <p>No errors reported in the last 30 days. 🎉</p> : errors.map((e, i) => (

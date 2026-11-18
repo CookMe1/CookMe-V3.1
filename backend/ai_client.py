@@ -4,6 +4,7 @@ Switch model without code changes (Emergent -> backend environment variables):
     AI_PROVIDER=anthropic
     AI_MODEL=claude-haiku-5-5
 Leave them unset to keep the current default (openai / gpt-4o-mini).
+Limits per person per day: AI_DAILY_LIMIT (big actions, default 3) and AI_SWAP_LIMIT (ingredient swaps, default 4).
 """
 import hashlib
 import os
@@ -25,32 +26,51 @@ def model_for():
     return provider, model
 
 
-def daily_limit() -> int:
+def _int_env(name: str, default: int) -> int:
     try:
-        return max(1, int(os.environ.get("AI_DAILY_LIMIT", "20")))
+        return max(0, int(os.environ.get(name, str(default))))
     except ValueError:
-        return 20
+        return default
+
+
+def daily_limit() -> int:
+    """Big AI actions per person per day (new recipe ideas, recipe conversions)."""
+    return _int_env("AI_DAILY_LIMIT", 3)
+
+
+def swap_limit() -> int:
+    """Ingredient swaps per person per day (about a tenth the cost of a big action)."""
+    return _int_env("AI_SWAP_LIMIT", 4)
 
 
 def _today() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
 
-async def uses_left(db, user_id: str) -> int:
+def _field(kind: str) -> str:
+    return "swap_count" if kind == "swap" else "count"
+
+
+def _limit(kind: str) -> int:
+    return swap_limit() if kind == "swap" else daily_limit()
+
+
+async def uses_left(db, user_id: str, kind: str = "big") -> int:
     doc = await db.ai_usage.find_one({"user_id": user_id, "day": _today()})
-    return max(0, daily_limit() - (doc or {}).get("count", 0))
+    return max(0, _limit(kind) - (doc or {}).get(_field(kind), 0))
 
 
-async def spend_one(db, user_id: str) -> None:
+async def spend_one(db, user_id: str, kind: str = "big") -> None:
     """Count one AI call for this person today; refuse politely when the daily allowance is used up."""
-    if await uses_left(db, user_id) <= 0:
+    if await uses_left(db, user_id, kind) <= 0:
+        what = "ingredient swaps" if kind == "swap" else "AI recipe requests"
         raise HTTPException(
             status_code=429,
-            detail=f"You have used today's {daily_limit()} AI requests. They reset tomorrow.",
+            detail=f"You have used today's {_limit(kind)} {what}. They reset tomorrow.",
         )
     await db.ai_usage.update_one(
         {"user_id": user_id, "day": _today()},
-        {"$inc": {"count": 1}, "$set": {"updated_at": datetime.now(timezone.utc)}},
+        {"$inc": {_field(kind): 1}, "$set": {"updated_at": datetime.now(timezone.utc)}},
         upsert=True,
     )
 

@@ -80,7 +80,7 @@ export function stepChips(step, idx, setup) {
   return { chips, source: 'recipe' };
 }
 
-const CookingMode = ({ title, steps, ingredients, setup, onClose }) => {
+const CookingMode = ({ title, steps, ingredients, setup, onClose, onDone }) => {
   const [idx, setIdx] = useState(0);
   const [showIngredients, setShowIngredients] = useState(false);
   const [intro, setIntro] = useState(!!setup.available);
@@ -299,7 +299,7 @@ const CookingMode = ({ title, steps, ingredients, setup, onClose }) => {
         {idx < steps.length - 1 ? (
           <button onClick={() => go(1)} className="flex-1 h-14 rounded-xl bg-orange-600 hover:bg-orange-700 flex items-center justify-center gap-2 text-lg font-semibold" data-testid="cooking-next">Next <ChevronRight className="w-6 h-6" /></button>
         ) : (
-          <button onClick={onClose} className="flex-1 h-14 rounded-xl bg-green-600 hover:bg-green-700 text-lg font-semibold">Done 🎉</button>
+          <button onClick={() => { try { onDone && onDone(); } catch (e) { /* ignore */ } onClose(); }} className="flex-1 h-14 rounded-xl bg-green-600 hover:bg-green-700 text-lg font-semibold" data-testid="cooking-done">Done 🎉</button>
         )}
       </div>
     </div>

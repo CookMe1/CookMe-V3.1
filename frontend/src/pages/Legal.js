@@ -45,6 +45,9 @@ export const Terms = () => (
     <H>2. Your recipes stay yours</H>
     <P>Recipes, photos and notes you add are yours. By default they are private and only you can see them. We don’t claim ownership of them. You give us only the permission needed to store them and show them back to you.</P>
 
+    <H>2A. Recipes written by the AI</H>
+    <P>Some features (for example recipe ideas from your pantry, ingredient swaps and diet versions) use AI to write recipes. AI-written recipes can contain mistakes, so check ingredients, allergies and cooking times before you cook. If you cook an AI-written recipe, we may review it ourselves and, if it passes, add our own copy to the shared CookMe library for everyone, with a free-to-use photo. Your account and name are not shown on that copy, and your own saved version stays yours.</P>
+
     <H>3. Sharing recipes publicly</H>
     <P>You can choose to make a recipe public. Before it goes public it must pass our automated checks and you must confirm the consent shown on screen. When you make a recipe public:</P>
     <L items={[

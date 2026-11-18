@@ -469,7 +469,7 @@ const RecipeDetail = () => {
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24 md:pb-0">
       {cooking && (
-        <CookingMode title={recipe.title} steps={steps} ingredients={cookingIngredients} setup={setup} onClose={() => setCooking(false)} />
+        <CookingMode title={recipe.title} steps={steps} ingredients={cookingIngredients} setup={setup} onClose={() => setCooking(false)} onDone={() => { authedPost('/api/ai/cooked', { recipe_id: recipe.recipe_id }).catch(() => {}); }} />
       )}
       {/* Hero Image */}
       <div className="relative h-[42vh] min-h-[260px] md:h-[55vh]">

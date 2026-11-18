@@ -782,7 +782,9 @@ const Pantry = () => {
   };
 
   // Fetch meal suggestions based on pantry
-  const fetchMealSuggestions = async (fresh = false) => {
+  // mode: 'find' (library first, AI only if the library has almost nothing), 'more' (next library matches, never AI),
+  //       'ai' (the person explicitly asks the AI for a new idea)
+  const fetchMealSuggestions = async (mode = 'find') => {
     const token = getToken();
     if (!token) return;
     
@@ -791,10 +793,14 @@ const Pantry = () => {
       return;
     }
     
-    const seenTitles = fresh ? (mealSuggestions?.ai_suggestions || []).map(a => a.title).filter(Boolean) : [];
+    const shownIds = [
+      ...(mealSuggestions?.saved_recipe_matches || []),
+      ...(mealSuggestions?.community_recipe_matches || []),
+    ].map(r => r.recipe_id).filter(Boolean);
+    const seenTitles = (mealSuggestions?.ai_suggestions || []).map(a => a.title).filter(Boolean);
     setLoadingMealSuggestions(true);
     setShowMealSuggestions(true);
-    if (!fresh) setMealSuggestions(null);
+    if (mode === 'find') setMealSuggestions(null);
     
     try {
       const response = await fetch(`${API_URL}/api/pantry/suggest-meal`, {
@@ -806,14 +812,29 @@ const Pantry = () => {
         body: JSON.stringify({
           match_type: matchType,
           extra_ingredients: extraIngredients,
-          fresh,
-          avoid_titles: seenTitles
+          more: mode === 'more',
+          fresh: mode === 'ai',
+          exclude_ids: mode === 'find' ? [] : shownIds,
+          avoid_titles: mode === 'ai' ? seenTitles : []
         })
       });
       
       if (response.ok) {
         const data = await response.json();
-        setMealSuggestions(data);
+        if (mode === 'more') {
+          setMealSuggestions(prev => ({
+            ...prev,
+            saved_recipe_matches: [...(prev?.saved_recipe_matches || []), ...(data.saved_recipe_matches || [])],
+            community_recipe_matches: [...(prev?.community_recipe_matches || []), ...(data.community_recipe_matches || [])],
+            library_exhausted: data.library_exhausted,
+            ai_uses_left_today: data.ai_uses_left_today,
+          }));
+          if (data.library_exhausted) toast.info("That's every library recipe for your pantry. You can ask the AI for a new idea.");
+        } else if (mode === 'ai') {
+          setMealSuggestions(prev => ({ ...prev, ai_suggestions: data.ai_suggestions || [], ai_uses_left_today: data.ai_uses_left_today }));
+        } else {
+          setMealSuggestions(data);
+        }
       } else {
         const error = await response.json();
         toast.error(error.detail || 'Failed to get suggestions');
@@ -854,7 +875,8 @@ const Pantry = () => {
           difficulty: suggestion.difficulty || 'Medium',
           ingredients: suggestion.ingredients || [],
           steps: suggestion.steps || [],
-          tags: [...(suggestion.tags || []), 'AI Suggested', 'Pantry Recipe']
+          tags: [...(suggestion.tags || []), 'AI Suggested', 'Pantry Recipe'],
+          ai_generated: true
         })
       });
       
@@ -1197,7 +1219,7 @@ const Pantry = () => {
                 
                 {/* Search Button */}
                 <Button 
-                  onClick={() => fetchMealSuggestions(false)}
+                  onClick={() => fetchMealSuggestions('find')}
                   disabled={loadingMealSuggestions || pantry.length === 0}
                   className="w-full bg-orange-600 hover:bg-orange-700"
                   data-testid="find-recipes-btn"
@@ -1375,18 +1397,31 @@ const Pantry = () => {
                     </div>
                   )}
                   
-                  {/* Ask the AI for something new, even when the library already has matches */}
-                  <div className="flex flex-col items-center gap-1 pt-2">
-                    <Button
-                      variant="outline"
-                      className="border-purple-600/50 text-purple-300 hover:bg-purple-600/10"
-                      onClick={() => fetchMealSuggestions(true)}
-                      disabled={loadingMealSuggestions}
-                      data-testid="suggest-something-new"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      {loadingMealSuggestions ? 'Thinking...' : 'Give me something new'}
-                    </Button>
+                  {/* Library first: more matches from our recipes; the AI only when the person asks for it */}
+                  <div className="flex flex-col items-center gap-2 pt-2">
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {!mealSuggestions.library_exhausted && (
+                        <Button
+                          variant="outline"
+                          className="border-zinc-600 text-zinc-200 hover:bg-zinc-800"
+                          onClick={() => fetchMealSuggestions('more')}
+                          disabled={loadingMealSuggestions}
+                          data-testid="suggest-show-more"
+                        >
+                          Show me more recipes
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        className="border-purple-600/50 text-purple-300 hover:bg-purple-600/10"
+                        onClick={() => fetchMealSuggestions('ai')}
+                        disabled={loadingMealSuggestions}
+                        data-testid="suggest-something-new"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        {loadingMealSuggestions ? 'Thinking...' : 'Ask AI for a new idea'}
+                      </Button>
+                    </div>
                     {typeof mealSuggestions.ai_uses_left_today === 'number' && (
                       <span className="text-xs text-zinc-500">{mealSuggestions.ai_uses_left_today} AI requests left today</span>
                     )}

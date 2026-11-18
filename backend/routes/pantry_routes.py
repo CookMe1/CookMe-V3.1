@@ -33,8 +33,10 @@ class PantryItemCreate(BaseModel):
 class MealSuggestionRequest(BaseModel):
     match_type: str = "all"
     extra_ingredients: int = 0
-    fresh: bool = False                      # "give me something new": always ask the AI, skip the cache
-    avoid_titles: Optional[list] = None      # ideas the person has already seen
+    fresh: bool = False                      # "Ask AI for a new idea": the person explicitly wants the AI (skips the cache)
+    avoid_titles: Optional[list] = None      # AI ideas the person has already seen
+    more: bool = False                       # "Show me more": next library matches only, never the AI
+    exclude_ids: Optional[list] = None       # library recipes already shown
 
 
 # ── CRUD ──────────────────────────────────────────────────────────────────────
@@ -296,6 +298,8 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
                 "tags": recipe.get("tags", []),
             })
     matched_saved.sort(key=lambda x: x["match_percentage"], reverse=True)
+    seen_ids = set(suggestion_request.exclude_ids or [])
+    matched_saved = [m for m in matched_saved if m["recipe_id"] not in seen_ids]
 
     # 1b. Shared master recipes — pure Python, free
     master_matches = []
@@ -327,7 +331,7 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
                     "tags": recipe.get("tags", []),
                 })
         master_matches.sort(key=lambda x: (-x["pantry_items_used"], -x["match_percentage"], x["missing_ingredients"]))
-        master_matches = master_matches[:8]
+        master_matches = [m for m in master_matches if m["recipe_id"] not in seen_ids][:8]
     except Exception as e:
         logger.info(f"Master recipe search error: {e}")
 
@@ -364,14 +368,16 @@ async def suggest_meal(suggestion_request: MealSuggestionRequest, request: Reque
                     "tags": recipe.get("tags", []),
                 })
         community_matches.sort(key=lambda x: x["match_percentage"], reverse=True)
-        community_matches = community_matches[:5]
+        community_matches = [m for m in community_matches if m["recipe_id"] not in seen_ids][:5]
     except Exception as e:
         logger.info(f"Community search error: {e}")
 
     # 3. AI — only if not enough DB results
     ai_suggestions = []
     ai_remaining = await uses_left(db, user["user_id"])
-    if ((len(matched_saved) + len(master_matches) + len(community_matches)) < 3 or suggestion_request.fresh):
+    db_total = len(matched_saved) + len(master_matches) + len(community_matches)
+    wants_ai = suggestion_request.fresh or (not suggestion_request.more and db_total < 3)
+    if wants_ai:
         fingerprint = hashlib.sha256(
             ("|".join(sorted(pantry_names)) + f"|{mt}|{extra}").encode()
         ).hexdigest()[:24]
@@ -466,5 +472,6 @@ Make the recipes practical and delicious. Include clear, actionable steps."""
         "community_recipe_matches": community_matches,
         "ai_suggestions": ai_suggestions,
         "ai_uses_left_today": await uses_left(db, user["user_id"]),
+        "library_exhausted": suggestion_request.more and db_total == 0,
         "match_criteria": {"type": mt, "extra_ingredients_allowed": extra},
     }

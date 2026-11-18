@@ -63,6 +63,7 @@ class RecipeCreate(BaseModel):
     is_video: Optional[bool] = None
     thumbnail_url: Optional[str] = None
     external_url_found: Optional[str] = None
+    ai_generated: Optional[bool] = None   # written by the AI for this user (goes to admin review once cooked)
     
     class Config:
         extra = "ignore"  # Ignore extra fields not in model

@@ -19,6 +19,28 @@ def test_parse_json_with_fences():
     assert ai_client.parse_json('```json\n{"a": 1}\n```') == {"a": 1}
 
 
+def test_defaults_are_3_big_and_4_swaps(monkeypatch):
+    monkeypatch.delenv("AI_DAILY_LIMIT", raising=False)
+    monkeypatch.delenv("AI_SWAP_LIMIT", raising=False)
+    assert ai_client.daily_limit() == 3 and ai_client.swap_limit() == 4
+
+
+def test_big_and_swap_limits_are_separate(monkeypatch):
+    monkeypatch.setenv("AI_DAILY_LIMIT", "1")
+    monkeypatch.setenv("AI_SWAP_LIMIT", "2")
+    db = AsyncMongoMockClient()["t"]
+
+    async def go():
+        await ai_client.spend_one(db, "u1")                     # uses the one big action
+        await ai_client.spend_one(db, "u1", "swap")
+        await ai_client.spend_one(db, "u1", "swap")
+        assert await ai_client.uses_left(db, "u1") == 0
+        assert await ai_client.uses_left(db, "u1", "swap") == 0
+        with pytest.raises(HTTPException):
+            await ai_client.spend_one(db, "u1", "swap")
+    asyncio.run(go())
+
+
 def test_daily_limit(monkeypatch):
     monkeypatch.setenv("AI_DAILY_LIMIT", "2")
     db = AsyncMongoMockClient()["t"]
@@ -39,7 +61,8 @@ def test_ai_routes_cache_limit_and_convert(monkeypatch):
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
     from routes import ai_routes
-    monkeypatch.setenv("AI_DAILY_LIMIT", "2")
+    monkeypatch.setenv("AI_DAILY_LIMIT", "1")
+    monkeypatch.setenv("AI_SWAP_LIMIT", "2")
     db = AsyncMongoMockClient()["t"]
     calls = {"n": 0}
 
@@ -62,12 +85,22 @@ def test_ai_routes_cache_limit_and_convert(monkeypatch):
     r1 = c.post("/api/ai/substitutes", json={"ingredient": "Milk", "diet": "vegan"}).json()
     r2 = c.post("/api/ai/substitutes", json={"ingredient": "milk", "diet": "vegan"}).json()
     assert r1["cached"] is False and r2["cached"] is True and calls["n"] == 1
-    assert r2["left_today"] == 1                      # the cached repeat cost nothing
+    assert r2["left_today"] == 1                      # the cached repeat cost nothing (2 swaps allowed, 1 used)
 
     conv = c.post("/api/ai/convert-recipe", json={"recipe_id": "r1", "diet": "vegan"}).json()
     assert conv["title"] == "Vegan Pancakes" and conv["changes"] and conv["left_today"] == 0
     # allowance used up: a new question is refused, a cached one still works
-    assert c.post("/api/ai/substitutes", json={"ingredient": "Butter"}).status_code == 429
-    assert c.post("/api/ai/substitutes", json={"ingredient": "Milk", "diet": "vegan"}).status_code == 200
+    assert c.post("/api/ai/substitutes", json={"ingredient": "Butter"}).status_code == 200     # second swap
+    assert c.post("/api/ai/substitutes", json={"ingredient": "Eggs"}).status_code == 429       # swaps used up
+    assert c.post("/api/ai/convert-recipe", json={"recipe_id": "r1", "diet": "gluten-free"}).status_code == 429  # big used up
+    assert c.post("/api/ai/substitutes", json={"ingredient": "Milk", "diet": "vegan"}).status_code == 200      # cached still works
     assert c.post("/api/ai/convert-recipe", json={"recipe_id": "nope", "diet": "vegan"}).status_code == 404
     assert c.post("/api/ai/convert-recipe", json={"recipe_id": "r1", "diet": "bogus"}).status_code == 400
+
+
+def test_multi_diet_is_one_call_and_vegan_covers_vegetarian():
+    from routes.ai_routes import normalise_diets
+    assert normalise_diets(["vegan", "vegetarian", "dairy-free", "gluten-free"]) == ["gluten-free", "vegan"]
+    assert normalise_diets(["Gluten-Free", "vegan"]) == normalise_diets(["vegan", "gluten-free"])
+    with pytest.raises(HTTPException):
+        normalise_diets(["paleo-ish"])

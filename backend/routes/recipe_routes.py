@@ -516,6 +516,8 @@ async def create_recipe(recipe_data: RecipeCreate, request: Request):
     except Exception as e:
         logger.info(f"description check skipped: {e}")
 
+    if payload.get("ai_generated") is None:
+        payload.pop("ai_generated", None)
     recipe_doc = {
         "recipe_id": recipe_id,
         "user_id": user["user_id"],

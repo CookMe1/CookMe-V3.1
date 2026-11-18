@@ -1,5 +1,6 @@
 """Admin review queue: reported users, recipes and comments. Admins are set with the ADMIN_EMAILS env var."""
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
@@ -214,3 +215,86 @@ async def ai_test(request: Request):
     except Exception as e:
         return {"ok": False, "provider": provider, "model": model,
                 "seconds": round(time.time() - started, 2), "error": str(e)[:300]}
+
+
+# ── AI recipes that people cooked: review, add a free photo, publish to the shared library ────────────
+
+class AiRecipeAction(BaseModel):
+    recipe_id: str
+    image_url: Optional[str] = None      # chosen Pixabay/Pexels photo
+    credit: Optional[str] = None
+
+
+@router.get("/ai-recipes")
+async def ai_recipes_pending(request: Request):
+    db = request.app.state.db
+    await require_admin(request, db)
+    from image_search import configured
+    items = []
+    async for r in db.recipes.find({"ai_review": "pending"}, {"_id": 0}).sort("ai_review_at", 1).limit(50):
+        cooks = await db.recipe_cooks.count_documents({"recipe_id": r["recipe_id"]})
+        items.append({
+            "recipe_id": r["recipe_id"], "title": r.get("title"), "description": r.get("description"),
+            "servings": r.get("servings"), "prep_time": r.get("prep_time"), "cook_time": r.get("cook_time"),
+            "ingredients": r.get("ingredients", []), "steps": r.get("steps", []), "tags": r.get("tags", []),
+            "cooked_by": cooks, "image": r.get("image") or "",
+        })
+    return {"items": items, "photos_configured": configured()}
+
+
+@router.post("/ai-recipes/photos")
+async def ai_recipe_photos(body: AiRecipeAction, request: Request):
+    db = request.app.state.db
+    await require_admin(request, db)
+    from image_search import search_photos, configured
+    if not configured():
+        raise HTTPException(status_code=400, detail="Add PIXABAY_API_KEY or PEXELS_API_KEY to the backend settings first.")
+    r = await db.recipes.find_one({"recipe_id": body.recipe_id}, {"_id": 0, "title": 1})
+    if not r:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    return {"photos": await search_photos(r.get("title", ""))}
+
+
+@router.post("/ai-recipes/approve")
+async def ai_recipe_approve(body: AiRecipeAction, request: Request):
+    """Publish a copy of the recipe to the shared library (with a free photo if one was chosen)."""
+    import uuid
+    db = request.app.state.db
+    await require_admin(request, db)
+    src = await db.recipes.find_one({"recipe_id": body.recipe_id, "ai_review": "pending"}, {"_id": 0})
+    if not src:
+        raise HTTPException(status_code=404, detail="Recipe not waiting for review")
+    image, credit = src.get("image") or "", None
+    if body.image_url:
+        from image_search import store_photo
+        try:
+            image = await store_photo(db, body.image_url)
+            credit = body.credit
+        except Exception:
+            raise HTTPException(status_code=400, detail="Could not download that photo. Pick another one.")
+    now = datetime.now(timezone.utc)
+    tags = [t for t in (src.get("tags") or []) if t not in ("AI Suggested", "AI Converted", "Pantry Recipe")]
+    master = {
+        "recipe_id": f"recipe_{uuid.uuid4().hex[:12]}", "user_id": "system_seeder",
+        "title": src.get("title"), "description": src.get("description", ""), "image": image,
+        "image_attribution": credit, "prep_time": src.get("prep_time", ""), "cook_time": src.get("cook_time", ""),
+        "servings": src.get("servings", 4), "difficulty": src.get("difficulty", "Medium"),
+        "ingredients": src.get("ingredients", []), "steps": src.get("steps", []),
+        "tags": tags + ["AI-made"], "category": src.get("category"), "cuisine": src.get("cuisine"),
+        "source": "CookMe community (AI-made, reviewed by CookMe)", "ai_generated": True,
+        "uploader_id": "system_seeder", "uploader_name": "CookMe", "likes_count": 0, "saves_count": 0,
+        "hidden_by": [], "favorited_by": [], "gallery_images": [], "created_at": now, "updated_at": now,
+    }
+    await db.recipes.insert_one(master)
+    await db.recipes.update_one({"recipe_id": body.recipe_id}, {"$set": {"ai_review": "approved", "ai_master_id": master["recipe_id"]}})
+    return {"ok": True, "master_id": master["recipe_id"]}
+
+
+@router.post("/ai-recipes/reject")
+async def ai_recipe_reject(body: AiRecipeAction, request: Request):
+    db = request.app.state.db
+    await require_admin(request, db)
+    res = await db.recipes.update_one({"recipe_id": body.recipe_id, "ai_review": "pending"}, {"$set": {"ai_review": "rejected"}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Recipe not waiting for review")
+    return {"ok": True}
