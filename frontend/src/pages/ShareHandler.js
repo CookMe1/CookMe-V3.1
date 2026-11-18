@@ -611,19 +611,31 @@ const ShareHandler = () => {
   // ============================================================================
   // INITIAL LOAD FROM URL PARAMS
   // ============================================================================
+  const handledShare = useRef('');
   useEffect(() => {
-    const paramUrl = searchParams.get('url') || '';
-    const text = searchParams.get('text') || '';
-    
-    let extractedUrl = paramUrl;
-    if (!extractedUrl && text) {
-      const match = text.match(/https?:\/\/[^\s\])}>"']+/);
-      if (match) extractedUrl = match[0].replace(/[)\]}>.,;]+$/, '');
+    // Apps put the link in different places: "url", "text" (Facebook, WhatsApp, Instagram), or "title".
+    const fields = ['url', 'text', 'title'].map(k => searchParams.get(k) || '');
+    const key = fields.join('|');
+    if (!key.replace(/\|/g, '') || handledShare.current === key) return;
+    handledShare.current = key; // run once per share, even though extractFromUrl changes identity
+
+    let extractedUrl = '';
+    for (const f of fields) {
+      const m = f.match(/https?:\/\/[^\s\])}>"'<]+/);
+      if (m) { extractedUrl = m[0].replace(/[)\]}>.,;!?]+$/, ''); break; }
     }
-    
+    if (!extractedUrl) {
+      const m = fields.join(' ').match(/\b(?:www\.)[^\s]+\.[a-z]{2,}[^\s]*/i);
+      if (m) extractedUrl = 'https://' + m[0];
+    }
+
     if (extractedUrl) {
       setUrl(extractedUrl);
       extractFromUrl(extractedUrl);
+    } else {
+      // No link at all: the app shared plain recipe text, so open the paste box with it filled in.
+      const plain = (fields[1] || fields[0]).trim();
+      if (plain) { setPasteText(plain); setShowPasteBox(true); }
     }
   }, [searchParams, extractFromUrl]);
 

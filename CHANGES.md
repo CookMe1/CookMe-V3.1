@@ -209,3 +209,8 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 ## Sharing from Facebook (and other apps) now survives sign-in
 - Before: sharing a recipe to CookMe while signed out sent you to login, then always to the dashboard, so the shared link was dropped.
 - Now: the shared page is remembered (`utils/returnPath.js`, 30 minutes) and restored after Google or email sign-in.
+
+## Sharing from any app
+- The share page now finds the recipe link whether the app sends it as `url`, `text` or `title` (Facebook, WhatsApp, Instagram, Pinterest, browsers), including bare `www.` links.
+- Fixed the import running twice on a share.
+- If an app shares plain recipe text with no link, it opens the paste box pre-filled.
