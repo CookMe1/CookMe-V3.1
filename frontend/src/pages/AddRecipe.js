@@ -609,7 +609,7 @@ const AddRecipe = () => {
                 aspect={1}
                 className="max-h-[400px]"
               >
-                <img
+                <img loading="lazy" decoding="async"
                   ref={imgRef}
                   src={originalImage}
                   alt="Upload"
@@ -649,7 +649,7 @@ const AddRecipe = () => {
             </div>
 
             <div className="flex justify-center">
-              <img
+              <img loading="lazy" decoding="async"
                 src={croppedImage}
                 alt="Cropped"
                 className="max-h-[300px] rounded-lg border-2 border-zinc-700"
@@ -687,7 +687,7 @@ const AddRecipe = () => {
             </div>
 
             <div className="flex justify-center">
-              <img
+              <img loading="lazy" decoding="async"
                 src={croppedImage}
                 alt="Ready to save"
                 className="max-h-[250px] rounded-lg border-2 border-orange-600/30"
@@ -753,7 +753,7 @@ const AddRecipe = () => {
               <h3 className="font-semibold text-zinc-100 mb-2">Analyzing Your Photo</h3>
               <p className="text-zinc-500 text-sm">AI is extracting recipe details...</p>
             </div>
-            <img
+            <img loading="lazy" decoding="async"
               src={croppedImage}
               alt="Processing"
               className="max-h-[200px] mx-auto rounded-lg opacity-50"
@@ -855,7 +855,7 @@ const AddRecipe = () => {
             </p>
 
             <div className="flex justify-center">
-              <img
+              <img loading="lazy" decoding="async"
                 src={croppedImage}
                 alt="Saved"
                 className="max-h-[200px] rounded-lg border-2 border-green-600/30"

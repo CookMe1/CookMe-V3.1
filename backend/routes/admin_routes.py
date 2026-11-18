@@ -56,7 +56,7 @@ async def _target(db, kind, tid):
 async def open_reports(request: Request):
     db = request.app.state.db
     await require_admin(request, db)
-    rows = await db.reports.find({"status": "open"}, {"_id": 0}).sort("created_at", 1).to_list(1000)
+    rows = await db.reports.find({"status": "open"}, {"_id": 0}).sort("created_at", 1).to_list(300)
     groups = {}
     for r in rows:
         g = groups.setdefault((r["kind"], r["target_id"]), {"kind": r["kind"], "target_id": r["target_id"], "reports": [], "first_reported": r["created_at"]})

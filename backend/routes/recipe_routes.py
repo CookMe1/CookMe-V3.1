@@ -193,22 +193,30 @@ async def recipe_stats(request: Request):
     return {"total": total, "mine": mine}
 
 
+_FEATURED_CACHE: dict = {}
+
+
 @router.get("/featured")
 async def get_featured_master(request: Request, count: int = 3):
     """Today's pick: random but fixed for the whole day, from the shared recipes plus the person's own, only ones with a photo.
     Other people's private recipes are never shown."""
-    import random
     from datetime import date
     db = request.app.state.db
     user = await get_current_user(request, db)
-    docs = await db.recipes.find(
-        {"$and": [ps.shared_or_own(user["user_id"]), {"image": {"$regex": "^(http|/recipe-images/|data:image/)"}}]},
-        {"_id": 0, "recipe_id": 1},
-    ).to_list(10000)
-    ids = sorted(d["recipe_id"] for d in docs)
-    if not ids:
+    # Let the database pick (no loading of every id) and remember the pick for the day
+    key = (date.today().isoformat(), user["user_id"], min(max(count, 1), 12))
+    picked = _FEATURED_CACHE.get(key)
+    if picked is None:
+        cond = {"$and": [ps.shared_or_own(user["user_id"]), {"image": {"$regex": "^(http|/recipe-images/|data:image/)"}}]}
+        rows = await db.recipes.aggregate([
+            {"$match": cond}, {"$sample": {"size": key[2]}}, {"$project": {"_id": 0, "recipe_id": 1}},
+        ]).to_list(key[2])
+        picked = [r["recipe_id"] for r in rows]
+        if len(_FEATURED_CACHE) > 5000 or any(k[0] != key[0] for k in list(_FEATURED_CACHE)[:1]):
+            _FEATURED_CACHE.clear()
+        _FEATURED_CACHE[key] = picked
+    if not picked:
         return {"recipes": []}
-    picked = random.Random(f"{date.today().isoformat()}-{user['user_id']}").sample(ids, min(max(count, 1), 12, len(ids)))
     out = await db.recipes.find(
         {"recipe_id": {"$in": picked}},
         {"_id": 0, "recipe_id": 1, "title": 1, "image": 1, "prep_time": 1, "cook_time": 1, "servings": 1, "difficulty": 1, "description": 1},

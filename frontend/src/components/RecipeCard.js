@@ -182,7 +182,7 @@ const RecipeCard = ({ recipe, showNutrition = false, onLikeChange, onSaveChange,
           {recipe.author && (
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-zinc-800">
               <div className="flex items-center gap-2">
-                <img
+                <img loading="lazy" decoding="async"
                   src={recipe.author.avatar || 'https://i.pravatar.cc/150?img=8'}
                   alt={recipe.author.name || 'You'}
                   className="w-6 h-6 rounded-full"

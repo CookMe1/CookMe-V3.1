@@ -115,7 +115,7 @@ const RecipePicker = ({ onSelect, onClose }) => {
                 className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-800 transition-colors text-left"
               >
                 {recipe.image ? (
-                  <img src={recipe.image} alt={recipe.title}
+                  <img loading="lazy" decoding="async" src={recipe.image} alt={recipe.title}
                     className="w-12 h-12 rounded-lg object-cover shrink-0"
                     onError={e => { e.target.style.display = 'none'; }} />
                 ) : (
@@ -403,7 +403,7 @@ const MealPlanner = () => {
                                     <Link to={`/recipe/${slot.recipe_id}`}>
                                       <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer">
                                         {slot.recipe_image ? (
-                                          <img src={slot.recipe_image} alt={slot.recipe_title}
+                                          <img loading="lazy" decoding="async" src={slot.recipe_image} alt={slot.recipe_title}
                                             className="w-12 h-12 rounded-lg object-cover shrink-0"
                                             onError={e => { e.target.style.display = 'none'; }} />
                                         ) : (

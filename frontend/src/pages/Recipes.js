@@ -635,7 +635,7 @@ const Recipes = () => {
                     <div key={recipe.community_recipe_id} className="group bg-zinc-900 border border-zinc-800/50 rounded-xl overflow-hidden card-hover">
                       <div className="relative h-40 overflow-hidden bg-zinc-800">
                         {recipe.image ? (
-                          <img src={recipe.image} alt={recipe.title} className="w-full h-full object-cover img-zoom"
+                          <img loading="lazy" decoding="async" src={recipe.image} alt={recipe.title} className="w-full h-full object-cover img-zoom"
                             onError={e => { e.target.style.display = 'none'; }} />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">

@@ -140,7 +140,7 @@ const Dashboard = () => {
               data-testid="featured-recipe"
             >
               <div className="relative h-[350px] rounded-2xl overflow-hidden">
-                <img
+                <img loading="lazy" decoding="async"
                   src={featured[0].image}
                   alt={featured[0].title}
                   className="absolute inset-0 w-full h-full object-cover img-zoom"
@@ -181,7 +181,7 @@ const Dashboard = () => {
                   data-testid={`side-recipe-${index}`}
                 >
                   <div className="relative h-full min-h-[165px] rounded-xl overflow-hidden">
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={recipe.image}
                       alt={recipe.title}
                       className="absolute inset-0 w-full h-full object-cover img-zoom"
@@ -226,7 +226,7 @@ const Dashboard = () => {
                     className="group"
                   >
                     <div className="relative h-[180px] rounded-xl overflow-hidden">
-                      <img 
+                      <img loading="lazy" decoding="async" 
                         src={recipe.image}
                         alt={recipe.title}
                         className="absolute inset-0 w-full h-full object-cover img-zoom"

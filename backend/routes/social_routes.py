@@ -59,7 +59,7 @@ async def list_comments(recipe_id: str, request: Request):
     db = request.app.state.db
     user = await get_current_user(request, db)
     recipe = await _visible_recipe(db, user, recipe_id)
-    rows = await db.comments.find({"recipe_id": recipe_id, "status": "visible"}, {"_id": 0}).sort("created_at", 1).to_list(500)
+    rows = await db.comments.find({"recipe_id": recipe_id, "status": "visible"}, {"_id": 0}).sort("created_at", 1).to_list(300)
     owner = recipe.get("user_id")
     tops = [_public(c, user, owner) for c in rows if not c.get("parent_id")]
     by_id = {t["comment_id"]: t for t in tops}
@@ -235,8 +235,12 @@ async def community_feed(request: Request, limit: int = 20, skip: int = 0):
     rows = await db.recipes.find({"visibility": "public"}, {"_id": 0}).sort("public_since", -1).skip(max(skip, 0)).to_list(limit)
     ids = [r["recipe_id"] for r in rows]
     counts = {}
-    for rid in ids:
-        counts[rid] = await db.comments.count_documents({"recipe_id": rid, "status": "visible"})
+    if ids:
+        agg = await db.comments.aggregate([
+            {"$match": {"recipe_id": {"$in": ids}, "status": "visible"}},
+            {"$group": {"_id": "$recipe_id", "n": {"$sum": 1}}},
+        ]).to_list(len(ids))
+        counts = {a["_id"]: a["n"] for a in agg}
     out = []
     for r in rows:
         r = ps.mask_owner(r, user["user_id"])

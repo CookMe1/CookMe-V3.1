@@ -160,3 +160,13 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - The top bar now shows on phones and tablets, with a three-line button on the top right.
 - It opens a full-height menu with the same links as the website: Home, Recipes, Search, Planner, Shopping, Pantry, Social, Categories, Add Recipe, Profile, Admin (admins only), Terms, Privacy, Logout.
 - Closes on navigation, Escape or the X button. The bottom bar stays on phones.
+
+## Speed pass
+- Database indexes for comments, reports, consents and the public-recipe feed (created automatically at startup).
+- API responses are gzip-compressed.
+- Pages load on demand (main JavaScript 916 KB -> 521 KB; about 157 KB over the wire).
+- `/api/recipes/featured` no longer loads every recipe id; the database picks and the pick is remembered for the day.
+- Social feed comment counts use one query instead of one per recipe.
+- Recipe photos lazy-load (hero images still load immediately).
+- Comments and admin report lists are capped at 300 per request.
+- New `scripts/mirror_images.py` downloads hotlinked master-recipe images, shrinks them and rewrites `data/master_recipes.json` (run on your own computer).

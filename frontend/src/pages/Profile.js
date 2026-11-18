@@ -141,7 +141,7 @@ const Profile = () => {
             <CardContent className="pt-6 pb-5">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
                 {/* Avatar */}
-                <img
+                <img loading="lazy" decoding="async"
                   src={displayUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayUser?.name || 'User')}&background=D35400&color=fff`}
                   alt={displayUser?.name}
                   className="w-24 h-24 rounded-full border-4 border-zinc-900 shadow-xl shrink-0"

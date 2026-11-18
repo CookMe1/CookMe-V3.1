@@ -1228,7 +1228,7 @@ const Pantry = () => {
                           >
                             <div className="flex gap-4">
                               {recipe.image && (
-                                <img 
+                                <img loading="lazy" decoding="async" 
                                   src={recipe.image} 
                                   alt={recipe.title}
                                   className="w-20 h-20 rounded-lg object-cover flex-shrink-0"

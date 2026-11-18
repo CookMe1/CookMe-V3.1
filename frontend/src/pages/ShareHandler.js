@@ -1003,7 +1003,7 @@ const ShareHandler = () => {
             {/* Recipe Image */}
             {recipe?.image && (
               <div className="relative mb-4 rounded-xl overflow-hidden">
-                <img 
+                <img loading="lazy" decoding="async" 
                   src={recipe.image} 
                   alt={recipe.title}
                   className="w-full h-48 object-cover"

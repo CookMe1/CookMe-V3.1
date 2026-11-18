@@ -779,7 +779,7 @@ const RecipeDetail = () => {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {galleryImages.map((img, index) => (
                   <div key={img.image_id || index} className="relative group rounded-lg overflow-hidden">
-                    <img
+                    <img loading="lazy" decoding="async"
                       src={img.image_url}
                       alt={`Recipe photo ${index + 1}`}
                       className="w-full h-40 object-cover"
@@ -853,7 +853,7 @@ const RecipeDetail = () => {
                     {/* Image */}
                     <div className="relative h-28 overflow-hidden bg-zinc-800">
                       {similar.image ? (
-                        <img
+                        <img loading="lazy" decoding="async"
                           src={similar.image}
                           alt={similar.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"

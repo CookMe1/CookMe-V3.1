@@ -43,6 +43,18 @@ async def lifespan(app: FastAPI):
         await db.user_sessions.create_index([("session_token", 1)])
         await db.user_sessions.create_index([("expires_at", 1)], expireAfterSeconds=0)
         await db.cookbooks.create_index([("user_id", 1), ("created_at", -1)])
+        # social / sharing / admin
+        await db.comments.create_index([("recipe_id", 1), ("status", 1), ("created_at", 1)])
+        await db.comments.create_index([("user_id", 1), ("created_at", -1)])
+        await db.comments.create_index([("comment_id", 1)])
+        await db.comments.create_index([("parent_id", 1)], sparse=True)
+        await db.reports.create_index([("status", 1), ("created_at", 1)])
+        await db.reports.create_index([("kind", 1), ("target_id", 1), ("status", 1)])
+        await db.reports.create_index([("reporter_id", 1), ("created_at", -1)])
+        await db.recipe_consents.create_index([("user_id", 1)])
+        await db.recipes.create_index([("visibility", 1), ("public_since", -1)])
+        await db.recipes.create_index([("user_id", 1), ("visibility", 1)])
+        await db.recipes.create_index([("hidden_by", 1)])
         await db.cookbooks.create_index([("cookbook_id", 1)], unique=True)
         await db.meal_plans.create_index([("user_id", 1), ("week_start", -1)])
         await db.meal_plans.create_index([("meal_plan_id", 1)], unique=True)
@@ -95,6 +107,10 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Compress API responses (recipe lists shrink 3-5x)
+from starlette.middleware.gzip import GZipMiddleware
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Credentials with wildcard origins are rejected by browsers. This app uses bearer
 # tokens, so credentials are disabled until explicit origins are configured.

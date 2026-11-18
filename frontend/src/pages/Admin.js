@@ -36,7 +36,7 @@ const Target = ({ item }) => {
     <div className="space-y-3">
       <UserBlock u={t.owner} title="Posted by" />
       <p className="font-semibold text-zinc-100">{t.title} <span className="text-xs text-zinc-500">({t.publish_status || t.visibility})</span></p>
-      {t.image && <img src={t.image} alt="" className="max-h-48 rounded-lg" />}
+      {t.image && <img loading="lazy" decoding="async" src={t.image} alt="" className="max-h-48 rounded-lg" />}
       <p className="text-sm text-zinc-400">{t.description}</p>
       <div className="text-sm text-zinc-400"><p className="text-zinc-300">Ingredients</p><ul className="list-disc pl-5">{(t.ingredients || []).map((i, n) => <li key={n}>{i.amount} {i.item || i.name}</li>)}</ul></div>
       <div className="text-sm text-zinc-400"><p className="text-zinc-300">Method</p><ol className="list-decimal pl-5 space-y-1">{(t.steps || []).map((s, n) => <li key={n}>{s}</li>)}</ol></div>

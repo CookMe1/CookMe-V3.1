@@ -101,7 +101,7 @@ const EditRecipe = () => {
 
         <div className="space-y-2">
           <label className="text-sm text-zinc-400">Photo (your own)</label>
-          {form.image ? <img src={form.image} alt="" className="w-full max-h-64 object-cover rounded-lg" /> : <div className="h-32 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center text-zinc-500 text-sm">No photo yet</div>}
+          {form.image ? <img loading="lazy" decoding="async" src={form.image} alt="" className="w-full max-h-64 object-cover rounded-lg" /> : <div className="h-32 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center text-zinc-500 text-sm">No photo yet</div>}
           <div className="flex gap-3">
             <label className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-zinc-800 hover:bg-zinc-700 text-sm cursor-pointer">
               <Camera className="w-4 h-4" /> {form.image ? 'Change photo' : 'Add photo'}

@@ -16,26 +16,27 @@ import LanguagePicker from './components/LanguagePicker';
 import DietaryDefaultsPrompt from './components/DietaryDefaultsPrompt';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
-import ShareHandler from './pages/ShareHandler';
-import Dashboard from './pages/Dashboard';
-import Recipes from './pages/Recipes';
-import RecipeDetail from './pages/RecipeDetail';
-import AddRecipe from './pages/AddRecipe';
-import EditRecipe from './pages/EditRecipe';
-import { Terms, Privacy } from './pages/Legal';
-import Admin from './pages/Admin';
-import MealPlanner from './pages/MealPlanner';
-import ShoppingList from './pages/ShoppingList';
-import Pantry from './pages/Pantry';
-import Social from './pages/Social';
-import Profile from './pages/Profile';
-import BudgetRecipes from './pages/BudgetRecipes';
-import StudentRecipes from './pages/StudentRecipes';
-import AirFryerRecipes from './pages/AirFryerRecipes';
-import SearchRecipes from './pages/SearchRecipes';
-import InstapotRecipes from './pages/InstapotRecipes';
-import QuickRecipes from './pages/QuickRecipes';
-import Cookbooks from './pages/Cookbooks';
+const ShareHandler = React.lazy(() => import('./pages/ShareHandler'));
+const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const Recipes = React.lazy(() => import('./pages/Recipes'));
+const RecipeDetail = React.lazy(() => import('./pages/RecipeDetail'));
+const AddRecipe = React.lazy(() => import('./pages/AddRecipe'));
+const EditRecipe = React.lazy(() => import('./pages/EditRecipe'));
+const Terms = React.lazy(() => import('./pages/Legal').then(m => ({ default: m.Terms })));
+const Privacy = React.lazy(() => import('./pages/Legal').then(m => ({ default: m.Privacy })));
+const Admin = React.lazy(() => import('./pages/Admin'));
+const MealPlanner = React.lazy(() => import('./pages/MealPlanner'));
+const ShoppingList = React.lazy(() => import('./pages/ShoppingList'));
+const Pantry = React.lazy(() => import('./pages/Pantry'));
+const Social = React.lazy(() => import('./pages/Social'));
+const Profile = React.lazy(() => import('./pages/Profile'));
+const BudgetRecipes = React.lazy(() => import('./pages/BudgetRecipes'));
+const StudentRecipes = React.lazy(() => import('./pages/StudentRecipes'));
+const AirFryerRecipes = React.lazy(() => import('./pages/AirFryerRecipes'));
+const SearchRecipes = React.lazy(() => import('./pages/SearchRecipes'));
+const InstapotRecipes = React.lazy(() => import('./pages/InstapotRecipes'));
+const QuickRecipes = React.lazy(() => import('./pages/QuickRecipes'));
+const Cookbooks = React.lazy(() => import('./pages/Cookbooks'));
 
 // Show language picker on first launch, then dietary defaults prompt if relevant
 // eslint-disable-next-line no-unused-vars
@@ -95,6 +96,7 @@ function AppRouter() {
   }
 
   return (
+    <React.Suspense fallback={<div className="min-h-[60vh] flex items-center justify-center text-zinc-500" data-testid="page-loading">Loading…</div>}>
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
@@ -270,6 +272,7 @@ function AppRouter() {
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
+    </React.Suspense>
   );
 }
 

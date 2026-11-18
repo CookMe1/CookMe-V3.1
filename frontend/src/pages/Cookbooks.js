@@ -199,7 +199,7 @@ const Cookbooks = () => {
                 {cookbooks.map((cb, i) => (
                   <div key={cb.cookbook_id} className="group relative cursor-pointer" onClick={() => setActiveBook(cb)}>
                     <div className="relative h-40 rounded-xl overflow-hidden">
-                      <img src={COOKBOOK_COVERS[i % COOKBOOK_COVERS.length]} alt={cb.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <img loading="lazy" decoding="async" src={COOKBOOK_COVERS[i % COOKBOOK_COVERS.length]} alt={cb.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                       <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/30 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-3">
                         <p className="font-semibold text-white text-sm line-clamp-1">{cb.name}</p>
