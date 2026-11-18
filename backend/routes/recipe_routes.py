@@ -2,7 +2,7 @@ import json
 from amounts import split_ingredient
 import logging
 import re
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from datetime import datetime, timezone
 from typing import List, Optional
 import uuid
@@ -95,56 +95,50 @@ async def get_recipes(
 
 # Get master list of all recipes (includes hidden ones)
 @router.get("/master/all")
-async def get_master_recipes(request: Request, search: Optional[str] = None):
+async def get_master_recipes(
+    request: Request,
+    response: Response,
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    cuisine: Optional[str] = None,
+    limit: int = 36,
+    skip: int = 0,
+):
+    """The shared library plus this person's own, one page at a time (the whole library is over a thousand recipes)."""
+    import re as _re
     db = request.app.state.db
     user = await get_current_user(request, db)
-    
+    limit = min(max(limit, 1), 60)
+    skip = max(skip, 0)
+
     # Shared recipes plus this person's own. Never other people's private recipes.
-    query = {"$or": [*ps.SHARED["$or"], {"user_id": user["user_id"]}]}
-    if search:
-        query = {"$and": [query, {"$or": [
-            {"title": {"$regex": search, "$options": "i"}},
-            {"description": {"$regex": search, "$options": "i"}},
-            {"tags": {"$regex": search, "$options": "i"}}
-        ]}]}
-    
-    # Use projection for faster loading
+    and_q = [{"$or": [*ps.SHARED["$or"], {"user_id": user["user_id"]}]}]
+    if category:
+        and_q.append({"category": category})
+    if cuisine:
+        and_q.append({"cuisine": cuisine})
+    for word in (search or "").split()[:6]:
+        w = _re.escape(word)
+        and_q.append({"$or": [{"title": {"$regex": w, "$options": "i"}},
+                              {"description": {"$regex": w, "$options": "i"}},
+                              {"tags": {"$regex": w, "$options": "i"}}]})
+    query = {"$and": and_q}
+
+    # Cards only need the summary: leave out the long ingredient and method lists
     projection = {
-        "_id": 0,
-        "recipe_id": 1,
-        "user_id": 1,
-        "title": 1,
-        "description": 1,
-        "image": 1,
-        "prep_time": 1,
-        "cook_time": 1,
-        "time_estimated": 1,
-        "servings": 1,
-        "difficulty": 1,
-        "ingredients": 1,
-        "steps": 1,
-        "category": 1,
-        "cuisine": 1,
-        "tags": 1,
-        "nutrition": 1,
-        "likes_count": 1,
-        "saves_count": 1,
-        "hidden_by": 1,
-        "favorited_by": 1,
-        "uploader_id": 1,
-        "uploader_name": 1,
-        "created_at": 1,
-        "updated_at": 1,
-        "source_url": 1
+        "_id": 0, "recipe_id": 1, "user_id": 1, "title": 1, "description": 1, "image": 1, "prep_time": 1,
+        "cook_time": 1, "time_estimated": 1, "servings": 1, "difficulty": 1, "category": 1, "cuisine": 1,
+        "tags": 1, "nutrition": 1, "likes_count": 1, "saves_count": 1, "hidden_by": 1, "favorited_by": 1,
+        "uploader_id": 1, "uploader_name": 1, "created_at": 1, "updated_at": 1, "source_url": 1,
     }
-    
-    recipes = await db.recipes.find(query, projection).sort("created_at", -1).to_list(200)
-    
-    # Add flag for whether current user has hidden this recipe
+    response.headers["X-Total-Count"] = str(await db.recipes.count_documents(query))
+    recipes = await db.recipes.find(query, projection).sort("created_at", -1).skip(skip).limit(limit).to_list(limit)
+
     for recipe in recipes:
-        recipe["is_hidden_by_me"] = user["user_id"] in recipe.get("hidden_by", [])
-        recipe["is_favorited"] = user["user_id"] in recipe.get("favorited_by", [])
-    
+        recipe["is_hidden_by_me"] = user["user_id"] in recipe.pop("hidden_by", [])
+        recipe["is_favorited"] = user["user_id"] in recipe.pop("favorited_by", [])
+        recipe["nutrition"] = recipe.get("nutrition")
+
     return recipes
 
 # Get user's favorite recipes

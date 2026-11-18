@@ -16,6 +16,8 @@ const Recipes = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
+  const [masterTotal, setMasterTotal] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [viewMode, setViewMode] = useState('my'); // 'my', 'master', 'favorites', 'community'
   const [communityRecipes, setCommunityRecipes] = useState([]);
   const [communityLoading, setCommunityLoading] = useState(false);
@@ -61,6 +63,14 @@ const Recipes = () => {
     fetchRecipes();
   // eslint-disable-next-line react-hooks/exhaustive-deps -- runs only on these triggers on purpose (adding the functions would loop)
   }, [viewMode, selectedCategory, selectedCuisine]);
+
+  // In the All Recipes view the search runs on the server (the list is paged), so wait for a pause in typing
+  useEffect(() => {
+    if (viewMode !== 'master') return undefined;
+    const t = setTimeout(() => fetchRecipes(0), 400);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the search text changes
+  }, [searchQuery]);
 
   // Fetch community recipes when that tab is active
   useEffect(() => {
@@ -119,9 +129,10 @@ const Recipes = () => {
     }
   };
 
-  const fetchRecipes = async () => {
+  const MASTER_PAGE = 36;
+  const fetchRecipes = async (skip = 0) => {
     try {
-      setLoading(true);
+      if (skip === 0) setLoading(true); else setLoadingMore(true);
       const token = getToken();
       
       // Build query params
@@ -132,6 +143,9 @@ const Recipes = () => {
       // Use different endpoint based on view mode
       let endpoint;
       if (viewMode === 'master') {
+        params.append('limit', MASTER_PAGE);
+        params.append('skip', skip);
+        if (searchQuery.trim()) params.append('search', searchQuery.trim());
         endpoint = `${API_URL}/api/recipes/master/all`;
       } else if (viewMode === 'favorites') {
         endpoint = `${API_URL}/api/recipes/favorites`;
@@ -155,6 +169,7 @@ const Recipes = () => {
 
       if (response.ok) {
         const data = await response.json();
+        if (viewMode === 'master') setMasterTotal(parseInt(response.headers.get('X-Total-Count') || '0', 10) || data.length);
         // Transform database recipes to match the card component format
         const transformedRecipes = data.map(recipe => ({
           id: recipe.recipe_id,
@@ -188,13 +203,14 @@ const Recipes = () => {
           createdAt: recipe.created_at,
           sourceUrl: recipe.source_url
         }));
-        setRecipes(transformedRecipes);
+        setRecipes(prev => (skip > 0 ? [...prev, ...transformedRecipes] : transformedRecipes));
       }
     } catch (error) {
       console.error('Failed to fetch recipes:', error);
       toast.error('Failed to load recipes');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -560,9 +576,10 @@ const Recipes = () => {
             <p className="text-zinc-400">Loading your recipes...</p>
           </div>
         ) : filteredRecipes.length > 0 ? (
+          <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecipes.map((recipe, index) => (
-              <div key={recipe.id} className="animate-fade-in relative" style={{ animationDelay: `${index * 0.1}s` }}>
+              <div key={recipe.id} className="animate-fade-in relative" style={{ animationDelay: `${Math.min(index, 8) * 0.05}s` }}>
                 {/* Hidden badge for master list view */}
                 {viewMode === 'master' && recipe.isHiddenByMe && (
                   <div className="absolute top-0 left-0 right-0 z-10 bg-zinc-800/90 text-center py-2 rounded-t-xl">
@@ -584,6 +601,16 @@ const Recipes = () => {
               </div>
             ))}
           </div>
+          {viewMode === 'master' && recipes.length < masterTotal && (
+            <div className="text-center mt-8">
+              <p className="text-zinc-500 text-sm mb-3">Showing {recipes.length} of {masterTotal.toLocaleString()} recipes</p>
+              <Button onClick={() => fetchRecipes(recipes.length)} disabled={loadingMore} data-testid="load-more-recipes"
+                className="bg-zinc-800 hover:bg-zinc-700 text-white">
+                {loadingMore ? 'Loading…' : 'Show more recipes'}
+              </Button>
+            </div>
+          )}
+          </>
         ) : (
           <div className="text-center py-16">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">

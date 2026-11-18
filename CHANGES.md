@@ -267,3 +267,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Imports: if every direct method is blocked, a copy from the Internet Archive is tried; empty AI results become a clear "paste it" message instead of a blank recipe; "Not specified" times are blanked.
 - Admin: POST /admin/fetch-test {url} shows what each fetch method returned (for diagnosing blocked sites).
 - Privacy: PostHog analytics removed completely (it was recording users' screens); added robots.txt (keeps /api and /admin out of search engines).
+
+## Performance: All Recipes list
+- The "All Recipes" view loaded 200 full recipes (437 KB, ~2 s) every time and drew 200 cards at once; category/cuisine filters were ignored and only the newest 200 of 1,171 recipes could ever be reached.
+- Now 36 per page with a "Show more recipes" button; category, cuisine and search are applied on the server (search text is escaped); ingredient/method lists are not sent for cards; card animation delay capped.
