@@ -1491,6 +1491,20 @@ async def extract_from_social(request: Request):
 
         image_url = og_image or extracted_image
 
+        # ── Links in the caption / comments, and recipes written as comments ────
+        from social_enrich import look_in_comments
+        found = await look_in_comments(platform, url, f"{og_title}\n{og_desc}")
+        if found["recipe"]:
+            rec = found["recipe"]
+            if not rec.get("image"):
+                rec["image"] = image_url
+            if rec.get("image"):
+                _, rec["image"] = await optimise_image_url(rec["image"])
+            rec["found_via"] = found["found_via"]
+            rec["recipe_in_content"] = True
+            return rec
+        comment_block = f"\n\nRECIPE FOUND IN THE COMMENTS / POST TEXT:\n{found['comment_text']}" if found["comment_text"] else ""
+
         # ── AI extraction ──────────────────────────────────────────────────────
         chat = LlmChat(
             api_key=EMERGENT_KEY,
@@ -1507,10 +1521,11 @@ SITE: {og_site}
 URL: {url}
 
 CONTENT:
-{content_for_ai[:3000]}
+{content_for_ai[:3000]}{comment_block}
 
 Return ONLY valid JSON:
 {{
+  "recipe_in_content": true or false (true only if the content above really lists ingredients or steps; false if you had to make the recipe up from the dish name),
   "title": "Recipe name",
   "description": "Brief description",
   "prep_time": "estimated time",
@@ -1527,6 +1542,10 @@ Return ONLY valid JSON:
         response_text = await chat.send_message(UserMessage(text=prompt))
         json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
         recipe_data = json.loads(json_match.group() if json_match else response_text)
+
+        recipe_data["comments_checked"] = found["comments_checked"]
+        if found["comment_text"]:
+            recipe_data["found_via"] = "recipe in the comments"
 
         # Set and optimise image
         if not recipe_data.get("image"):
@@ -1629,6 +1648,24 @@ async def extract_from_youtube(request: Request):
             except Exception as e:
                 logger.warning(f"Warning: Could not fetch YouTube page: {e}")
         
+        # Full description + comments (needs the free YOUTUBE_API_KEY), links to the recipe website
+        from social_enrich import look_in_comments
+        found = await look_in_comments("youtube", youtube_url, video_description, video_id)
+        if found["description"]:
+            video_description = found["description"]
+        if found["recipe"]:
+            rec = found["recipe"]
+            if not rec.get("image"):
+                rec["image"] = video_thumbnail
+            if rec.get("image"):
+                _, rec["image"] = await optimise_image_url(rec["image"])
+            rec["found_via"] = found["found_via"]
+            rec["recipe_in_content"] = True
+            rec["video_url"] = youtube_url
+            await set_cache(db, yt_cache_key, rec, ttl_days=TTL_YOUTUBE)
+            return rec
+        comment_block = f"\nRECIPE FOUND IN THE COMMENTS:\n{found['comment_text']}" if found["comment_text"] else ""
+
         # If we still don't have a title, use video ID
         if not video_title:
             video_title = f"Recipe from YouTube ({video_id})"
@@ -1644,13 +1681,14 @@ async def extract_from_youtube(request: Request):
 
 VIDEO TITLE: {video_title}
 VIDEO AUTHOR: {video_author}
-VIDEO DESCRIPTION: {video_description[:1000] if video_description else 'Not available'}
+VIDEO DESCRIPTION: {video_description[:2500] if video_description else 'Not available'}{comment_block}
 VIDEO URL: {youtube_url}
 
 Based on the video title and description, create a complete recipe. If the video is about a specific dish, provide accurate ingredients and steps for that dish.
 
 Return ONLY valid JSON:
 {{
+  "recipe_in_content": true or false (true only if the description or comments really list ingredients or steps; false if you made the recipe up from the title),
   "title": "{video_title}",
   "description": "Brief description based on the video",
   "prep_time": "estimated prep time",
@@ -1676,6 +1714,10 @@ Return ONLY valid JSON:
         else:
             recipe_data = json.loads(response_text)
         
+        recipe_data["comments_checked"] = found["comments_checked"]
+        if found["comment_text"]:
+            recipe_data["found_via"] = "recipe in the comments"
+
         # Ensure image is set
         if not recipe_data.get("image"):
             recipe_data["image"] = video_thumbnail

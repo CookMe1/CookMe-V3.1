@@ -271,3 +271,10 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 ## Performance: All Recipes list
 - The "All Recipes" view loaded 200 full recipes (437 KB, ~2 s) every time and drew 200 cards at once; category/cuisine filters were ignored and only the newest 200 of 1,171 recipes could ever be reached.
 - Now 36 per page with a "Show more recipes" button; category, cuisine and search are applied on the server (search text is escaped); ingredient/method lists are not sent for cards; card animation delay capped.
+
+## Shared social posts: look in the comments and for the recipe website
+- New `backend/social_enrich.py`. When a recipe is shared from YouTube, Reddit, Instagram, TikTok, Pinterest or X, CookMe now:
+  1. looks for a link to a recipe website in the caption/description and in the comments (ignores social, shop and link-hub links) and imports that page's real recipe if it has one;
+  2. otherwise reads recipe-looking comments (e.g. a pinned "Ingredients..." comment) and gives them to the AI with the caption;
+  3. tells the user where it found the recipe, or warns when the post had no real recipe and AI wrote one from the dish name.
+- Comments can only be read for YouTube (needs a free `YOUTUBE_API_KEY`; also gives the full description) and Reddit (public JSON, sometimes blocked). Instagram, TikTok, Facebook and X only show comments to logged-in people, so they can't be read from a server; the app then asks the person to copy the comment and share it to CookMe.

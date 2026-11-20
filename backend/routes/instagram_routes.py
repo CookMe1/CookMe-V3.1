@@ -103,6 +103,7 @@ If the caption doesn't contain a full recipe, infer one from the dish name/descr
 
 Return this exact JSON structure:
 {{
+  "recipe_in_content": true or false (true only if the caption really lists ingredients or steps; false if you had to infer the recipe),
   "title": "recipe name",
   "description": "brief appetising description",
   "prep_time": "X min",
@@ -169,7 +170,21 @@ async def import_instagram_recipe(body: InstagramImportRequest, request: Request
             detail="No caption found on this Instagram post. The post may be a private account or have no text.",
         )
 
-    # 4. Parse with AI
+    # 4a. A link to the recipe website in the caption beats guessing
+    from social_enrich import look_in_comments
+    found = await look_in_comments("instagram", url, caption)
+    if found["recipe"]:
+        rec = found["recipe"]
+        if not rec.get("image") and thumbnail_url:
+            rec["image"] = thumbnail_url
+        if rec.get("image"):
+            _, rec["image"] = await optimise_image_url(rec["image"])
+        rec["found_via"] = found["found_via"]
+        rec["recipe_in_content"] = True
+        rec["video_url"] = video_url
+        return rec
+
+    # 4b. Parse with AI
     try:
         recipe_data = await parse_caption_with_ai(caption, author)
     except Exception as e:
@@ -199,4 +214,6 @@ async def import_instagram_recipe(body: InstagramImportRequest, request: Request
         "video_url": video_url,
         "author": author,
         "is_video": "reel" in url.lower() or "/tv/" in url.lower(),
+        "recipe_in_content": bool(recipe_data.get("recipe_in_content", True)),
+        "comments_checked": False,       # Instagram shows comments only to logged-in people
     }

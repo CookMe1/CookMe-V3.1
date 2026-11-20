@@ -339,6 +339,20 @@ const ShareHandler = () => {
         }
       } else {
         recipeData = data;
+        // Say where the recipe came from, or warn when the post had no real recipe in it
+        if (recipeData.found_via) {
+          const via = recipeData.found_via;
+          let site = '';
+          try { site = recipeData.source_url ? ` (${new URL(recipeData.source_url).hostname.replace('www.', '')})` : ''; } catch { /* no link */ }
+          toast.success(via === 'recipe in the comments'
+            ? 'Found the recipe in the comments.'
+            : `Found the recipe through a ${via}${site}.`, { duration: 5000 });
+        } else if (recipeData.recipe_in_content === false) {
+          toast.warning(recipeData.comments_checked
+            ? 'There is no full recipe in the post or its top comments, so AI wrote this one from the dish name. Please check it.'
+            : 'There is no full recipe in the post, and this app cannot read comments on this site. AI wrote this from the dish name. If the recipe is in the comments, copy it and share it to CookMe.',
+          { duration: 12000 });
+        }
       }
       
       // ── Duplicate recipe detection ─────────────────────────────────────────
