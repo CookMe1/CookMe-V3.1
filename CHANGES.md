@@ -278,3 +278,6 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
   2. otherwise reads recipe-looking comments (e.g. a pinned "Ingredients..." comment) and gives them to the AI with the caption;
   3. tells the user where it found the recipe, or warns when the post had no real recipe and AI wrote one from the dish name.
 - Comments can only be read for YouTube (needs a free `YOUTUBE_API_KEY`; also gives the full description) and Reddit (public JSON, sometimes blocked). Instagram, TikTok, Facebook and X only show comments to logged-in people, so they can't be read from a server; the app then asks the person to copy the comment and share it to CookMe.
+
+## Cleaner backend requirements
+- `backend/requirements.txt` was a full copy of Emergent's template environment. Removed 18 packages the app never imports: dev tools (black, flake8, isort, mypy and helpers), pandas, numpy, playwright (a whole browser), jq, s5cmd, watchfiles, pytz. Faster installs and restarts. Everything the app imports, and everything the AI library pulls in by itself, is still installed.
