@@ -40,17 +40,21 @@ def list_titles(limit=None):
     print()
     return titles
 
+def fname(title):
+    """Safe cache file name: pages like 'Cookbook:Feature requests/Rating' contain a slash, which is not allowed in a file name."""
+    return title.replace("/", "_").replace("\\", "_")
+
 def fetch_text(titles):
     out = {}
     for i in range(0, len(titles), 50):
-        batch = titles[i:i + 50]; need = [t for t in batch if not (CACHE/(re.sub(r"\\W", "_", t) + ".txt")).exists()]
+        batch = titles[i:i + 50]; need = [t for t in batch if not (CACHE/(fname(t) + ".txt")).exists()]
         if need:
             d = api({"action": "query", "prop": "revisions", "rvprop": "content", "rvslots": "main", "titles": "|".join(need)})
             for p in d["query"]["pages"]:
                 rev = (p.get("revisions") or [{}])[0].get("slots", {}).get("main", {}).get("content", "")
-                (CACHE/(re.sub(r"\\W", "_", p["title"]) + ".txt")).write_text(rev, encoding="utf-8")
+                (CACHE/(fname(p["title"]) + ".txt")).write_text(rev, encoding="utf-8")
             time.sleep(1.0)
-        for t in batch: out[t] = (CACHE/(re.sub(r"\\W", "_", t) + ".txt")).read_text(encoding="utf-8")
+        for t in batch: out[t] = (CACHE/(fname(t) + ".txt")).read_text(encoding="utf-8")
         print(f"  downloaded {min(i + 50, len(titles))}/{len(titles)}", end="\r")
     print()
     return out
