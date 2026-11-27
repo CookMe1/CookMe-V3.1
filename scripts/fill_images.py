@@ -4,7 +4,7 @@
     Get a free key at https://www.pexels.com/api/ and set it:  export PEXELS_API_KEY=...
  2) Optional --ai: generate an image (needs ENABLE_AI_IMAGES=1 and the Emergent LLM key, i.e. run on Emergent).
  Images are saved to frontend/public/recipe-images/<recipe_id>.jpg and recipe['image'] is set to /recipe-images/<id>.jpg
- Usage:  python scripts/fill_images.py [--file data/staging/wikibooks_approved.json] [--limit 50] [--ai] [--dry]
+ Usage:  python scripts/fill_images.py [--file data/staging/wikibooks_approved.json] [--limit 50] [--ai] [--dry] [--retry-misses]
 Photo choice is a best match for the dish name, so spot-check a few. AI ones are labelled 'AI-generated illustration'."""
 import json, os, sys, time
 from pathlib import Path
@@ -77,7 +77,7 @@ def ai_image(title):
 
 if __name__ == "__main__":
     data = json.load(open(F, encoding="utf-8")); OUT.mkdir(parents=True, exist_ok=True)
-    todo = [r for r in data if not r.get("image") and not r.get("needs_review")]; lim = int(arg("--limit", len(todo)))
+    todo = [r for r in data if not r.get("image") and not r.get("needs_review") and (not r.get("image_no_match") or "--retry-misses" in sys.argv)]; lim = int(arg("--limit", len(todo)))
     done = 0; extra = []
     def save():
         if "--dry" not in sys.argv: json.dump(data, open(F, "w", encoding="utf-8"), ensure_ascii=False)
@@ -102,7 +102,10 @@ if __name__ == "__main__":
             print("  skip", r["title"], e); continue
         except Exception as e:
             print("  skip", r["title"], e); continue
-        if not img: print("  no match:", r["title"]); continue
+        if not img:
+            print("  no match:", r["title"])
+            if KEY and "--dry" not in sys.argv: r["image_no_match"] = True     # remembered, so the next run skips it (use --retry-misses to try again)
+            continue
         print("  ok:", r["title"], "-", credit)
         if "--dry" not in sys.argv:
             dest.write_bytes(img); r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r["image_attribution"] = credit
