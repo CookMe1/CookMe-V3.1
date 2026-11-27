@@ -44,8 +44,9 @@ def test_made_it_posts_work_on_library_recipes_and_are_moderated():
         # everyone can see it; the photo is served; the list never carries the image bytes
         current["u"] = "u2"
         listing = await sr.list_made(req, recipe_id="lib1")
-        assert [p["post_id"] for p in listing["posts"]] == [post["post_id"]] and not listing["posts"][0]["mine"]
-        assert "photo" not in listing["posts"][0]
+        ids = [p["post_id"] for p in listing["posts"]]
+        assert post["post_id"] in ids and shared["post_id"] in ids and not any(p["mine"] for p in listing["posts"])
+        assert all("photo" not in p for p in listing["posts"])
         resp = await sr.made_photo(post["post_id"], req)
         assert resp.media_type == "image/jpeg" and resp.body[:2] == b"\xff\xd8"
 
