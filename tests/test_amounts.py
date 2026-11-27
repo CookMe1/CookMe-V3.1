@@ -84,3 +84,19 @@ def test_cups_in_brackets_do_not_override_the_weight():
     assert adjust_cups("2 cups (300 g)", "almond flour", 300.0, 4) == (300.0, 1.0)
     g, f = adjust_cups("2 cups", "flour", 250.0, 4)
     assert g > 0 and f == 1.0
+
+
+def test_import_jsonld_converts_and_filters():
+    import sys, importlib
+    sys.path.insert(0, "scripts")
+    I = importlib.import_module("import_jsonld")
+    raw = {"name": "Test Stew", "description": "Test Stew: a quick recipe from the Wikibooks Cookbook (Beef recipes).", "recipeCategory": "30-Minute Meals",
+           "recipeCuisine": "Indian", "keywords": ["halal", "quick meal"], "prepTime": "PT15M", "cookTime": "PT1H30M", "recipeYield": "4",
+           "recipeIngredient": ["500 g (1.1 lb) beef", "2 tbsp oil", "1 tsp salt"], "recipeInstructions": [{"text": "Brown the beef."}, {"text": "Simmer."}],
+           "url": "https://example.org/x", "license": "https://opensource.org/licenses/MIT", "cookmeMeta": {"licenseSpdx": "MIT", "originalAuthor": {"name": "A B"}}}
+    r = I.convert(raw)
+    assert r["source_license"] == "MIT" and r["source_author"] == "A B" and r["cuisine"] == "indian"
+    assert r["prep_time"] == "15 min" and r["cook_time"] == "1h 30m" and r["servings"] == 4 and r["servings_stated"]
+    assert r["description"] == "" and r["ingredients"][0] == {"amount": "500 g (1.1 lb)", "item": "beef"}
+    assert I.licence_of({"license": "https://creativecommons.org/licenses/by-nc/4.0/"}) == ""      # non-commercial is refused
+    assert I.licence_of({"cookmeMeta": {"licenseSpdx": "CC-BY-SA-4.0"}}) == "CC BY-SA 4.0"

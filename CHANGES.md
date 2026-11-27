@@ -315,3 +315,9 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - **Ingredient repair** (`amount_fixes.py`): sums like `5½+⅛ tsp`, `ea.`, a leading `(300 g)`, and unit words stuck to the item.
 - **Servings**: when a page's own serving number does not fit the food, servings are worked out from the calories and flagged `servings_estimated`.
 - `photos.command` (double-click on the Mac) loads Pexels photos, asking for the key at the start; max 199 searches an hour.
+
+## Batch: importing open-licensed recipes from a zip
+- `scripts/import_jsonld.py` turns schema.org-style recipe JSON (a zip, or batches from Grok) into the staging format: open licences only (CC0, public domain, CC BY, CC BY-SA, MIT, Unlicense, Apache, BSD), removes anything we already have, repairs amounts, keeps author/source/licence on every recipe, and holds back thin or amount-less ones in `*_held.json`.
+- `scripts/merge_zip_into_staged.py` fills gaps in recipes we already have from the same zip: full author lists (for CC BY-SA credit), licence links, Commons photo details, useful tags, stated servings, cuisine.
+- `amount_fixes.repair` now moves a leading "(1.1 lb)" bracket from the item back into the amount.
+- First run: 6,632 read, 4,825 already ours, 772 new and passing (716 with checked nutrition), 991 held (866 need amounts filled).

@@ -33,6 +33,9 @@ def repair(ing: dict) -> dict:
     if lead:
         amount = f"{lead.group(1)}" if not amount or re.fullmatch(r"[\d.\s½¼¾]+(?:cups?|tbsp|tsp)?", amount, re.I) else amount
         item = lead.group(2)
+    lp = re.match(r"^\(([^)]*\d[^)]*)\)\s*(.+)$", item)          # "500 g" + "(1.1 lb) beef" -> "500 g (1.1 lb)" + "beef"
+    if lp and amount:
+        amount, item = f"{amount} ({lp.group(1).strip()})", lp.group(2).strip()
     mu = _ITEM_UNIT.match(item)                              # amount '1', item 'heaping tsp of ground coffee' -> '1 tsp', 'ground coffee'
     if mu and amount and re.fullmatch(r"[\d.\s½¼¾⅓⅔]+", amount):
         amount, item = f"{amount} {mu.group(1)}".strip(), mu.group(2) or item
