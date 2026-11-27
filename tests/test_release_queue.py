@@ -10,7 +10,7 @@ def make_db(n=25):
     return db
 
 def test_ten_a_day_in_order_once_per_day(monkeypatch):
-    monkeypatch.delenv("RELEASE_PER_DAY", raising=False)
+    monkeypatch.setenv("RELEASE_PER_DAY", "10")
     db = make_db()
     async def run():
         assert await rq.release_due(db, today="2026-11-18") == 10
@@ -48,4 +48,28 @@ def test_already_live_recipe_is_not_duplicated(monkeypatch):
         await rq.release_due(db, today="2026-11-18")
         assert await db.recipes.count_documents({"recipe_id": "r01"}) == 1
         assert (await db.recipes.find_one({"recipe_id": "r01"}))["title"] == "Existing"
+    asyncio.run(run())
+
+
+def test_daily_number_is_10_to_20_and_steady_through_the_day(monkeypatch):
+    monkeypatch.delenv("RELEASE_PER_DAY", raising=False)
+    days = [f"2026-12-{d:02d}" for d in range(1, 29)]
+    nums = [rq.per_day(d) for d in days]
+    assert all(10 <= n <= 20 for n in nums) and len(set(nums)) > 3        # varies, never outside 10-20
+    assert rq.per_day("2026-12-05") == rq.per_day("2026-12-05")            # same answer all day
+
+
+def test_new_releases_wait_in_latest_then_graduate(monkeypatch):
+    from datetime import datetime, timedelta, timezone
+    monkeypatch.setenv("RELEASE_PER_DAY", "10"); monkeypatch.setenv("HOLD_DAYS", "14")
+    db = make_db(12)
+    async def run():
+        assert await rq.release_due(db, today="2026-11-18") == 10
+        r = await db.recipes.find_one({"recipe_id": "r00"})
+        assert r["in_latest"] is True and r["released_at"]
+        assert await db.recipes.count_documents({"in_latest": True}) == 10
+        assert await rq.graduate(db) == 0                                    # too soon
+        later = datetime.now(timezone.utc) + timedelta(days=15)
+        assert await rq.graduate(db, now=later) == 10                         # after two weeks they join the library
+        assert await db.recipes.count_documents({"in_latest": True}) == 0
     asyncio.run(run())

@@ -1,4 +1,4 @@
-import { DollarSign, GraduationCap, Zap, Clock, Flame } from 'lucide-react';
+import { DollarSign, GraduationCap, Zap, Clock, Flame, GlassWater, Droplets, Cookie, Sparkles } from 'lucide-react';
 
 // Single source of truth: used by the top "Categories" dropdown AND the dashboard "Browse Categories".
 export const CATEGORIES = [
@@ -7,4 +7,8 @@ export const CATEGORIES = [
   { path: '/instapot', label: 'One Pot',   emoji: '🍲', desc: 'Instant Pot & One Pot', Icon: Zap },
   { path: '/budget',   label: 'Budget',    emoji: '💰', desc: 'Cost Effective',        Icon: DollarSign },
   { path: '/airfryer', label: 'Air Fryer', emoji: '🍟', desc: 'Crispy & Healthy',      Icon: Flame },
+  { path: '/drinks',   label: 'Drinks',    emoji: '🥤', desc: 'Smoothies, Tea & More',  Icon: GlassWater },
+  { path: '/sauces',   label: 'Sauces',    emoji: '🥣', desc: 'Sauces & Dressings',    Icon: Droplets },
+  { path: '/snacks',   label: 'Snacks',    emoji: '🍿', desc: 'Small Bites',           Icon: Cookie },
+  { path: '/latest',   label: 'Latest',    emoji: '✨', desc: 'New Additions',         Icon: Sparkles },
 ];

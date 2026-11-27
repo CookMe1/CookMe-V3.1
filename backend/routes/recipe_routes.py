@@ -112,7 +112,7 @@ async def get_master_recipes(
     skip = max(skip, 0)
 
     # Shared recipes plus this person's own. Never other people's private recipes.
-    and_q = [{"$or": [*ps.SHARED["$or"], {"user_id": user["user_id"]}]}]
+    and_q = [{"$or": [*ps.SHARED["$or"], {"user_id": user["user_id"]}]}, ps.NOT_LATEST]
     if category:
         and_q.append({"category": category})
     if cuisine:
@@ -160,7 +160,7 @@ async def search_recipes(
     db = request.app.state.db
     user = await get_current_user(request, db)
     limit = min(max(limit, 1), 60)
-    and_q = [ps.shared_or_own(user["user_id"])]
+    and_q = [ps.shared_or_own(user["user_id"]), ps.NOT_LATEST]
     for word in (q or "").split()[:6]:
         w = _re.escape(word)
         and_q.append({"$or": [{"title": {"$regex": w, "$options": "i"}},
@@ -195,6 +195,36 @@ async def recipe_stats(request: Request):
 _FEATURED_CACHE: dict = {}
 
 
+_CARD = {"_id": 0, "recipe_id": 1, "title": 1, "description": 1, "image": 1, "prep_time": 1, "cook_time": 1, "time_estimated": 1,
+         "servings": 1, "difficulty": 1, "category": 1, "cuisine": 1, "tags": 1, "nutrition": 1, "likes_count": 1, "saves_count": 1,
+         "user_id": 1, "released_at": 1, "source_url": 1, "favorited_by": 1}
+
+
+@router.get("/latest")
+async def latest_additions(request: Request, limit: int = 24, skip: int = 0):
+    """Recipes released in the last couple of weeks. They wait here before joining the main library."""
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    limit = min(max(limit, 1), 60)
+    q = {"in_latest": True}
+    rows = await db.recipes.find(q, _CARD).sort([("released_at", -1), ("title", 1)]).skip(max(skip, 0)).limit(limit).to_list(limit)
+    total = await db.recipes.count_documents(q)
+    for r in rows:
+        r["is_favorited"] = user["user_id"] in (r.pop("favorited_by", None) or [])
+    return {"recipes": [ps.mask_owner(r, user["user_id"]) for r in rows], "total": total, "has_more": skip + limit < total}
+
+
+@router.get("/latest/summary")
+async def latest_summary(request: Request, since: Optional[str] = None):
+    """How many recipes were added since this person last looked (for the pop-up when they open the app)."""
+    db = request.app.state.db
+    await get_current_user(request, db)
+    total = await db.recipes.count_documents({"in_latest": True})
+    q = {"in_latest": True, **({"released_at": {"$gt": since}} if since else {})}
+    return {"new_since": await db.recipes.count_documents(q), "total_in_latest": total,
+            "as_of": datetime.now(timezone.utc).isoformat()}
+
+
 @router.get("/featured")
 async def get_featured_master(request: Request, count: int = 3):
     """Today's pick: random but fixed for the whole day, from the shared recipes plus the person's own, only ones with a photo.
@@ -206,7 +236,7 @@ async def get_featured_master(request: Request, count: int = 3):
     key = (date.today().isoformat(), user["user_id"], min(max(count, 1), 12))
     picked = _FEATURED_CACHE.get(key)
     if picked is None:
-        cond = {"$and": [ps.shared_or_own(user["user_id"]), {"image": {"$regex": "^(http|/recipe-images/|data:image/)"}}]}
+        cond = {"$and": [ps.shared_or_own(user["user_id"]), ps.NOT_LATEST, {"image": {"$regex": "^(http|/recipe-images/|data:image/)"}}]}
         rows = await db.recipes.aggregate([
             {"$match": cond}, {"$sample": {"size": key[2]}}, {"$project": {"_id": 0, "recipe_id": 1}},
         ]).to_list(key[2])
@@ -1243,7 +1273,8 @@ async def get_recipes_by_cooking_type(cooking_type: str, request: Request, limit
     db = request.app.state.db
     user = await get_current_user(request, db)
     tags = {"quick": ["quick"], "student": ["student"], "budget": ["budget"],
-            "instapot": ["instant pot", "pressure cooker", "slow cooker", "one pot"], "airfryer": ["air fryer", "airfryer"]}.get(cooking_type)
+            "instapot": ["instant pot", "pressure cooker", "slow cooker", "one pot"], "airfryer": ["air fryer", "airfryer"],
+            "drinks": ["drink"], "sauces": ["sauce", "dressing", "dip", "marinade"], "snacks": ["snack"]}.get(cooking_type)
     if not tags:
         raise HTTPException(status_code=404, detail="Unknown cooking type")
     limit = max(1, min(limit, 200))
@@ -1261,6 +1292,7 @@ async def get_recipes_by_cooking_type(cooking_type: str, request: Request, limit
         ]}]}]}
     else:
         q = {"$and": [ps.SHARED, tagged]}
+    q = {"$and": [q, ps.NOT_LATEST]}
     sort = [("title", 1)]
     recipes = await db.recipes.find(q, {"_id": 0}).sort(sort).skip(max(skip, 0)).limit(limit).to_list(limit)
     if cooking_type == "airfryer":

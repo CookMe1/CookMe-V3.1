@@ -3,7 +3,7 @@
   python3 scripts/enrich_staged.py data/staging/wikibooks_approved.json
 Servings: used as written when the Wikibooks page states them; otherwise worked out from the recipe's total calories
 (about 550 kcal a serving for a main, 300 for a dessert or bake, 80 for a sauce or dip) and flagged servings_estimated.
-Nutrition is per serving from the local USDA table. Anything that comes out implausible (under 30 or over 1,400 kcal a
+Nutrition is per serving from the local USDA table. Anything that comes out implausible (under 30 kcal for a dish, or over 1,400 kcal a
 serving, or too few ingredients matched) gets NO nutrition and needs_review = true, so nothing wrong reaches the app.
 Times are estimated from the method unless the page gives them (flagged time_estimated). Safe to re-run."""
 import asyncio, json, re, sys
@@ -19,8 +19,18 @@ SWEET = re.compile(r"cake|cookie|biscuit|brownie|pie\b|tart|pudding|muffin|bread
 CUISINE_FIX = {"tanzanian": "african"}
 
 
+SPECIAL_SAUCE = {"sauce", "dressing", "dip", "marinade", "spread", "syrup"}
+
+
 def target_kcal(r):
     t = r.get("title", "")
+    tags = {str(x).lower() for x in r.get("tags") or []}
+    if "drink" in tags:
+        return 150, 1, 12
+    if tags & SPECIAL_SAUCE:
+        return 80, 4, 24
+    if "snack" in tags:
+        return 200, 2, 16
     if r.get("category") == "dessert" or SWEET.search(t):
         return 300, 2, 16
     if SAUCE.search(t):
@@ -57,7 +67,8 @@ async def enrich(rows):
         n = max(1, int(r["servings"]))
         per = {k: (round(v / n) if k in ("calories", "sodium") else round(v / n, 1)) for k, v in total.items() if isinstance(v, (int, float)) and k != "calc_v"}
         per.update({"source": total.get("source", "usda"), "calc_v": total.get("calc_v", 3)})
-        if 30 <= per["calories"] <= 1400:
+        special = bool({str(x).lower() for x in r.get("tags") or []} & (SPECIAL_SAUCE | {"drink"}))
+        if (0 if special else 30) <= per["calories"] <= 1400:
             r["nutrition"] = per; st["nutr"] += 1
         else:
             r["needs_review"] = True; st["review"] += 1

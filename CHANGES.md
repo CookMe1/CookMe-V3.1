@@ -300,3 +300,11 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - `wikibooks_categories.py`: cuisine and tags now come from the categories each Wikibooks page already has (Indian, Halal, Slow cooker, Inexpensive...). About 1,200 of 2,069 recipes get a cuisine (was ~360). New cuisine buckets added to the search filter (south_asian, southeast_asian, asian, latin_american, european...).
 - Parser records `servings_stated`. `enrich_staged.py` works servings out from total calories when the page gave none (flagged `servings_estimated`), and sets NO nutrition on anything implausible (under 30 or over 1,400 kcal/serving) or with too few matched ingredients; those recipes get `needs_review` and are held back, not queued.
 - Nothing on Wikibooks mentions an air fryer, so no recipe is tagged air fryer; that tag only appears where the method really says so.
+
+## New sections, Latest additions, 10-20 a day
+- **Drinks, Sauces & Dressings, Snacks** pages (`/drinks`, `/sauces`, `/snacks`) with filters (smoothies, tea, juices, alcoholic / not; dressings, dips, marinades, spreads). Tags come from the Wikibooks categories, then the recipe name. Wikibooks drinks, sauces, dips and snacks are no longer dropped for being short.
+- **Latest additions** (`/latest`): each day's new recipes are held there for 14 days (`HOLD_DAYS`), newest first, and are kept out of the main library lists (library, search, category pages, featured) until they graduate automatically.
+- **Pop-up**: the first time someone opens the app each day: "N new recipes added" with a button to Latest additions. It counts what arrived since their last visit and stays quiet when there is nothing new.
+- **Release rate**: 10 to 20 a day, the same number all day (`RELEASE_MIN`/`RELEASE_MAX`; `RELEASE_PER_DAY` fixes it).
+- Ingredient lines with the quantity stuck in the name are repaired (e.g. "⅜ cup () white wine"), and salt, pepper, oil and water no longer count as "missing amount".
+- `scripts/ai_fill_amounts.py`: estimates quantities for recipes that truly have none (needs the AI key); those recipes are flagged and go through admin review.

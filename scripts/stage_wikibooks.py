@@ -12,6 +12,8 @@ sys.path.insert(0, str(ROOT/"backend"))
 from wikibooks_parser import parse_recipe
 from recipe_cleaner import clean_recipe, is_cookable
 from recipe_tagger import auto_tag, is_dessert
+from wikibooks_categories import kind_tags, is_special_kind
+from amount_fixes import repair, coverage
 
 API = "https://en.wikibooks.org/w/api.php"
 HEAD = {"User-Agent": "CookMe-staging/1.0 (https://github.com/CookMe1/CookMe-V3.1)"}
@@ -60,13 +62,14 @@ def fetch_text(titles):
     return out
 
 def score(r):
-    ing = r["ingredients"]; with_amt = sum(1 for i in ing if i["amount"]) / max(len(ing), 1)
+    """Quality flags. Sauces, dressings, dips, drinks and snacks are short by nature, so length is not held against them."""
+    ing = r["ingredients"]; with_amt = coverage(ing)
+    special = is_special_kind(r.get("tags") or [])
     flags = []
-    if len(ing) < 5: flags.append("few ingredients")
+    if len(ing) < (2 if special else 3): flags.append("few ingredients")
     if with_amt < 0.7: flags.append("amounts missing")
-    if len(r["steps"]) < 3: flags.append("few steps")
-    if sum(len(s) for s in r["steps"]) < 200: flags.append("short method")
-    if DRINK.search(r["title"]): flags.append("drink")
+    if len(r["steps"]) < (1 if special else 2): flags.append("few steps")
+    if sum(len(s) for s in r["steps"]) < (40 if special else 100): flags.append("short method")
     return flags, with_amt
 
 def main():
@@ -82,7 +85,10 @@ def main():
         r = parse_recipe(t, wt)
         if not r: skipped["not a recipe"] += 1; continue
         r = {**clean_recipe(r), **{k: r[k] for k in ("wikibooks_image",)}}
-        if not is_cookable(r): skipped["too thin"] += 1; continue
+        r["ingredients"] = [repair(i) for i in r["ingredients"]]
+        r["tags"] = sorted(set(r.get("tags", [])) | set(kind_tags(r["title"], r.get("tags", []))))
+        special = is_special_kind(r["tags"])
+        if not (is_cookable(r) or (special and len(r["ingredients"]) >= 2 and r["steps"])): skipped["too thin"] += 1; continue
         key = r["title"].lower()
         if key in seen: skipped["duplicate"] += 1; continue
         seen.add(key); tg = auto_tag(r)

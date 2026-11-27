@@ -15,7 +15,8 @@ const tagsOf = (r) => (r.tags || []).map((t) => String(t).toLowerCase());
  *           searchLabel, emptyLabel, userMatch(recipe), chips: [{label, test(recipe)}] }
  */
 const CategoryPage = ({ config }) => {
-  const { type, title, subtitle, Icon, gradient, tipsTitle, tips, searchLabel, emptyLabel, userMatch, chips = [] } = config;
+  const { type, title, subtitle, Icon, gradient, tipsTitle, tips, searchLabel, emptyLabel, userMatch, chips = [], endpoint, hideMine } = config;
+  const base = endpoint || `/api/recipes/type/${type}`;
   const [searchQuery, setSearchQuery] = useState('');
   const [chip, setChip] = useState(0);
   const [mine, setMine] = useState([]);
@@ -33,8 +34,8 @@ const CategoryPage = ({ config }) => {
       setLoading(true);
       try {
         const [typeRes, userRes] = await Promise.all([
-          fetch(`${API_URL}/api/recipes/type/${type}?limit=${PAGE}&skip=0`, { headers: headers() }),
-          fetch(`${API_URL}/api/recipes?limit=100`, { headers: headers() }),
+          fetch(`${API_URL}${base}?limit=${PAGE}&skip=0`, { headers: headers() }),
+          hideMine ? Promise.resolve({ ok: false }) : fetch(`${API_URL}/api/recipes?limit=100`, { headers: headers() }),
         ]);
         const t = typeRes.ok ? await typeRes.json() : { recipes: [], total: 0 };
         const u = userRes.ok ? await userRes.json() : [];
@@ -46,12 +47,12 @@ const CategoryPage = ({ config }) => {
       if (live) setLoading(false);
     })();
     return () => { live = false; };
-  }, [type, headers, userMatch]);
+  }, [type, base, hideMine, headers, userMatch]);
 
   const loadMore = async () => {
     setLoadingMore(true);
     try {
-      const res = await fetch(`${API_URL}/api/recipes/type/${type}?limit=${PAGE}&skip=${shared.length}`, { headers: headers() });
+      const res = await fetch(`${API_URL}${base}?limit=${PAGE}&skip=${shared.length}`, { headers: headers() });
       if (res.ok) {
         const t = await res.json();
         setShared((prev) => [...prev, ...(t.recipes || [])]);

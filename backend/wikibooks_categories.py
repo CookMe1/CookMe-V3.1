@@ -33,7 +33,43 @@ TAGS = {
     r"^(?:very )?easy recipes$": ["easy"], r"^breakfast recipes$": ["breakfast"], r"^side dish recipes$": ["side dish"],
     r"^appetizer recipes$": ["starter"], r"^snacks? recipes$": ["snack"], r"^christmas recipes$": ["christmas"],
     r"^(?:recipes for )?soup recipes?$|^recipes for soup$": ["soup"], r"^low-gi recipes$": ["low gi"],
+    # sections of the app: Drinks, Sauces & Dressings, Snacks
+    r"^recipes for (?:alcoholic )?beverages$|^beverages$": ["drink"], r"^recipes for alcoholic beverages$": ["alcoholic"],
+    r"^recipes for cocktails$": ["drink", "cocktail", "alcoholic"], r"^recipes for smoothies$": ["drink", "smoothie"],
+    r"^recipes for tea and tisanes$|^tea recipes$": ["drink", "tea"], r"^recipes for juice$": ["drink", "juice"],
+    r"^recipes for sauces and condiments$|^condiments$|^household cyclopedia sauce recipes$|^recipes for (?:pasta|barbecue|hot|brown|béchamel|marinara) sauce$": ["sauce"],
+    r"^recipes for salad dressing$": ["sauce", "dressing"], r"^recipes for dip$": ["sauce", "dip"], r"^marinade recipes$": ["sauce", "marinade"],
+    r"^spread recipes$": ["sauce", "spread"], r"^recipes for syrup$|^syrups$": ["sauce", "syrup"], r"^snacks? recipes$": ["snack"],
 }
+
+# When a page has no helpful category, fall back on the name (kept strict so a "Chicken Soup" never lands in Drinks)
+TITLE_KINDS = [
+    ("drink", re.compile(r"smoothie|cocktail|lemonade|\btea\b|coffee|punch|milkshake|\bshake\b|\bjuice\b|cider|mulled|\bwine\b|liqueur|sangria|margarita|martini|latte|hot chocolate|eggnog|\bale\b|\bbeer\b|frappe|spritzer|kombucha|\blassi\b", re.I)),
+    ("dressing", re.compile(r"dressing|vinaigrette", re.I)),
+    ("sauce", re.compile(r"\bsauce\b|\bdip\b|salsa|marinade|\bgravy\b|chutney|relish|aioli|pesto|mayonnaise|\brub\b|hummus|guacamole|\bglaze\b|\bsyrup\b|ketchup|mustard|pickle", re.I)),
+    ("snack", re.compile(r"\bsnack\b|popcorn|\bchips\b|crackers?\b|trail mix|granola bar|energy ball|jerky|nachos", re.I)),
+]
+
+
+def kind_tags(title, tags=()):
+    """-> extra tags like ['drink'] or ['sauce','dressing'] from the title, only if the categories did not already say."""
+    have = {str(t).lower() for t in tags}
+    if have & {"drink", "sauce", "snack"}:
+        return []
+    for kind, rx in TITLE_KINDS:
+        if rx.search(title or ""):
+            return ["sauce", "dressing"] if kind == "dressing" else [kind]
+    return []
+
+
+def is_special_kind(tags):
+    return bool({str(t).lower() for t in tags} & {"drink", "sauce", "dressing", "dip", "marinade", "snack", "spread", "syrup"})
+
+
+# Items that never need a quantity ("salt", "oil for frying", "water")
+NO_AMOUNT_NEEDED = re.compile(r"^(?:freshly[- ]?ground |ground |black |white |sea |kosher |table |extra[- ]virgin |vegetable |olive |cooking |frying )*"
+                              r"(?:salt|pepper|oil|olive oil|water|ice|ice cubes|cooking spray|butter for|garnish|to taste|for serving|for frying|for greasing|for dusting)\b|"
+                              r"\b(?:to taste|for (?:serving|frying|greasing|dusting|garnish)|as needed|optional)\b", re.I)
 EXCLUDE = re.compile(r"^(?:pet|duplicate) recipes$", re.I)
 
 

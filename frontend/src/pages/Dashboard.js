@@ -263,7 +263,7 @@ const Dashboard = () => {
             Browse Categories
           </h2>
           
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {CATEGORIES.map((c) => ({ name: c.label, icon: c.emoji, path: c.path, desc: c.desc })).map((category) => (
               <Link 
                 key={category.name}

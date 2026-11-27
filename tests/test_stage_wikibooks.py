@@ -30,4 +30,5 @@ def test_staging_end_to_end(tmp_path, monkeypatch):
     assert "Irish Soda Bread" in titles and "Pasta Dish One" in titles and "Flour" not in titles and "Thin" not in titles
     rows = list(csv.reader(open(tmp_path / "wikibooks_review.csv", encoding="utf-8-sig")))
     keep = {r[1]: r[0] for r in rows[1:]}
-    assert keep["Pasta Dish One"] == "y" and keep["Mint Cocktail"] == "n"
+    assert keep["Pasta Dish One"] == "y" and keep["Mint Cocktail"] == "y"      # drinks now have their own section
+    assert "drink" in [r for r in data if r["title"] == "Mint Cocktail"][0]["tags"]

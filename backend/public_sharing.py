@@ -20,6 +20,10 @@ CONSENT_HASH = hashlib.sha256((TERMS_VERSION + CONSENT_TEXT).encode()).hexdigest
 SHARED = {"$or": [{"user_id": "system_seeder"}, {"visibility": "public"}]}
 
 
+# New releases wait in "Latest additions" for a while before they join the main library lists
+NOT_LATEST = {"in_latest": {"$ne": True}}
+
+
 def shared_or_own(user_id: str) -> dict:
     """Shared recipes (minus ones this person hid) plus all of this person's own recipes."""
     return {"$or": [
