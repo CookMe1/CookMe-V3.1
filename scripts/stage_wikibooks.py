@@ -68,7 +68,10 @@ def score(r):
 def main():
     limit = int(arg("--limit", 0)) or None
     master = {x["title"].strip().lower() for x in json.load(open(ROOT/"data"/"master_recipes.json", encoding="utf-8"))}
-    print("1/3 listing pages"); titles = list_titles(limit)
+    if "--offline" in sys.argv:   # use pages already downloaded into data/staging/cache (no internet needed)
+        titles = sorted(f.stem for f in CACHE.glob("*.txt")); print(f"1/3 offline: {len(titles)} cached pages")
+    else:
+        print("1/3 listing pages"); titles = list_titles(limit)
     print("2/3 downloading"); pages = fetch_text(titles if not limit else titles[: limit * 4])
     print("3/3 parsing"); recipes, seen, skipped = [], set(master), {"not a recipe": 0, "too thin": 0, "duplicate": 0}
     for t, wt in pages.items():
