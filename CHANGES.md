@@ -291,3 +291,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - `/api/web/recipe/{id}`: a plain web page per recipe (title, photo, ingredients, method, calories, Recipe markup for Google, share-preview tags, "Save to Grubly" button, licence/author credit).
 - `/api/web/sitemap.xml` lists them; `robots.txt` allows `/api/web/` and points to the sitemap.
 - Only recipes people made public, open-licence ones and reviewed AI ones appear. The ~1,139 older library recipes copied from other sites are deliberately excluded (copyright).
+
+## Wikibooks recipes: times and nutrition
+- New `scripts/enrich_staged.py data/staging/wikibooks_approved.json`: Wikibooks pages have no photos, nutrition or reliable times, so this adds estimated prep/cook times (flagged `time_estimated`, shown with "~"), a description if weak, and per-serving nutrition from the local USDA table. Photos come from `fill_images.py` (needs a free Pexels key).
+- Order: stage -> approve -> enrich -> fill images -> queue.
