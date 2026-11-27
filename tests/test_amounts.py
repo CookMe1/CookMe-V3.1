@@ -107,3 +107,13 @@ def test_spelled_out_weights_beat_bracketed_cups():
     assert adjust_cups("225 grams (1 cup)", "all-purpose flour", 225.0, 16) == (225.0, 1.0)
     assert adjust_cups("1 kilogram (4 cups)", "flour", 1000.0, 4) == (1000.0, 1.0)
     assert adjust_cups("2 liters (8 cups)", "stock", 2000.0, 4) == (2000.0, 1.0)
+
+
+def test_recipes_from_one_book_get_different_ids():
+    import sys, importlib
+    sys.path.insert(0, "scripts")
+    I = importlib.import_module("import_jsonld")
+    base = {"description": "x", "recipeCategory": "main", "recipeIngredient": ["1 cup flour", "1 egg", "1 tsp salt"], "recipeInstructions": ["Mix.", "Bake."],
+            "url": "https://www.gutenberg.org/ebooks/1", "license": "Public Domain"}
+    a = I.convert(dict(base, name="Baseball Lemonade")); b = I.convert(dict(base, name="Egg Lemonade"))
+    assert a["recipe_id"] != b["recipe_id"]

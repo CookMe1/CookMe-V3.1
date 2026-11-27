@@ -63,6 +63,20 @@ def missing_foods(r):
     return out
 
 
+TITLE_MAINS = {"sardine", "chicken", "veal", "ham", "tongue", "salmon", "tuna", "shrimp", "prawn", "oyster", "lobster", "crab", "turkey", "liver", "kidney", "duck", "goose",
+               "rabbit", "hare", "pork", "bacon", "sausage", "egg", "cheese", "halibut", "cod", "haddock", "herring", "anchovy", "scallop", "clam"}
+
+
+def title_food_missing(r):
+    """A main food named in the title (Sardine Sandwich, Veal Croquettes) must be in the ingredient list."""
+    have = " ".join(i.get("item", "").lower() for i in r["ingredients"])
+    title = r["title"].lower()
+    skip = set()
+    if re.search(r"\b(?:no|without) eggs?\b", title): skip.add("egg")
+    if re.search(r"turkey|pork|beef|lentil", have): skip.add("sausage")
+    return {w for w in re.findall(r"[a-z]+", title) if w.rstrip("s") in TITLE_MAINS and w.rstrip("s") not in have and w.rstrip("s") not in skip}
+
+
 def relaxed_ok(r):
     """Short recipes are real recipes (taffy, sauces, seasonings). They pass when the list covers every food the method mentions."""
     ing = r["ingredients"]
@@ -70,7 +84,7 @@ def relaxed_ok(r):
     steps = r["steps"]
     if not steps or sum(len(x) for x in steps) < 40: return False
     if len(steps) == 1 and not COOK.search(steps[0]): return False           # only a list, no method
-    return not missing_foods(r)
+    return not missing_foods(r) and not title_food_missing(r)
 
 
 def words_to_digits(s):

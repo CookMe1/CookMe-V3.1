@@ -108,7 +108,7 @@ def convert(r):
         desc = ""
     author = meta.get("originalAuthor")
     author = author.get("name") if isinstance(author, dict) else (author or (r.get("author") or {}).get("name") if isinstance(r.get("author"), dict) else r.get("author"))
-    rid = "recipe_" + hashlib.sha1((url or title).encode()).hexdigest()[:12]
+    rid = "recipe_" + hashlib.sha1(((url or "") + "|" + title).encode()).hexdigest()[:12]   # url alone is shared by every recipe of one book
     out = {"recipe_id": rid, "title": title, "description": desc, "image": None, "prep_time": minutes(r.get("prepTime")),
            "cook_time": minutes(r.get("cookTime")), "servings": int(y.group()) if y and int(y.group()) > 0 else 4,
            "servings_stated": bool(y and int(y.group()) > 0 and not r.get("servings_estimated")), "difficulty": "Medium",
