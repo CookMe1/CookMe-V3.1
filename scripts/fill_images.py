@@ -31,7 +31,7 @@ def queries(title):
     if len(w) >= 2: qs.append(" ".join(w[:3]) + " food")
     if w: qs.append(w[-1] + " dish")
     if w and w[0] != w[-1]: qs.append(w[0] + " food")
-    return qs
+    return qs[:3]                         # each search counts against the 199-an-hour limit, so no more than 3 per recipe
 
 import collections
 HOURLY_MAX = 199                      # never more than 199 Pexels requests in any rolling hour (the free key allows 200)
@@ -63,7 +63,7 @@ def pexels(title):
     Returns up to 3 matching photos from the same search (no extra searches): [(url, credit), ...]."""
     keep = set(words(title))
     for q in queries(title):
-        r = pexels_get({"query": q, "per_page": 8, "orientation": "landscape"})
+        r = pexels_get({"query": q, "per_page": 20, "orientation": "landscape"})
         found = [(p["src"]["large"], f"Photo by {p['photographer']} on Pexels") for p in r.json().get("photos", [])
                  if keep & set(words(p.get("alt") or ""))]
         if found:
