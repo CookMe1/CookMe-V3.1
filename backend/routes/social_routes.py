@@ -1,10 +1,12 @@
 """Comments, replies, reporting and the community feed for shared recipes."""
+import base64
+import io
 import re
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel
 
 import account_ops
@@ -247,3 +249,114 @@ async def community_feed(request: Request, limit: int = 20, skip: int = 0):
         r["comment_count"] = counts.get(r["recipe_id"], 0)
         out.append(r)
     return {"recipes": out}
+
+
+# ── "I made this": a photo and a few words about a recipe you cooked ──────────────────────────────────────────────
+# Works for any recipe the person can see (master library, shared, or their own). It shares only the photo and note,
+# never the recipe text, so recipes from open-licence sources can be talked about freely.
+MAX_NOTE = 300
+MAX_MADE_PER_DAY = 5
+MAX_PHOTO_BYTES = 8_000_000
+HIDE_MADE_AFTER_REPORTS = 3
+
+
+class MadeIn(BaseModel):
+    recipe_id: str
+    note: Optional[str] = ""
+    image_data: str          # data URL of the person's own photo
+
+
+def _shrink_photo(data_url: str) -> bytes:
+    m = re.match(r"^data:image/(?:jpeg|jpg|png|webp);base64,(.+)$", data_url or "", re.S)
+    if not m:
+        raise HTTPException(status_code=400, detail="Please add a photo of what you made (JPG, PNG or WebP).")
+    try:
+        raw = base64.b64decode(m.group(1))
+        if len(raw) > MAX_PHOTO_BYTES:
+            raise HTTPException(status_code=400, detail="That photo is too large. Please choose one under 8 MB.")
+        from PIL import Image, ImageOps
+        im = ImageOps.exif_transpose(Image.open(io.BytesIO(raw))).convert("RGB")
+        im.thumbnail((900, 900))
+        out = io.BytesIO()
+        im.save(out, "JPEG", quality=78, optimize=True)
+        return out.getvalue()
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=400, detail="We couldn't read that photo. Please try another one.")
+
+
+def _made_public(p: dict, viewer: dict) -> dict:
+    return {"post_id": p["post_id"], "recipe_id": p["recipe_id"], "recipe_title": p.get("recipe_title"),
+            "author_name": p.get("author_name"), "note": p.get("note") or "", "photo_url": f"/api/social/made/{p['post_id']}/photo",
+            "created_at": p["created_at"], "mine": p["user_id"] == viewer["user_id"]}
+
+
+@router.post("/made")
+async def post_made_it(data: MadeIn, request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    recipe = await _visible_recipe(db, user, data.recipe_id)
+    note = re.sub(r"[ \t]+", " ", (data.note or "")).strip()
+    if len(note) > MAX_NOTE:
+        raise HTTPException(status_code=400, detail=f"Please keep your note under {MAX_NOTE} characters.")
+    for p in content_filter.problems(note)[:1]:
+        raise HTTPException(status_code=400, detail=p["message"] + " Your post was not shared.")
+    now = datetime.now(timezone.utc)
+    if await db.made_posts.count_documents({"user_id": user["user_id"], "created_at": {"$gte": now - timedelta(days=1)}}) >= MAX_MADE_PER_DAY:
+        raise HTTPException(status_code=429, detail="You've shared a lot today. Please try again tomorrow.")
+    photo = _shrink_photo(data.image_data)
+    doc = {"post_id": f"mp_{uuid.uuid4().hex[:12]}", "recipe_id": recipe["recipe_id"], "recipe_title": recipe.get("title"),
+           "user_id": user["user_id"], "author_name": display_name(user), "note": note, "photo": photo,
+           "status": "visible", "created_at": now}
+    await db.made_posts.insert_one(dict(doc))
+    return _made_public(doc, user)
+
+
+@router.get("/made")
+async def list_made(request: Request, limit: int = 20, skip: int = 0, recipe_id: Optional[str] = None):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    q = {"status": "visible"}
+    if recipe_id:
+        q["recipe_id"] = recipe_id
+    rows = await db.made_posts.find(q, {"_id": 0, "photo": 0}).sort("created_at", -1).skip(max(skip, 0)).to_list(max(1, min(limit, 50)))
+    return {"posts": [_made_public(r, user) for r in rows]}
+
+
+@router.get("/made/{post_id}/photo")
+async def made_photo(post_id: str, request: Request):
+    """The photo itself. No sign-in needed so it can be used in an <img> tag; hidden posts are not served."""
+    row = await request.app.state.db.made_posts.find_one({"post_id": post_id, "status": "visible"}, {"_id": 0, "photo": 1})
+    if not row or not row.get("photo"):
+        raise HTTPException(status_code=404, detail="Photo not found")
+    return Response(content=bytes(row["photo"]), media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+
+
+@router.delete("/made/{post_id}")
+async def delete_made(post_id: str, request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    p = await db.made_posts.find_one({"post_id": post_id}, {"_id": 0, "user_id": 1})
+    if not p:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if p["user_id"] != user["user_id"] and not is_admin(user):
+        raise HTTPException(status_code=403, detail="You can only delete your own posts")
+    await db.made_posts.delete_one({"post_id": post_id})
+    return {"message": "Deleted"}
+
+
+@router.post("/made/{post_id}/report")
+async def report_made(post_id: str, data: ReportIn, request: Request):
+    db = request.app.state.db
+    user = await get_current_user(request, db)
+    p = await db.made_posts.find_one({"post_id": post_id, "status": "visible"}, {"_id": 0, "photo": 0})
+    if not p:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if p["user_id"] == user["user_id"]:
+        raise HTTPException(status_code=400, detail="You can't report your own post")
+    if await _record_report(db, user, "made_post", post_id, data, p["user_id"]):
+        await _alert("a photo post was reported", user, data, f"Post: {p.get('note')}\nRecipe: {p.get('recipe_title')}")
+    if await db.reports.count_documents({"kind": "made_post", "target_id": post_id}) >= HIDE_MADE_AFTER_REPORTS:
+        await db.made_posts.update_one({"post_id": post_id}, {"$set": {"status": "hidden"}})
+    return {"message": "Thank you. We'll review it."}

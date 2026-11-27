@@ -47,13 +47,14 @@ const Target = ({ item }) => {
   return (
     <div className="space-y-3">
       <UserBlock u={t.author} title="Written by" />
+      {t.photo_url && <img loading="lazy" decoding="async" src={`${API_URL}${t.photo_url}`} alt="" className="max-h-56 rounded-lg" />}
       <p className="text-zinc-100 border-l-2 border-zinc-700 pl-3">“{t.text}”</p>
       <p className="text-xs text-zinc-500">On recipe: {t.recipe_title}</p>
     </div>
   );
 };
 
-const LABEL = { user: 'Account', recipe: 'Recipe', comment: 'Comment' };
+const LABEL = { user: 'Account', recipe: 'Recipe', comment: 'Comment', made_post: 'Photo post' };
 
 const Admin = () => {
   const { user, loading: authLoading } = useAuth();

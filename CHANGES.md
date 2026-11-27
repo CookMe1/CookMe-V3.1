@@ -328,3 +328,9 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Thin recipes dropped; 866 recipes without amounts kept for the AI amount-fill; 50 recipes with unmatched ingredients listed in `needs_attention.json`.
 
 - `scripts/compress_images.py` shrinks recipe photos (longest side 1000 px, JPEG quality 80) after copying the full-size originals to `originals/recipe-images/` (git-ignored, kept on the laptop for the later cloud-storage upload).
+
+## Batch: "I made this" posts (community feed)
+- New in-app way to share what you cooked, from **any recipe in the library** (master list, shared or your own): a photo plus a short note. Only the photo and note are posted, never the recipe text, so imported or open-licence recipes can be talked about freely.
+- Backend (`social_routes.py`): `POST /api/social/made`, `GET /api/social/made` (optionally `?recipe_id=`), `GET /api/social/made/{id}/photo`, `DELETE`, `POST .../report`. Photos are shrunk to 900 px; notes are link/phone/swearing filtered; 5 posts a day; 3 reports hide a post; admin review handles the new `made_post` kind.
+- Frontend: "I made this" button on every recipe page, "Made by others" gallery on the recipe, "Made by the community" feed and a share card on the Community page (replaces the "coming soon" placeholder).
+- Publishing a full recipe to the feed is unchanged (own recipes only).

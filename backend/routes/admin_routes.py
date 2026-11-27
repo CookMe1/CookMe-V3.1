@@ -13,7 +13,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 
 class Resolve(BaseModel):
-    kind: str          # user | recipe | comment
+    kind: str          # user | recipe | comment | made_post
     target_id: str
     action: str        # reinstate | remove | ban
 
@@ -43,6 +43,12 @@ async def _target(db, kind, tid):
         r = {k: r.get(k) for k in ("recipe_id", "title", "description", "image", "ingredients", "steps", "visibility", "publish_status", "public_author", "source_url")}
         r["owner"] = await _owner(db, (await db.recipes.find_one({"recipe_id": tid}, {"user_id": 1}))["user_id"])
         return r
+    if kind == "made_post":
+        m = await db.made_posts.find_one({"post_id": tid}, {"_id": 0, "photo": 0})
+        if not m:
+            return None
+        return {"text": m.get("note") or "(photo only)", "status": m["status"], "created_at": m["created_at"], "recipe_title": m.get("recipe_title"),
+                "recipe_id": m["recipe_id"], "photo_url": f"/api/social/made/{tid}/photo", "author": await _owner(db, m["user_id"])}
     if kind == "comment":
         c = await db.comments.find_one({"comment_id": tid}, {"_id": 0})
         if not c:
@@ -89,7 +95,7 @@ async def resolve(data: Resolve, request: Request):
     db = request.app.state.db
     await require_admin(request, db)
     kind, tid, action = data.kind, data.target_id, data.action
-    if kind not in ("user", "recipe", "comment") or action not in ("reinstate", "remove", "ban"):
+    if kind not in ("user", "recipe", "comment", "made_post") or action not in ("reinstate", "remove", "ban"):
         raise HTTPException(status_code=400, detail="Unknown action")
 
     if kind == "user":
@@ -117,6 +123,20 @@ async def resolve(data: Resolve, request: Request):
             if action == "ban" and r.get("user_id") not in (None, "system_seeder"):
                 await account_ops.ban_user(db, r["user_id"])
                 await _close_reports(db, "user", r["user_id"], "upheld")
+
+    elif kind == "made_post":
+        m = await db.made_posts.find_one({"post_id": tid}, {"_id": 0, "photo": 0})
+        if not m:
+            raise HTTPException(status_code=404, detail="Post not found")
+        if action == "reinstate":
+            await db.made_posts.update_one({"post_id": tid}, {"$set": {"status": "visible"}})
+            await _close_reports(db, "made_post", tid, "dismissed")
+        else:
+            await db.made_posts.delete_one({"post_id": tid})
+            await _close_reports(db, "made_post", tid, "upheld")
+            if action == "ban":
+                await account_ops.ban_user(db, m["user_id"])
+                await _close_reports(db, "user", m["user_id"], "upheld")
 
     else:
         c = await db.comments.find_one({"comment_id": tid}, {"_id": 0})

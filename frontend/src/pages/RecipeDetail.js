@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ShareRecipe from '../components/ShareRecipe';
+import MadeItDialog from '../components/MadeItDialog';
+import MadePosts from '../components/MadePosts';
 import Comments from '../components/Comments';
 import { Clock, Users, ChefHat, Heart, Bookmark, Share2, Minus, Plus, Printer, Loader2, Camera, ImageIcon, Trash2, Upload, AlertCircle, ShoppingCart, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -27,6 +29,8 @@ const RecipeDetail = () => {
   const { user: currentUser } = useAuth();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showMadeIt, setShowMadeIt] = useState(false);
+  const [madeRefresh, setMadeRefresh] = useState(0);
   const [servings, setServings] = useState(4);
   const [originalServings, setOriginalServings] = useState(4);
   const [activeTab, setActiveTab] = useState('ingredients');
@@ -547,6 +551,15 @@ const RecipeDetail = () => {
               {recipe.title}
             </h1>
             <p className="text-zinc-300 mb-6 max-w-2xl">{recipe.description}</p>
+            {currentUser && (
+              <div className="mb-4">
+                <button type="button" onClick={() => setShowMadeIt(true)} data-testid="made-it-btn"
+                  className="inline-flex items-center px-3 py-1.5 rounded-md bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium">
+                  I made this
+                </button>
+                <MadeItDialog open={showMadeIt} onClose={() => setShowMadeIt(false)} recipe={{ recipe_id: recipe.recipe_id, title: recipe.title }} onPosted={() => setMadeRefresh(n => n + 1)} />
+              </div>
+            )}
             {currentUser && recipe.user_id === currentUser.user_id && (
               <div className="flex flex-wrap items-center gap-3 mb-6" data-testid="owner-actions">
                 <Link to={`/recipe/${recipe.recipe_id}/edit`} className="inline-flex items-center px-3 py-1.5 rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-100 text-sm font-medium" data-testid="edit-recipe-btn">
@@ -929,7 +942,10 @@ const RecipeDetail = () => {
         {/* Source and credits */}
         <SourceCredit recipe={recipe} />
         {(recipe.visibility === 'public' || recipe.user_id === 'system_seeder') && (
-          <Comments recipeId={recipe.recipe_id} isOwner={!!currentUser && recipe.user_id === currentUser.user_id} />
+          <>
+            <MadePosts recipeId={recipe.recipe_id} refreshKey={madeRefresh} title="Made by others" />
+            <Comments recipeId={recipe.recipe_id} isOwner={!!currentUser && recipe.user_id === currentUser.user_id} />
+          </>
         )}
 
         {/* Similar Recipes from Community DB */}

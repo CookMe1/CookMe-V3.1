@@ -13,13 +13,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import MemberRecipes from '../components/MemberRecipes';
+import MadeItDialog from '../components/MadeItDialog';
+import MadePosts from '../components/MadePosts';
 import { totalTimeLabel } from '../utils/time';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const Social = () => {
   const { user } = useAuth();
-  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showMadeIt, setShowMadeIt] = useState(false);
+  const [madeRefresh, setMadeRefresh] = useState(0);
   const [postText, setPostText] = useState('');
   const [socialEnabled, setSocialEnabled] = useState(true);
   const [communityRecipes, setCommunityRecipes] = useState([]);
@@ -97,12 +100,6 @@ const Social = () => {
     }
   };
 
-  const handleCreatePost = () => {
-    toast.info('Community posting coming soon — share recipes by saving them from the Recipes tab!');
-    setPostText('');
-    setShowCreatePost(false);
-  };
-
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-100 pb-24 md:pb-0">
       {/* Hero */}
@@ -146,59 +143,24 @@ const Social = () => {
           </Dialog>
         </div>
 
-        {/* Share a recipe: the real way to post is from a recipe page */}
+        {/* Share what you cooked: a photo and a note about any recipe in the library */}
         {user && (
           <Card className="mb-6 bg-zinc-900 border-zinc-800" data-testid="share-prompt">
             <CardContent className="pt-5 flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-orange-600/20 flex items-center justify-center shrink-0">
-                <UsersIcon className="w-5 h-5 text-orange-500" />
+                <Image className="w-5 h-5 text-orange-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-zinc-100">Share a recipe with the community</p>
-                <p className="text-sm text-zinc-500">Open one of your recipes and tap <span className="text-orange-400">Share to Social</span>.</p>
+                <p className="font-semibold text-zinc-100">Made something? Share it</p>
+                <p className="text-sm text-zinc-500">Post a photo of a dish you cooked from any recipe in the library.</p>
               </div>
-              <Link to="/recipes" className="shrink-0 px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium">My recipes</Link>
+              <button type="button" onClick={() => setShowMadeIt(true)} data-testid="made-it-open"
+                className="shrink-0 px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium">I made this</button>
             </CardContent>
           </Card>
         )}
-
-        {/* Create post modal */}
-        {showCreatePost && (
-          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-lg bg-zinc-900 border-zinc-800">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-zinc-100">Create Post</h3>
-                  <button onClick={() => setShowCreatePost(false)}>
-                    <X className="w-6 h-6 text-zinc-500 hover:text-zinc-300" />
-                  </button>
-                </div>
-                {user && (
-                  <div className="flex items-center gap-3 mb-4">
-                    <img loading="lazy" decoding="async" src={user.avatar || `https://ui-avatars.com/api/?name=U&background=D35400&color=fff`}
-                      alt={user.name} className="w-10 h-10 rounded-full" />
-                    <div>
-                      <p className="font-semibold text-zinc-100">{user.name}</p>
-                      <div className="flex items-center gap-1 text-xs text-zinc-500">
-                        <Globe className="w-3 h-3" /><span>Public</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <Textarea
-                  value={postText}
-                  onChange={e => setPostText(e.target.value)}
-                  placeholder="Share a recipe, a cooking tip, or what's on your mind..."
-                  className="min-h-32 mb-4 text-base bg-zinc-950 border-zinc-800 text-zinc-100"
-                />
-                <Button onClick={handleCreatePost} disabled={!postText.trim()}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white">
-                  Post
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        <MadeItDialog open={showMadeIt} onClose={() => setShowMadeIt(false)} onPosted={() => setMadeRefresh(n => n + 1)} />
+        <MadePosts refreshKey={madeRefresh} />
 
         <MemberRecipes />
 
