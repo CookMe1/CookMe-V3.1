@@ -8,8 +8,9 @@ const LIMIT = 24;
 const CUISINES = [
   'british', 'american', 'italian', 'spanish', 'french', 'greek', 'mediterranean', 'middle_eastern', 'indian',
   'chinese', 'japanese', 'korean', 'thai', 'vietnamese', 'mexican', 'caribbean', 'african', 'german',
+  'south_asian', 'southeast_asian', 'asian', 'latin_american', 'european', 'turkish', 'moroccan', 'irish', 'polish', 'russian',
 ];
-const label = (c) => c.replace('_', ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+const label = (c) => c.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
 
 const Pill = ({ active, onClick, children, testid }) => (
   <button

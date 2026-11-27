@@ -2,6 +2,7 @@
 Wikibooks Cookbook text is CC BY-SA 4.0: every recipe keeps its source_url, licence and credit line."""
 import hashlib
 import re
+from wikibooks_categories import from_categories
 
 LICENSE = "CC BY-SA 4.0"
 LICENSE_URL = "https://creativecommons.org/licenses/by-sa/4.0/"
@@ -100,11 +101,15 @@ def parse_recipe(title: str, wikitext: str):
     paras = [clean_markup(p) for p in re.split(r"\n\s*\n", intro) if len(clean_markup(p)) > 40]
     desc = (re.split(r"(?<=[.!?])\s", paras[0])[0] if paras else "")[:200]
     url = "https://en.wikibooks.org/wiki/" + title.replace(" ", "_")
+    cats = from_categories(re.findall(r"\[\[Category:([^\]|]+)", wikitext))
+    if cats["exclude"]:
+        return None
+    cuisine = cuisine or cats["cuisine"]
     return {
         "recipe_id": recipe_id(title), "title": name, "description": desc, "image": None,
-        "prep_time": "", "cook_time": _time_text(summary.get("time", "")), "servings": int(serv.group(0)) if serv else 4,
+        "prep_time": "", "cook_time": _time_text(summary.get("time", "")), "servings": int(serv.group(0)) if serv else 4, "servings_stated": bool(serv),
         "difficulty": difficulty, "ingredients": ingredients, "steps": steps,
-        "tags": [t for t in [category.replace(" recipes", "")] if t and len(t) < 30], "category": "", "cuisine": cuisine,
+        "tags": sorted(set([t for t in [category.replace(" recipes", "")] if t and len(t) < 30] + cats["tags"])), "category": "dessert" if cats["dessert"] else "", "cuisine": cuisine,
         "source_url": url, "source_license": LICENSE, "source_history_url": url.replace("/wiki/", "/w/index.php?title=") + "&action=history",
         "user_id": "system_seeder", "likes_count": 0, "saves_count": 0, "favorited_by": [], "hidden_by": [], "gallery_images": [],
         "wikibooks_image": (re.search(r"(?:File|Image):([^|\]]+)", summary.get("image", "") or "") or [None, None])[1] if summary.get("image") else None,

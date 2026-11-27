@@ -295,3 +295,8 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 ## Wikibooks recipes: times and nutrition
 - New `scripts/enrich_staged.py data/staging/wikibooks_approved.json`: Wikibooks pages have no photos, nutrition or reliable times, so this adds estimated prep/cook times (flagged `time_estimated`, shown with "~"), a description if weak, and per-serving nutrition from the local USDA table. Photos come from `fill_images.py` (needs a free Pexels key).
 - Order: stage -> approve -> enrich -> fill images -> queue.
+
+## Wikibooks: cuisine/tags from categories, servings and nutrition checks
+- `wikibooks_categories.py`: cuisine and tags now come from the categories each Wikibooks page already has (Indian, Halal, Slow cooker, Inexpensive...). About 1,200 of 2,069 recipes get a cuisine (was ~360). New cuisine buckets added to the search filter (south_asian, southeast_asian, asian, latin_american, european...).
+- Parser records `servings_stated`. `enrich_staged.py` works servings out from total calories when the page gave none (flagged `servings_estimated`), and sets NO nutrition on anything implausible (under 30 or over 1,400 kcal/serving) or with too few matched ingredients; those recipes get `needs_review` and are held back, not queued.
+- Nothing on Wikibooks mentions an air fryer, so no recipe is tagged air fryer; that tag only appears where the method really says so.
