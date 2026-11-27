@@ -35,7 +35,9 @@ def queries(title):
 
 import collections
 HOURLY_MAX = 199                      # never more than 199 Pexels requests in any rolling hour (the free key allows 200)
-_sent = collections.deque()
+LOG = ROOT/"data"/"staging"/".pexels_requests.json"          # request times survive a restart, so the 199-an-hour limit holds across runs
+try: _sent = collections.deque(t for t in json.load(open(LOG)) if time.time() - t < 3600)
+except Exception: _sent = collections.deque()
 
 def pexels_get(params):
     """One Pexels search. Waits first if 199 requests were already made in the last hour, so we never go over."""
@@ -48,6 +50,8 @@ def pexels_get(params):
         save_hook and save_hook()
         time.sleep(min(wait, 600))
     _sent.append(time.time())
+    try: json.dump(list(_sent), open(LOG, "w"))
+    except Exception: pass
     r = requests.get("https://api.pexels.com/v1/search", headers={"Authorization": KEY}, params=params, timeout=20)
     r.raise_for_status()
     return r
@@ -85,30 +89,47 @@ if __name__ == "__main__":
         order = {c: n for n, c in enumerate(arg("--priority").split(","))}
         todo.sort(key=lambda r: order.get(r.get("category"), len(order)))
     done = 0; extra = []
+    PHOTO_KEYS = ("image", "image_attribution", "image_source", "image_no_match", "gallery_images")
     def save():
-        if "--dry" not in sys.argv:
-            for f, data in sets: json.dump(data, open(f, "w", encoding="utf-8"), ensure_ascii=False)
+        """Re-read each file from disk and copy in only the photo fields, so edits made to the file meanwhile are never overwritten. Atomic write."""
+        if "--dry" in sys.argv: return
+        for f, data in sets:
+            try: disk = json.load(open(f, encoding="utf-8"))
+            except Exception: continue
+            mine = {r["recipe_id"]: r for r in data}
+            for d in disk:
+                r = mine.get(d["recipe_id"])
+                if r:
+                    for k in PHOTO_KEYS:
+                        if k in r: d[k] = r[k]
+            tmp = f.with_suffix(".tmp"); json.dump(disk, open(tmp, "w", encoding="utf-8"), ensure_ascii=False); os.replace(tmp, f)
     save_hook = save
     for r in todo[:lim]:
         dest = OUT/f"{r['recipe_id']}.jpg"; img = None; credit = None; extra = []
         if dest.exists():   # already downloaded earlier: just link it, no search needed
             r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r.setdefault("image_attribution", "Photo from Pexels"); done += 1; continue
-        try:
-            if KEY:
-                found = pexels(r["title"])
-                if found:
-                    url, credit = found[0]
-                    img = requests.get(url, timeout=30).content
-                    extra = found[1:]
-            if img is None and "--ai" in sys.argv and os.environ.get("ENABLE_AI_IMAGES") == "1":
-                img = ai_image(r["title"]); credit = "AI-generated illustration"
-                r["image_source"] = "ai-generated"
-        except requests.HTTPError as e:
-            if e.response is not None and e.response.status_code == 429:
-                print("Pexels says too many requests. Progress saved. Run the same command again in 1 hour."); break
-            print("  skip", r["title"], e); continue
-        except Exception as e:
-            print("  skip", r["title"], e); continue
+        failed = False
+        for attempt in range(6):                     # temporary problems (busy, offline, Mac woke from sleep) are retried, never end the run
+            try:
+                if KEY:
+                    found = pexels(r["title"])
+                    if found:
+                        url, credit = found[0]
+                        img = requests.get(url, timeout=30).content
+                        extra = found[1:]
+                if img is None and "--ai" in sys.argv and os.environ.get("ENABLE_AI_IMAGES") == "1":
+                    img = ai_image(r["title"]); credit = "AI-generated illustration"
+                    r["image_source"] = "ai-generated"
+                failed = False; break
+            except requests.HTTPError as e:
+                failed = True
+                code = e.response.status_code if e.response is not None else 0
+                wait = 600 if code == 429 else 30 * (attempt + 1)
+                print(f"  {r['title']}: {code or e}; waiting {wait // 60 or 1} min then trying again", flush=True); save(); time.sleep(wait)
+            except Exception as e:
+                failed = True
+                print(f"  {r['title']}: {e}; waiting then trying again", flush=True); time.sleep(30 * (attempt + 1))
+        if failed: continue                           # gave up on this one for now; NOT marked no-match, so a later pass tries it again
         if not img:
             print("  no match:", r["title"])
             if KEY and "--dry" not in sys.argv: r["image_no_match"] = True     # remembered, so the next run skips it (use --retry-misses to try again)
