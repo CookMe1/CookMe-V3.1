@@ -15,3 +15,6 @@ venv/
 .DS_Store
 *.log
 data/staging/cache/
+
+# full-size photo backups (kept on the laptop, for later cloud upload)
+originals/

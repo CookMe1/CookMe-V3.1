@@ -326,3 +326,5 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Weights written out ("225 grams (1 cup)", "1 kilogram (4 cups)", "2 liters (8 cups)") are trusted over the bracketed cups, which had inflated calories hundreds of times.
 - Bar measures (part, shot, jigger, dash, drop, scoop) now have sizes, and spirits, liqueurs, vermouth, wine, beer and mixers have estimated nutrition values (`_BAR` in `nutrition_lookup.py`), so cocktails get calories.
 - Thin recipes dropped; 866 recipes without amounts kept for the AI amount-fill; 50 recipes with unmatched ingredients listed in `needs_attention.json`.
+
+- `scripts/compress_images.py` shrinks recipe photos (longest side 1000 px, JPEG quality 80) after copying the full-size originals to `originals/recipe-images/` (git-ignored, kept on the laptop for the later cloud-storage upload).
