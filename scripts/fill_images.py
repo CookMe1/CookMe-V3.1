@@ -33,13 +33,32 @@ def queries(title):
     if w and w[0] != w[-1]: qs.append(w[0] + " food")
     return qs
 
+import collections
+HOURLY_MAX = 199                      # never more than 199 Pexels requests in any rolling hour (the free key allows 200)
+_sent = collections.deque()
+
+def pexels_get(params):
+    """One Pexels search. Waits first if 199 requests were already made in the last hour, so we never go over."""
+    while True:
+        now = time.time()
+        while _sent and now - _sent[0] > 3600: _sent.popleft()
+        if len(_sent) < HOURLY_MAX: break
+        wait = int(3600 - (now - _sent[0])) + 5
+        print(f"  at the hourly limit ({HOURLY_MAX}); waiting {wait // 60} min. Keep this window open.", flush=True)
+        save_hook and save_hook()
+        time.sleep(min(wait, 600))
+    _sent.append(time.time())
+    r = requests.get("https://api.pexels.com/v1/search", headers={"Authorization": KEY}, params=params, timeout=20)
+    r.raise_for_status()
+    return r
+
+save_hook = None
+
 def pexels(title):
     """Try the full title, then shorter searches. Keep a photo only if its description shares a word with the dish name."""
     keep = set(words(title))
     for q in queries(title):
-        r = requests.get("https://api.pexels.com/v1/search", headers={"Authorization": KEY},
-                         params={"query": q, "per_page": 5, "orientation": "landscape"}, timeout=20)
-        r.raise_for_status()
+        r = pexels_get({"query": q, "per_page": 5, "orientation": "landscape"})
         for p in r.json().get("photos", []):
             if keep & set(words(p.get("alt") or "")):
                 return p["src"]["large"], f"Photo by {p['photographer']} on Pexels"
@@ -57,18 +76,16 @@ def ai_image(title):
 if __name__ == "__main__":
     data = json.load(open(F, encoding="utf-8")); OUT.mkdir(parents=True, exist_ok=True)
     todo = [r for r in data if not r.get("image")]; lim = int(arg("--limit", len(todo)))
-    done = 0; searches = 0; MAX = 190   # Pexels free key allows ~200 searches/hour
+    done = 0
     def save():
         if "--dry" not in sys.argv: json.dump(data, open(F, "w", encoding="utf-8"), ensure_ascii=False)
+    save_hook = save
     for r in todo[:lim]:
-        if KEY and searches >= MAX and "--ai" not in sys.argv:
-            print(f"Reached the hourly Pexels limit. Progress saved. Run the same command again in 1 hour."); break
         dest = OUT/f"{r['recipe_id']}.jpg"; img = None; credit = None
         if dest.exists():   # already downloaded earlier: just link it, no search needed
             r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r.setdefault("image_attribution", "Photo from Pexels"); done += 1; continue
         try:
             if KEY:
-                searches += 1
                 url, credit = pexels(r["title"])
                 if url: img = requests.get(url, timeout=30).content
             if img is None and "--ai" in sys.argv and os.environ.get("ENABLE_AI_IMAGES") == "1":
