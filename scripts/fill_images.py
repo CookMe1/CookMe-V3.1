@@ -55,15 +55,17 @@ def pexels_get(params):
 save_hook = None
 
 def pexels(title):
-    """Try the full title, then shorter searches. Keep a photo only if its description shares a word with the dish name."""
+    """Try the full title, then shorter searches. Keep photos only if their description shares a word with the dish name.
+    Returns up to 3 matching photos from the same search (no extra searches): [(url, credit), ...]."""
     keep = set(words(title))
     for q in queries(title):
-        r = pexels_get({"query": q, "per_page": 5, "orientation": "landscape"})
-        for p in r.json().get("photos", []):
-            if keep & set(words(p.get("alt") or "")):
-                return p["src"]["large"], f"Photo by {p['photographer']} on Pexels"
+        r = pexels_get({"query": q, "per_page": 8, "orientation": "landscape"})
+        found = [(p["src"]["large"], f"Photo by {p['photographer']} on Pexels") for p in r.json().get("photos", [])
+                 if keep & set(words(p.get("alt") or ""))]
+        if found:
+            return found[:3]
         time.sleep(0.4)
-    return None, None
+    return []
 
 def ai_image(title):
     import asyncio, base64
@@ -76,18 +78,21 @@ def ai_image(title):
 if __name__ == "__main__":
     data = json.load(open(F, encoding="utf-8")); OUT.mkdir(parents=True, exist_ok=True)
     todo = [r for r in data if not r.get("image")]; lim = int(arg("--limit", len(todo)))
-    done = 0
+    done = 0; extra = []
     def save():
         if "--dry" not in sys.argv: json.dump(data, open(F, "w", encoding="utf-8"), ensure_ascii=False)
     save_hook = save
     for r in todo[:lim]:
-        dest = OUT/f"{r['recipe_id']}.jpg"; img = None; credit = None
+        dest = OUT/f"{r['recipe_id']}.jpg"; img = None; credit = None; extra = []
         if dest.exists():   # already downloaded earlier: just link it, no search needed
             r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r.setdefault("image_attribution", "Photo from Pexels"); done += 1; continue
         try:
             if KEY:
-                url, credit = pexels(r["title"])
-                if url: img = requests.get(url, timeout=30).content
+                found = pexels(r["title"])
+                if found:
+                    url, credit = found[0]
+                    img = requests.get(url, timeout=30).content
+                    extra = found[1:]
             if img is None and "--ai" in sys.argv and os.environ.get("ENABLE_AI_IMAGES") == "1":
                 img = ai_image(r["title"]); credit = "AI-generated illustration"
                 r["image_source"] = "ai-generated"
@@ -101,6 +106,12 @@ if __name__ == "__main__":
         print("  ok:", r["title"], "-", credit)
         if "--dry" not in sys.argv:
             dest.write_bytes(img); r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r["image_attribution"] = credit
+            for n, (u2, c2) in enumerate(extra, start=2):      # more matching photos become the recipe's extra pictures
+                try:
+                    d2 = OUT/f"{r['recipe_id']}_{n}.jpg"; d2.write_bytes(requests.get(u2, timeout=30).content)
+                    r.setdefault("gallery_images", []).append({"user_id": "system_seeder", "image_url": f"/recipe-images/{r['recipe_id']}_{n}.jpg",
+                                                              "attribution": c2, "uploaded_at": "2026-11-27T00:00:00+00:00"})
+                except Exception as e: print("  extra photo skipped:", e)
         done += 1; time.sleep(0.4)
         if done % 10 == 0: save()
     save()
