@@ -46,4 +46,4 @@ async def alert_admin(subject: str, body: str):
 
 
 async def send_test():
-    await run_in_threadpool(_send, "CookMe test email", "If you can read this, report alerts will reach you.", True)
+    await run_in_threadpool(_send, "Grubly test email", "If you can read this, report alerts will reach you.", True)

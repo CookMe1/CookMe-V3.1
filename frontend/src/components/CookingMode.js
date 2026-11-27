@@ -44,7 +44,7 @@ const beep = (n = 3) => {
 const notifyDone = (text) => {
   try {
     if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification('CookMe timer', { body: text, tag: 'cookme-timer', requireInteraction: true });
+      new Notification('Grubly timer', { body: text, tag: 'cookme-timer', requireInteraction: true });
     }
   } catch (e) { /* ignore */ }
 };

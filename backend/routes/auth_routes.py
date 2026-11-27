@@ -139,7 +139,7 @@ async def google_callback(request: Request, response: Response):
 # ── Email / password and more (via Auth0) ─────────────────────────────────────
 # Needs two env vars on the server: AUTH0_DOMAIN (e.g. dev-abc123.eu.auth0.com) and AUTH0_CLIENT_ID.
 # The browser logs in on Auth0's own page and sends us the signed ID token; we verify it here.
-# No passwords ever touch CookMe.
+# No passwords ever touch Grubly.
 
 _auth0_jwks = {}
 
@@ -176,7 +176,7 @@ async def auth0_callback(request: Request, response: Response):
     email = (claims.get("email") or "").lower()
     if not email:
         raise HTTPException(status_code=400, detail="No email on this account")
-    # Never link an unverified email to an existing CookMe account (stops account takeover).
+    # Never link an unverified email to an existing Grubly account (stops account takeover).
     if not claims.get("email_verified"):
         raise HTTPException(status_code=403, detail="Please verify your email first (check your inbox), then log in again")
 
@@ -192,7 +192,7 @@ async def auth0_callback(request: Request, response: Response):
 
 @router.post("/facebook/callback")
 async def facebook_callback(request: Request, response: Response):
-    """Exchange a Facebook access token for a CookMe session.
+    """Exchange a Facebook access token for a Grubly session.
     Instagram login also routes here since it uses Facebook's OAuth."""
     db = request.app.state.db
     body = await request.json()
@@ -240,7 +240,7 @@ async def facebook_callback(request: Request, response: Response):
 
 @router.post("/twitter/callback")
 async def twitter_callback(request: Request, response: Response):
-    """Exchange a Twitter/X OAuth 2.0 access token for a CookMe session."""
+    """Exchange a Twitter/X OAuth 2.0 access token for a Grubly session."""
     db = request.app.state.db
     body = await request.json()
     twitter_access_token = body.get("access_token")
@@ -285,7 +285,7 @@ async def twitter_callback(request: Request, response: Response):
 
 @router.post("/apple/callback")
 async def apple_callback(request: Request, response: Response):
-    """Exchange an Apple identity token for a CookMe session."""
+    """Exchange an Apple identity token for a Grubly session."""
     db = request.app.state.db
     body = await request.json()
     id_token = body.get("id_token")

@@ -158,7 +158,7 @@ const Login = () => {
 
         {/* Footer */}
         <p className="text-zinc-600 text-xs text-center mt-8 leading-relaxed">
-          By continuing, you agree to CookMe's<br />
+          By continuing, you agree to Grubly's<br />
           <Link to="/terms" className="text-zinc-400 underline">Terms of Service</Link> and <Link to="/privacy" className="text-zinc-400 underline">Privacy Policy</Link>
         </p>
       </div>

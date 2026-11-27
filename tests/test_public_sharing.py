@@ -73,7 +73,7 @@ def test_public_recipe_is_visible_everywhere_and_unpublish_hides_it(env):
     rid = create(env)
     env.post(f"/api/recipes/{rid}/publish", json={"consent": True, "terms_version": ps.TERMS_VERSION, "show_name": False})
     as_user(OTHER)
-    got = env.get(f"/api/recipes/{rid}"); assert got.status_code == 200 and got.json()["public_author"] == "CookMe community"
+    got = env.get(f"/api/recipes/{rid}"); assert got.status_code == 200 and got.json()["public_author"] == "Grubly community"
     assert rid in [r["recipe_id"] for r in env.get("/api/recipes/search?q=lentil").json()["recipes"]]
     assert env.get("/api/recipes/stats").json()["total"] == 1
     as_user(ME); assert env.post(f"/api/recipes/{rid}/unpublish").json()["status"] == "private"
@@ -110,7 +110,7 @@ def test_other_users_ids_and_hidden_names_are_masked(env):
     env.post(f"/api/recipes/{rid}/save")                     # I favourite it (my id lands in favorited_by)
     as_user(OTHER)
     d = env.get(f"/api/recipes/{rid}").json()
-    assert d["user_id"] == "shared" and d["uploader_id"] is None and d["uploader_name"] == "CookMe community"
+    assert d["user_id"] == "shared" and d["uploader_id"] is None and d["uploader_name"] == "Grubly community"
     assert "u_me" not in str(d["favorited_by"]) and "u_me" not in str(d["hidden_by"])
     s = env.get("/api/recipes/search?q=lentil").json()["recipes"][0]
     assert s["user_id"] == "shared"

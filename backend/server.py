@@ -174,7 +174,7 @@ for router in (
 
 @api_router.get("/")
 async def root():
-    return {"message": "CookMe API is running"}
+    return {"message": "Grubly API is running"}
 
 
 app.include_router(api_router)

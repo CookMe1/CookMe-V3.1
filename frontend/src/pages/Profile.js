@@ -115,7 +115,7 @@ const Profile = () => {
       {/* Hero / Cover */}
       <div className="relative h-16 bg-gradient-to-r from-orange-700 via-orange-600 to-amber-500">
         <div className="absolute inset-0 bg-[#09090b]/30" />
-        <span className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 font-handwriting text-3xl text-white drop-shadow">CookMe</span>
+        <span className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 font-handwriting text-3xl text-white drop-shadow">Grubly</span>
         {isOwnProfile && (
           <div className="absolute top-1/2 -translate-y-1/2 right-4 flex gap-2">
             <button
@@ -328,7 +328,7 @@ const Profile = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold text-zinc-100 mb-1">Sign Out</h3>
-                    <p className="text-sm text-zinc-500">Sign out of your CookMe account.</p>
+                    <p className="text-sm text-zinc-500">Sign out of your Grubly account.</p>
                   </div>
                   <button
                     onClick={handleLogout}

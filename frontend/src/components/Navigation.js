@@ -54,7 +54,7 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-14 md:h-16">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center space-x-2" data-testid="logo-link">
-            <span className="font-handwriting text-2xl text-orange-500">CookMe</span>
+            <span className="font-handwriting text-2xl text-orange-500">Grubly</span>
           </Link>
 
           {/* Desktop Navigation */}

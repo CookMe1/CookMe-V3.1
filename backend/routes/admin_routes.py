@@ -296,8 +296,8 @@ async def ai_recipe_approve(body: AiRecipeAction, request: Request):
         "servings": src.get("servings", 4), "difficulty": src.get("difficulty", "Medium"),
         "ingredients": src.get("ingredients", []), "steps": src.get("steps", []),
         "tags": tags + ["AI-made"], "category": src.get("category"), "cuisine": src.get("cuisine"),
-        "source": "CookMe community (AI-made, reviewed by CookMe)", "ai_generated": True,
-        "uploader_id": "system_seeder", "uploader_name": "CookMe", "likes_count": 0, "saves_count": 0,
+        "source": "Grubly community (AI-made, reviewed by Grubly)", "ai_generated": True,
+        "uploader_id": "system_seeder", "uploader_name": "Grubly", "likes_count": 0, "saves_count": 0,
         "hidden_by": [], "favorited_by": [], "gallery_images": [], "created_at": now, "updated_at": now,
     }
     await db.recipes.insert_one(master)

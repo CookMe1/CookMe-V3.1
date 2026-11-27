@@ -422,7 +422,7 @@ async def publish_recipe(recipe_id: str, request: Request):
         tags, cuisine = recipe.get("tags", []), recipe.get("cuisine")
     await db.recipes.update_one({"recipe_id": recipe_id}, {"$set": {
         "visibility": "public", "publish_status": "public", "publish_issues": [], "public_since": now,
-        "public_author": author or "CookMe community", "share_caption": caption or None, "tags": tags, "cuisine": cuisine, "updated_at": now}})
+        "public_author": author or "Grubly community", "share_caption": caption or None, "tags": tags, "cuisine": cuisine, "updated_at": now}})
     return {"status": "public", "issues": []}
 
 
@@ -725,7 +725,7 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
             if cached and cached.get("_fetch_failed"):
                 raise HTTPException(
                     status_code=422,
-                    detail="That website blocked CookMe from reading the recipe. Select the recipe text on the page and share it to CookMe again, or paste it here.",
+                    detail="That website blocked Grubly from reading the recipe. Select the recipe text on the page and share it to Grubly again, or paste it here.",
                 )
             if cached and str(cached.get("title", "")).strip().lower() != "recipe name" and not any(str(x).strip() in ("@type", "itemListElement", "name") for x in (cached.get("steps") or cached.get("instructions") or [])):
                 return cached
@@ -765,7 +765,7 @@ async def extract_recipe(extract_data: RecipeExtractRequest, request: Request):
                 await set_cache(db, cache_key, {"_fetch_failed": True}, ttl_days=0.25)  # don't hammer a blocking site
                 raise HTTPException(
                     status_code=422,
-                    detail="That website blocked CookMe from reading the recipe. Select the recipe text on the page and share it to CookMe again, or paste it here.",
+                    detail="That website blocked Grubly from reading the recipe. Select the recipe text on the page and share it to Grubly again, or paste it here.",
                 )
 
             # ── Try JSON-LD first (free, no AI) ──────────────────────────────
@@ -855,13 +855,13 @@ Content:
                     or any(str(x).strip().lower() in _tpl_steps for x in recipe_data.get("steps", []))):
                 raise HTTPException(
                     status_code=422,
-                    detail="CookMe could not find a recipe on that page. Select the recipe text on the page and share it to CookMe again, or paste it here.",
+                    detail="Grubly could not find a recipe on that page. Select the recipe text on the page and share it to Grubly again, or paste it here.",
                 )
 
             if not recipe_data.get("ingredients") and not (recipe_data.get("steps") or recipe_data.get("instructions")):
                 raise HTTPException(
                     status_code=422,
-                    detail="CookMe could not find a recipe on that page. Select the recipe text on the page and share it to CookMe again, or paste it here.",
+                    detail="Grubly could not find a recipe on that page. Select the recipe text on the page and share it to Grubly again, or paste it here.",
                 )
             for _k in ("prep_time", "cook_time"):
                 if str(recipe_data.get(_k, "")).strip().lower() in ("not specified", "n/a", "unknown", "none"):

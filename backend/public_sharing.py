@@ -9,10 +9,10 @@ from recipe_cleaner import clean_steps
 TERMS_VERSION = "2026-11-17"
 CONSENT_TEXT = (
     "I wrote this recipe myself (or I have the right to share it), and the photo is my own. "
-    "I choose to make it public. I give CookMe a free, non-exclusive, worldwide licence to show it to other CookMe users, "
+    "I choose to make it public. I give Grubly a free, non-exclusive, worldwide licence to show it to other Grubly users, "
     "to translate, resize and tag it, and to feature it inside the app. Other users may save a copy for their own personal use. "
-    "I can make it private again at any time: CookMe will then stop showing it, but copies other people already saved can stay in their own collections. "
-    "I understand CookMe can remove recipes that break its rules."
+    "I can make it private again at any time: Grubly will then stop showing it, but copies other people already saved can stay in their own collections. "
+    "I understand Grubly can remove recipes that break its rules."
 )
 CONSENT_HASH = hashlib.sha256((TERMS_VERSION + CONSENT_TEXT).encode()).hexdigest()
 

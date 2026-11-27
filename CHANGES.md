@@ -281,3 +281,8 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 
 ## Cleaner backend requirements
 - `backend/requirements.txt` was a full copy of Emergent's template environment. Removed 18 packages the app never imports: dev tools (black, flake8, isort, mypy and helpers), pandas, numpy, playwright (a whole browser), jq, s5cmd, watchfiles, pytz. Faster installs and restarts. Everything the app imports, and everything the AI library pulls in by itself, is still installed.
+
+## Rename to Grubly (grublyworld.com)
+- App name changed from CookMe to Grubly in the UI, install name (manifest, index.html), Terms and Privacy Policy (which now name grublyworld.com), error messages, share text and default author ("Grubly community").
+- Left alone on purpose so nobody loses data or sign-in: localStorage keys, cache names, event names, the contact email default.
+- Existing recipes already saved with author "CookMe community" keep that label.

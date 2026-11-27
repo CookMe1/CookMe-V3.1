@@ -34,7 +34,7 @@ def display_name(user: dict) -> str:
     """First name + last initial, e.g. "Kabir P." Full names are never shown to other users."""
     parts = (user.get("name") or "").split()
     if not parts:
-        return "CookMe user"
+        return "Grubly user"
     return parts[0] if len(parts) == 1 else f"{parts[0]} {parts[-1][0]}."
 
 
@@ -149,7 +149,7 @@ async def _record_report(db, user, kind, target_id, data: ReportIn, target_user_
 
 async def _alert(what: str, reporter: dict, data: ReportIn, extra: str):
     await notify.alert_admin(
-        f"CookMe report: {what}",
+        f"Grubly report: {what}",
         f"{what}\nReason: {data.reason or 'other'}\nDetails: {(data.details or '')[:300]}\n"
         f"Reported by: {reporter.get('name')} ({reporter.get('email')})\n\n{extra}")
 

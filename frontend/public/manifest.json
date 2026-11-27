@@ -1,6 +1,6 @@
 {
-  "short_name": "CookMe",
-  "name": "CookMe - Recipe Manager",
+  "short_name": "Grubly",
+  "name": "Grubly - Recipe Manager",
   "description": "Your personal recipe companion. Import recipes from any app with one click.",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },

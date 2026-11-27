@@ -6,7 +6,7 @@ import { PLACEHOLDER_IMAGE, onImageError } from '../utils/placeholder';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-// Recipes that CookMe members chose to share (they passed our checks), newest first.
+// Recipes that Grubly members chose to share (they passed our checks), newest first.
 const MemberRecipes = () => {
   const [recipes, setRecipes] = useState(null);
   useEffect(() => {
@@ -30,7 +30,7 @@ const MemberRecipes = () => {
               <img src={r.image || PLACEHOLDER_IMAGE} onError={onImageError} alt={r.title} className="w-full h-36 object-cover" loading="lazy" />
               <div className="p-3">
                 <p className="font-semibold text-zinc-100 text-sm line-clamp-2">{r.title}</p>
-                <p className="text-xs text-zinc-500 mt-1">by {r.public_author || 'CookMe community'}</p>
+                <p className="text-xs text-zinc-500 mt-1">by {r.public_author || 'Grubly community'}</p>
                 {r.share_caption && <p className="text-xs text-zinc-300 mt-1 line-clamp-2 italic">“{r.share_caption}”</p>}
                 <p className="text-xs text-zinc-500 mt-1 inline-flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {r.comment_count || 0}</p>
               </div>

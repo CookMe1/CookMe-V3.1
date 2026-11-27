@@ -350,7 +350,7 @@ const ShareHandler = () => {
         } else if (recipeData.recipe_in_content === false) {
           toast.warning(recipeData.comments_checked
             ? 'There is no full recipe in the post or its top comments, so AI wrote this one from the dish name. Please check it.'
-            : 'There is no full recipe in the post, and this app cannot read comments on this site. AI wrote this from the dish name. If the recipe is in the comments, copy it and share it to CookMe.',
+            : 'There is no full recipe in the post, and this app cannot read comments on this site. AI wrote this from the dish name. If the recipe is in the comments, copy it and share it to Grubly.',
           { duration: 12000 });
         }
       }
@@ -428,7 +428,7 @@ const ShareHandler = () => {
     } catch (err) {
       console.error('Extract error:', err);
       if (/blocked|could not find a recipe|paste/i.test(err.message || '')) {
-        // The site would not let CookMe read it: go straight to "paste the recipe text" with the link kept.
+        // The site would not let Grubly read it: go straight to "paste the recipe text" with the link kept.
         setRecipe({
           title: '', description: '', ingredients: [], steps: [], image: '',
           source_url: targetUrl, source: detected.name, tags: ['Imported'],
@@ -437,7 +437,7 @@ const ShareHandler = () => {
         });
         setShowPasteBox(true);
         setMode('success');
-        toast.info("That site blocks imports. Paste the recipe text below, or select the text on the page and share it to CookMe again.");
+        toast.info("That site blocks imports. Paste the recipe text below, or select the text on the page and share it to Grubly again.");
         return;
       }
       setError(err.message || 'Failed to extract recipe');

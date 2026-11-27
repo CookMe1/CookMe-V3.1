@@ -50,7 +50,7 @@ const SourceCredit = ({ recipe }) => {
         </p>
       )}
       {sharedBy && !s.name && (
-        <p className="text-sm text-zinc-400">Recipe shared by <span className="text-zinc-200">{sharedBy}</span> with the CookMe community</p>
+        <p className="text-sm text-zinc-400">Recipe shared by <span className="text-zinc-200">{sharedBy}</span> with the Grubly community</p>
       )}
       {s.photo && (
         <p className="text-xs text-zinc-500 mt-1">

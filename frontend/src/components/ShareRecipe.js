@@ -96,7 +96,7 @@ const ShareRecipe = ({ recipe, onChange }) => {
           <DialogHeader>
             <DialogTitle>Share to Social</DialogTitle>
             <DialogDescription className="text-zinc-400">
-              Your recipe will appear on the Social page for other CookMe members. We check every recipe first, so everyone gets one they can cook from.
+              Your recipe will appear on the Social page for other Grubly members. We check every recipe first, so everyone gets one they can cook from.
             </DialogDescription>
           </DialogHeader>
 

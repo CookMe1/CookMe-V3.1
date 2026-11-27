@@ -278,8 +278,8 @@ const Recipes = () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: 'CookMe Recipes',
-          text: 'Check out these amazing recipes on CookMe!',
+          title: 'Grubly Recipes',
+          text: 'Check out these amazing recipes on Grubly!',
           url: window.location.href
         });
       } catch (err) {

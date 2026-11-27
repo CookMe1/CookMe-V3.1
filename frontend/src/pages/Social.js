@@ -211,7 +211,7 @@ const Social = () => {
                   <UsersIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-zinc-100 mb-2">Join the CookMe Community!</h3>
+                  <h3 className="text-lg font-bold text-zinc-100 mb-2">Join the Grubly Community!</h3>
                   <p className="text-zinc-400 mb-4">Discover, save and share amazing recipes from fellow food lovers.</p>
                   <Button onClick={() => setSocialEnabled(true)} className="bg-orange-600 hover:bg-orange-700 text-white">
                     Enable Community Feed
