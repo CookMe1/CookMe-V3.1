@@ -21,6 +21,10 @@ class Recipe(BaseModel):
     nutrition: Optional[dict] = None
     source_url: Optional[str] = None  # Original URL if imported
     source_license: Optional[str] = None  # e.g. "CC BY-SA 4.0"
+    source_author: Optional[str] = None  # original author, shown in the credit line
+    source_license_url: Optional[str] = None
+    source_attribution: Optional[str] = None
+    source_share_alike: Optional[bool] = None
     source_history_url: Optional[str] = None  # authors/history page (CC BY-SA attribution)
     image_attribution: Optional[str] = None  # e.g. "Photo by Ann on Pexels"
     image_source: Optional[str] = None  # e.g. "ai-generated"

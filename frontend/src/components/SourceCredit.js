@@ -15,6 +15,11 @@ export function sourceInfo(recipe) {
   else if (host.includes('wikibooks.org')) { info.name = 'Wikibooks Cookbook'; info.note = 'CC BY-SA 4.0'; info.noteUrl = CC_BY_SA; info.historyUrl = recipe?.source_history_url || null; }
   else if (host.includes('youtube') || host.includes('youtu.be')) { info.name = 'YouTube'; }
 
+  // open-licence recipes from other sources (old cookbooks, US government sites): show the author and the licence we recorded
+  if (recipe?.source_license && !info.note) { info.note = recipe.source_license; info.noteUrl = recipe.source_license_url || null; }
+  if (recipe?.source_author) info.author = recipe.source_author;
+  if (recipe?.source_license && recipe.source_license_url && info.note === 'CC BY-SA 4.0' && !info.noteUrl) info.noteUrl = recipe.source_license_url;
+
   if (recipe?.image_attribution) {
     info.photo = recipe.image_attribution;
   } else if (img.includes('themealdb.com')) {
@@ -36,10 +41,10 @@ const SourceCredit = ({ recipe }) => {
       <h3 className="font-semibold text-zinc-100 mb-3">Source</h3>
       {s.name && (
         <p className="text-sm text-zinc-400">
-          Recipe from{' '}
+          Recipe{s.author ? <> by <span className="text-zinc-200">{s.author}</span></> : null} from{' '}
           <a href={s.url} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-400 underline">{s.name}</a>
           {s.note && (
-            <> · licensed <a href={s.noteUrl} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-400 underline">{s.note}</a></>
+            <> · licensed {s.noteUrl ? <a href={s.noteUrl} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-400 underline">{s.note}</a> : s.note}</>
           )}
           {s.historyUrl && (
             <> · <a href={s.historyUrl} target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:text-orange-400 underline">Authors</a></>

@@ -346,3 +346,6 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - `scripts/enrich_staged.py`: keeps modernise flags; plain salads/sides/soups may be under 30 kcal.
 - `backend/nutrition_lookup.py`: lobster, crab, prawn, barramundi, hilsa, mullet, mackerel, Cornish hen, caviar estimates.
 - `scripts/fill_images.py`: remembers searches with no match (`image_no_match`) and skips them next run (`--retry-misses` to try again); several files share one hourly limit (`--file a.json,b.json`); `--priority drink,sauce,snack` does those sections first.
+
+## Credit lines for open-licence recipes
+- The recipe model and the recipe page now carry the author, licence and licence link recorded for each imported recipe, so old-cookbook and US-government recipes show "Recipe by <author> from <site> · licensed <licence>". Public web pages show the author too.

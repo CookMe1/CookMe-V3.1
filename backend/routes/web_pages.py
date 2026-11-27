@@ -83,7 +83,8 @@ def render_recipe(r: dict, base: str) -> str:
     credit = ""
     if r.get("source_license"):
         src = r.get("source_url") or ""
-        credit = (f'<p class="credit">Recipe from <a href="{e(src)}" rel="nofollow noopener">{e(src)}</a>, '
+        by = f' by {e(r["source_author"])}' if r.get("source_author") else ""
+        credit = (f'<p class="credit">Recipe{by} from <a href="{e(src)}" rel="nofollow noopener">{e(src)}</a>, '
                   f'licensed {e(str(r["source_license"]))}. Changes may have been made.</p>')
     elif r.get("public_author"):
         credit = f'<p class="credit">Shared by {e(r["public_author"])} on Grubly.</p>'
