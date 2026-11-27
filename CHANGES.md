@@ -338,3 +338,11 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 ## Share to Social for library recipes
 - Any recipe in the library can now be shared to the Community page with one tap ("Share to Social" on every recipe page, "Share a recipe" on the Community page). A photo is optional; if added it must be the member's own. Only the recipe's link, its own picture and the member's note are posted, never a copy of the recipe text, so open-licence recipes keep their credit.
 - Without a photo, only recipes already in the shared library can be shared. Members' private recipes still need the Publish checks.
+
+## Second recipe batch (zip v2, 2,720 recipes) and photo script
+- `scripts/import_jsonld.py` staged the zip as `open_new2.json` (open licences only; NHS recipes removed on request).
+- `scripts/modernise_old.py` (new): cleans old-cookbook and manual text without changing the recipe: drops page/code lines, number words to digits, ketchup/teaspoon/heat/oven wording, capital letters and full stops, run-together ingredient lines fixed, ingredient lists hidden in the method moved into the ingredient list with metric amounts, recipes that point at another recipe or name a large batch kept out, held recipes re-checked.
+- `scripts/triage_staged.py` (new): puts institutional mixes, washes, frostings, fountain syrups aside and returns recipes with missing main ingredients to the held file.
+- `scripts/enrich_staged.py`: keeps modernise flags; plain salads/sides/soups may be under 30 kcal.
+- `backend/nutrition_lookup.py`: lobster, crab, prawn, barramundi, hilsa, mullet, mackerel, Cornish hen, caviar estimates.
+- `scripts/fill_images.py`: remembers searches with no match (`image_no_match`) and skips them next run (`--retry-misses` to try again); several files share one hourly limit (`--file a.json,b.json`); `--priority drink,sauce,snack` does those sections first.

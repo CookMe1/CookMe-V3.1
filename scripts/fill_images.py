@@ -4,7 +4,7 @@
     Get a free key at https://www.pexels.com/api/ and set it:  export PEXELS_API_KEY=...
  2) Optional --ai: generate an image (needs ENABLE_AI_IMAGES=1 and the Emergent LLM key, i.e. run on Emergent).
  Images are saved to frontend/public/recipe-images/<recipe_id>.jpg and recipe['image'] is set to /recipe-images/<id>.jpg
- Usage:  python scripts/fill_images.py [--file data/staging/wikibooks_approved.json] [--limit 50] [--ai] [--dry] [--retry-misses]
+ Usage:  python scripts/fill_images.py [--file data/staging/a.json,data/staging/b.json] [--limit 50] [--ai] [--dry] [--retry-misses] [--priority drink,sauce,snack]
 Photo choice is a best match for the dish name, so spot-check a few. AI ones are labelled 'AI-generated illustration'."""
 import json, os, sys, time
 from pathlib import Path
@@ -76,11 +76,18 @@ def ai_image(title):
     return base64.b64decode(imgs[0]["data"]) if imgs else None
 
 if __name__ == "__main__":
-    data = json.load(open(F, encoding="utf-8")); OUT.mkdir(parents=True, exist_ok=True)
-    todo = [r for r in data if not r.get("image") and not r.get("needs_review") and (not r.get("image_no_match") or "--retry-misses" in sys.argv)]; lim = int(arg("--limit", len(todo)))
+    # --file may list several staged files separated by commas; they share one hourly limit and one priority order
+    files = [ROOT/Path(x) for x in arg("--file", "data/master_recipes.json").split(",")]
+    sets = [(f, json.load(open(f, encoding="utf-8"))) for f in files]; OUT.mkdir(parents=True, exist_ok=True)
+    todo = [r for _, data in sets for r in data if not r.get("image") and not r.get("needs_review") and (not r.get("image_no_match") or "--retry-misses" in sys.argv)]
+    lim = int(arg("--limit", len(todo)))
+    if arg("--priority"):                                   # e.g. --priority drink,sauce,snack : those sections get their photos first
+        order = {c: n for n, c in enumerate(arg("--priority").split(","))}
+        todo.sort(key=lambda r: order.get(r.get("category"), len(order)))
     done = 0; extra = []
     def save():
-        if "--dry" not in sys.argv: json.dump(data, open(F, "w", encoding="utf-8"), ensure_ascii=False)
+        if "--dry" not in sys.argv:
+            for f, data in sets: json.dump(data, open(f, "w", encoding="utf-8"), ensure_ascii=False)
     save_hook = save
     for r in todo[:lim]:
         dest = OUT/f"{r['recipe_id']}.jpg"; img = None; credit = None; extra = []
@@ -118,5 +125,5 @@ if __name__ == "__main__":
         done += 1; time.sleep(0.4)
         if done % 10 == 0: save()
     save()
-    left = sum(1 for r in data if not r.get("image"))
+    left = sum(1 for _, data in sets for r in data if not r.get("image") and not r.get("needs_review") and not r.get("image_no_match"))
     print(f"filled {done} this run; {left} recipes still have no image")

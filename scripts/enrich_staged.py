@@ -55,6 +55,9 @@ async def enrich(rows):
             r["description"] = e.make_description(r); r["description_auto"] = True; st["desc"] += 1
         # servings + nutrition
         r.pop("nutrition", None); r.pop("needs_review", None)
+        if r.get("review_reason"):                      # set by modernise_old.py (points at another recipe, batch-size method): stays out
+            r["needs_review"] = True; st["review"] += 1
+            continue
         total = await calculate_recipe_nutrition_free(r.get("ingredients") or [], 1)
         if not total:
             if not r.get("servings_stated"): r["servings_estimated"] = True
@@ -65,7 +68,7 @@ async def enrich(rows):
             r["servings"] = max(lo, min(hi, round(total["calories"] / tgt)))
             r["servings_estimated"] = True; st["srv_est"] += 1
         special = bool({str(x).lower() for x in r.get("tags") or []} & (SPECIAL_SAUCE | {"drink"}))
-        lo_kcal = 0 if special else 30
+        lo_kcal = 0 if special else (8 if r.get("category") in ("salad", "side", "soup") else 30)   # a plain green salad really is under 30 kcal
 
         def per_serving(n):
             n = max(1, int(n))

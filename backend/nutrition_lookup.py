@@ -138,6 +138,11 @@ _BAR = [
      r"maraschino|cr[eè]me de|rumchata|grand marnier|umeshu|irish cream|cream liqueur|apertivo)\b", (310, 0, 32, 1, 0, 30, 10)),
     (r"\b(?:vodka|gin|rum|whisk(?:e)?y|scotch|bourbon|rye|tequila|brandy|cognac|cacha[cç]a|applejack|calvados|mezcal|pisco|absinthe|everclear|everc)\b", (231, 0, 0, 0, 0, 0, 1)),
     (r"\b(?:espresso|cold brew|coffee)\b", (2, 0.1, 0, 0, 0, 0, 2)),
+    # fish and shellfish the USDA table names differently (raw, per 100 g)
+    (r"\blobster\b", (89, 19, 0, 0.9, 0, 0, 486)), (r"\bcrab\b", (84, 18, 0, 1, 0, 0, 293)), (r"\b(?:prawns?|shrimps?)\b", (99, 24, 0.2, 0.3, 0, 0, 111)),
+    (r"\b(?:barramundi|sea ?bass)\b", (97, 18, 0, 2, 0, 0, 70)), (r"\b(?:hilsa|shad)\b", (250, 19, 0, 19, 0, 0, 80)),
+    (r"\bmullets?\b", (117, 19, 0, 4, 0, 0, 70)), (r"\bmackerels?\b", (205, 19, 0, 14, 0, 0, 90)),
+    (r"\b(?:cornish (?:game )?hens?|game hens?)\b", (220, 18, 0, 16, 0, 0, 70)), (r"\b(?:caviar|roe)\b", (143, 22, 1.5, 6, 0, 0, 1500)),
 ]
 
 
