@@ -1,3 +1,6 @@
 User-agent: *
+Allow: /api/web/
 Disallow: /api/
 Disallow: /admin
+
+Sitemap: https://grublyworld.com/api/web/sitemap.xml

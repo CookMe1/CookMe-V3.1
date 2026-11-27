@@ -161,13 +161,14 @@ from routes.admin_routes import router as admin_router
 from routes.ai_routes import router as ai_router
 from routes.monitoring_routes import router as monitoring_router
 from routes.localisation_routes import router as localisation_router
+from routes.web_pages import router as web_pages_router
 from import_queue import router as import_queue_router
 
 for router in (
     auth_router, recipe_router, pantry_router, shopping_router,
     import_workflow_router, cookbook_router, meal_plan_router,
     instagram_router, translation_router, community_router,
-    localisation_router, import_queue_router, social_router, admin_router, monitoring_router, ai_router,
+    localisation_router, import_queue_router, social_router, admin_router, monitoring_router, ai_router, web_pages_router,
 ):
     api_router.include_router(router)
 

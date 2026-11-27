@@ -286,3 +286,8 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - App name changed from CookMe to Grubly in the UI, install name (manifest, index.html), Terms and Privacy Policy (which now name grublyworld.com), error messages, share text and default author ("Grubly community").
 - Left alone on purpose so nobody loses data or sign-in: localStorage keys, cache names, event names, the contact email default.
 - Existing recipes already saved with author "CookMe community" keep that label.
+
+## Public recipe pages and sitemap (for Google and link previews)
+- `/api/web/recipe/{id}`: a plain web page per recipe (title, photo, ingredients, method, calories, Recipe markup for Google, share-preview tags, "Save to Grubly" button, licence/author credit).
+- `/api/web/sitemap.xml` lists them; `robots.txt` allows `/api/web/` and points to the sitemap.
+- Only recipes people made public, open-licence ones and reviewed AI ones appear. The ~1,139 older library recipes copied from other sites are deliberately excluded (copyright).
