@@ -32,7 +32,7 @@ async def enrich(rows):
             except ValueError:
                 srv = 4
             nut = await calculate_recipe_nutrition_free(r.get("ingredients") or [], srv)
-            if nut and nut.get("calories", 0) > 1500:
+            if nut and not (30 <= nut.get("calories", 0) <= 1500):
                 nut = None            # over 1,500 kcal a serving is almost always a wrong serving count: show nothing rather than a wrong number
             if nut:
                 r["nutrition"] = nut; n += 1
