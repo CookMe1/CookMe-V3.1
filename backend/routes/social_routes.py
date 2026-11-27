@@ -263,7 +263,7 @@ HIDE_MADE_AFTER_REPORTS = 3
 class MadeIn(BaseModel):
     recipe_id: str
     note: Optional[str] = ""
-    image_data: str          # data URL of the person's own photo
+    image_data: Optional[str] = ""   # data URL of the person's own photo (optional: without one the recipe's own picture is shown)
 
 
 def _shrink_photo(data_url: str) -> bytes:
@@ -288,7 +288,9 @@ def _shrink_photo(data_url: str) -> bytes:
 
 def _made_public(p: dict, viewer: dict) -> dict:
     return {"post_id": p["post_id"], "recipe_id": p["recipe_id"], "recipe_title": p.get("recipe_title"),
-            "author_name": p.get("author_name"), "note": p.get("note") or "", "photo_url": f"/api/social/made/{p['post_id']}/photo",
+            "author_name": p.get("author_name"), "note": p.get("note") or "",
+            "photo_url": f"/api/social/made/{p['post_id']}/photo" if p.get("has_photo", True) else None,
+            "recipe_image": p.get("recipe_image"), "kind": "made" if p.get("has_photo", True) else "shared",
             "created_at": p["created_at"], "mine": p["user_id"] == viewer["user_id"]}
 
 
@@ -305,11 +307,16 @@ async def post_made_it(data: MadeIn, request: Request):
     now = datetime.now(timezone.utc)
     if await db.made_posts.count_documents({"user_id": user["user_id"], "created_at": {"$gte": now - timedelta(days=1)}}) >= MAX_MADE_PER_DAY:
         raise HTTPException(status_code=429, detail="You've shared a lot today. Please try again tomorrow.")
-    photo = _shrink_photo(data.image_data)
+    photo = _shrink_photo(data.image_data) if (data.image_data or "").strip() else None
+    if photo is None:
+        # no photo: it is just a share of the recipe, so the recipe must already be visible to everyone
+        if not await db.recipes.find_one({"recipe_id": recipe["recipe_id"], **ps.SHARED}, {"_id": 1}):
+            raise HTTPException(status_code=400, detail="Add a photo to share this one. Only recipes in the shared library can be shared without a photo.")
     doc = {"post_id": f"mp_{uuid.uuid4().hex[:12]}", "recipe_id": recipe["recipe_id"], "recipe_title": recipe.get("title"),
-           "user_id": user["user_id"], "author_name": display_name(user), "note": note, "photo": photo,
-           "status": "visible", "created_at": now}
+           "user_id": user["user_id"], "author_name": display_name(user), "note": note, "photo": photo, "has_photo": photo is not None,
+           "recipe_image": recipe.get("image") if photo is None else None, "status": "visible", "created_at": now}
     await db.made_posts.insert_one(dict(doc))
+    doc.pop("photo", None)
     return _made_public(doc, user)
 
 

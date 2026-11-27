@@ -36,8 +36,8 @@ def test_made_it_posts_work_on_library_recipes_and_are_moderated():
         # links are refused, a photo is required, bad data is refused
         with pytest.raises(HTTPException) as e: await sr.post_made_it(sr.MadeIn(recipe_id="lib1", note="see www.example.com", image_data=_photo()), req)
         assert e.value.status_code == 400
-        with pytest.raises(HTTPException) as e: await sr.post_made_it(sr.MadeIn(recipe_id="lib1", note="x", image_data=""), req)
-        assert e.value.status_code == 400
+        shared = await sr.post_made_it(sr.MadeIn(recipe_id="lib1", note="Great one", image_data=""), req)   # no photo: a plain share of a library recipe
+        assert shared["kind"] == "shared" and shared["photo_url"] is None
         with pytest.raises(HTTPException) as e: await sr.post_made_it(sr.MadeIn(recipe_id="lib1", note="x", image_data="data:image/png;base64,AAAA"), req)
         assert e.value.status_code == 400
 
@@ -57,7 +57,7 @@ def test_made_it_posts_work_on_library_recipes_and_are_moderated():
         assert (await db.made_posts.find_one({"post_id": post["post_id"]}))["status"] == "hidden"
         with pytest.raises(HTTPException) as e: await sr.made_photo(post["post_id"], req)
         assert e.value.status_code == 404
-        assert (await sr.list_made(req))["posts"] == []
+        assert [x["post_id"] for x in (await sr.list_made(req))["posts"]] == [shared["post_id"]]   # only the plain share is left
 
         # only the owner can delete; daily limit applies
         current["u"] = "u1"
@@ -67,7 +67,7 @@ def test_made_it_posts_work_on_library_recipes_and_are_moderated():
         assert e.value.status_code == 403
         current["u"] = "u1"
         await sr.delete_made(p2["post_id"], req)
-        for _ in range(sr.MAX_MADE_PER_DAY - 1):                 # the first post already counts
+        for _ in range(sr.MAX_MADE_PER_DAY - 2):                 # the earlier posts already count
             await sr.post_made_it(sr.MadeIn(recipe_id="lib1", note="n", image_data=_photo()), req)
         with pytest.raises(HTTPException) as e: await sr.post_made_it(sr.MadeIn(recipe_id="lib1", note="n", image_data=_photo()), req)
         assert e.value.status_code == 429

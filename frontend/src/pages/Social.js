@@ -151,11 +151,11 @@ const Social = () => {
                 <Image className="w-5 h-5 text-orange-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-zinc-100">Made something? Share it</p>
-                <p className="text-sm text-zinc-500">Post a photo of a dish you cooked from any recipe in the library.</p>
+                <p className="font-semibold text-zinc-100">Share a recipe with the community</p>
+                <p className="text-sm text-zinc-500">Pick any recipe in the library to share. Add your own photo if you made it.</p>
               </div>
               <button type="button" onClick={() => setShowMadeIt(true)} data-testid="made-it-open"
-                className="shrink-0 px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium">I made this</button>
+                className="shrink-0 px-3 py-2 rounded-lg bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium">Share a recipe</button>
             </CardContent>
           </Card>
         )}

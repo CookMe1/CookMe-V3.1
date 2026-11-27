@@ -334,3 +334,7 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - Backend (`social_routes.py`): `POST /api/social/made`, `GET /api/social/made` (optionally `?recipe_id=`), `GET /api/social/made/{id}/photo`, `DELETE`, `POST .../report`. Photos are shrunk to 900 px; notes are link/phone/swearing filtered; 5 posts a day; 3 reports hide a post; admin review handles the new `made_post` kind.
 - Frontend: "I made this" button on every recipe page, "Made by others" gallery on the recipe, "Made by the community" feed and a share card on the Community page (replaces the "coming soon" placeholder).
 - Publishing a full recipe to the feed is unchanged (own recipes only).
+
+## Share to Social for library recipes
+- Any recipe in the library can now be shared to the Community page with one tap ("Share to Social" on every recipe page, "Share a recipe" on the Community page). A photo is optional; if added it must be the member's own. Only the recipe's link, its own picture and the member's note are posted, never a copy of the recipe text, so open-licence recipes keep their credit.
+- Without a photo, only recipes already in the shared library can be shared. Members' private recipes still need the Publish checks.

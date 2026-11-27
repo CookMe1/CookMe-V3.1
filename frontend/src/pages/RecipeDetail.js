@@ -555,7 +555,7 @@ const RecipeDetail = () => {
               <div className="mb-4">
                 <button type="button" onClick={() => setShowMadeIt(true)} data-testid="made-it-btn"
                   className="inline-flex items-center px-3 py-1.5 rounded-md bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium">
-                  I made this
+                  Share to Social
                 </button>
                 <MadeItDialog open={showMadeIt} onClose={() => setShowMadeIt(false)} recipe={{ recipe_id: recipe.recipe_id, title: recipe.title }} onPosted={() => setMadeRefresh(n => n + 1)} />
               </div>
@@ -943,7 +943,7 @@ const RecipeDetail = () => {
         <SourceCredit recipe={recipe} />
         {(recipe.visibility === 'public' || recipe.user_id === 'system_seeder') && (
           <>
-            <MadePosts recipeId={recipe.recipe_id} refreshKey={madeRefresh} title="Made by others" />
+            <MadePosts recipeId={recipe.recipe_id} refreshKey={madeRefresh} title="Shared by others" />
             <Comments recipeId={recipe.recipe_id} isOwner={!!currentUser && recipe.user_id === currentUser.user_id} />
           </>
         )}

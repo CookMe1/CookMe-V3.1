@@ -18,7 +18,7 @@ const ago = (iso) => {
 };
 
 // Photos people shared of dishes they cooked. Pass recipeId to show only one recipe's posts.
-const MadePosts = ({ recipeId, refreshKey = 0, title = 'Made by the community' }) => {
+const MadePosts = ({ recipeId, refreshKey = 0, title = 'Shared by the community' }) => {
   const [posts, setPosts] = useState([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -48,7 +48,7 @@ const MadePosts = ({ recipeId, refreshKey = 0, title = 'Made by the community' }
   if (!loaded || posts.length === 0) return recipeId || !loaded ? null : (
     <div className="mb-6 text-center py-8 border border-dashed border-zinc-800 rounded-xl" data-testid="made-empty">
       <Camera className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
-      <p className="text-zinc-400 text-sm">No cooked-it photos yet. Be the first!</p>
+      <p className="text-zinc-400 text-sm">Nothing shared yet. Be the first!</p>
     </div>
   );
 
@@ -58,9 +58,9 @@ const MadePosts = ({ recipeId, refreshKey = 0, title = 'Made by the community' }
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {posts.map(p => (
           <Card key={p.post_id} className="bg-zinc-900 border-zinc-800 overflow-hidden">
-            <img loading="lazy" decoding="async" src={`${API_URL}${p.photo_url}`} alt={`${p.recipe_title} made by ${p.author_name}`} className="w-full h-56 object-cover" />
+            <img loading="lazy" decoding="async" src={p.photo_url ? `${API_URL}${p.photo_url}` : (p.recipe_image || '')} alt={`${p.recipe_title} made by ${p.author_name}`} className="w-full h-56 object-cover" />
             <div className="p-4">
-              <p className="text-sm text-zinc-400"><span className="text-zinc-200 font-semibold">{p.author_name}</span> made <Link to={`/recipe/${p.recipe_id}`} className="text-orange-400 hover:underline">{p.recipe_title}</Link></p>
+              <p className="text-sm text-zinc-400"><span className="text-zinc-200 font-semibold">{p.author_name}</span> {p.kind === 'made' ? 'made' : 'shared'} <Link to={`/recipe/${p.recipe_id}`} className="text-orange-400 hover:underline">{p.recipe_title}</Link></p>
               {p.note && <p className="text-zinc-300 text-sm mt-2">{p.note}</p>}
               <div className="flex items-center justify-between mt-3 text-xs text-zinc-500">
                 <span>{ago(p.created_at)}</span>

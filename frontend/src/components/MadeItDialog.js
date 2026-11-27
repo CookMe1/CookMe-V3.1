@@ -61,14 +61,14 @@ const MadeItDialog = ({ open, onClose, recipe: fixed, onPosted }) => {
   };
 
   const submit = async () => {
-    if (!recipe || !photo) return;
+    if (!recipe) return;
     setBusy(true);
     try {
       const r = await fetch(`${API_URL}/api/social/made`, { method: 'POST', headers: authHeaders(),
-        body: JSON.stringify({ recipe_id: recipe.recipe_id, note, image_data: photo }) });
+        body: JSON.stringify({ recipe_id: recipe.recipe_id, note, image_data: photo || '' }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) { toast.error(typeof j.detail === 'string' ? j.detail : 'Could not share. Please try again.'); return; }
-      toast.success('Shared with the community!');
+      toast.success('Shared to Social!');
       onPosted && onPosted(j);
       onClose();
     } catch (err) { toast.error('Could not share. Please try again.'); }
@@ -79,13 +79,13 @@ const MadeItDialog = ({ open, onClose, recipe: fixed, onPosted }) => {
     <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
       <DialogContent className="bg-zinc-900 border-zinc-800 max-h-[90vh] overflow-y-auto" data-testid="made-it-dialog">
         <DialogHeader>
-          <DialogTitle className="text-zinc-100">I made this</DialogTitle>
-          <DialogDescription className="text-zinc-400">Share your photo of a dish you cooked. Only your photo and note are posted, not the recipe itself.</DialogDescription>
+          <DialogTitle className="text-zinc-100">Share to Social</DialogTitle>
+          <DialogDescription className="text-zinc-400">Share this recipe with other Grubly members. Add a photo of your own if you made it. The recipe stays in the library with its credit.</DialogDescription>
         </DialogHeader>
 
         {!recipe ? (
           <div>
-            <label className="text-sm text-zinc-300">Which recipe did you make?</label>
+            <label className="text-sm text-zinc-300">Which recipe do you want to share?</label>
             <div className="relative mt-1">
               <Search className="w-4 h-4 text-zinc-500 absolute left-3 top-3" />
               <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search the recipe library, e.g. cowboy butter chicken"
@@ -114,14 +114,14 @@ const MadeItDialog = ({ open, onClose, recipe: fixed, onPosted }) => {
             ) : (
               <button type="button" onClick={() => fileRef.current && fileRef.current.click()} data-testid="made-it-photo"
                 className="w-full h-36 border-2 border-dashed border-zinc-700 rounded-lg flex flex-col items-center justify-center text-zinc-400 hover:border-orange-600">
-                <Camera className="w-6 h-6 mb-1" /> Add your photo
+                <Camera className="w-6 h-6 mb-1" /> Add a photo of your dish (optional)
               </button>
             )}
-            <Textarea value={note} onChange={(e) => setNote(e.target.value.slice(0, 300))} placeholder="How did it turn out? (optional, no web links please)"
+            <Textarea value={note} onChange={(e) => setNote(e.target.value.slice(0, 300))} placeholder="Say something about it (optional, no web links please)"
               className="bg-zinc-950 border-zinc-800 text-zinc-100" />
-            <p className="text-xs text-zinc-500">{note.length}/300 · Use your own photo. Others can report posts they think break the rules.</p>
-            <Button onClick={submit} disabled={!photo || busy} className="w-full bg-orange-600 hover:bg-orange-700 text-white" data-testid="made-it-submit">
-              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Share with the community'}
+            <p className="text-xs text-zinc-500">{note.length}/300 · If you add a photo it must be your own. Others can report posts they think break the rules.</p>
+            <Button onClick={submit} disabled={busy} className="w-full bg-orange-600 hover:bg-orange-700 text-white" data-testid="made-it-submit">
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Share to Social'}
             </Button>
           </div>
         )}
