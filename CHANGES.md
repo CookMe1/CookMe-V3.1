@@ -349,3 +349,9 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 
 ## Credit lines for open-licence recipes
 - The recipe model and the recipe page now carry the author, licence and licence link recorded for each imported recipe, so old-cookbook and US-government recipes show "Recipe by <author> from <site> · licensed <licence>". Public web pages show the author too.
+
+## Held recipes rescued (scripts/rescue_held.py)
+- 75 of the 126 held old-cookbook recipes (sandwiches, canapés, sauces, biscuits, cookies, candies) brought back after reading each one: ingredients rebuilt only from what the recipe's own text says, list-only first steps removed.
+- 41 of them are kept out of the app for now because the amount of bread or pastry is not given, so calories can't be worked out honestly (flagged needs_review).
+- 51 stay held: no method, or a main ingredient never given. Nothing is invented.
+- Stray italic markers (_like this_) removed from all open_new2 text; "bain marie" -> "water bath".
