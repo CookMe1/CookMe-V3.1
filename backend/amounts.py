@@ -20,6 +20,8 @@ UNITS = {
     "pinch": 0.4, "pinches": 0.4, "dash": 0.6, "splash": 10, "drizzle": 7, "knob": 15, "glug": 15,
     "pack": 250, "packet": 250, "packets": 250, "jar": 300, "stalk": 40, "stalks": 40, "head": 500,
     "fillet": 150, "fillets": 150, "rasher": 25, "rashers": 25, "leaf": 1, "leaves": 1,
+    "part": 30, "parts": 30, "shot": 44, "shots": 44, "jigger": 44, "jiggers": 44, "measure": 25, "measures": 25, "dashes": 0.6,
+    "drop": 0.05, "drops": 0.05, "scoop": 65, "scoops": 65, "glass": 250, "pint": 473, "bottle": 330, "mililiter": 1, "mililiters": 1,
     "serving": 30, "servings": 30, "portion": 30, "portions": 30,      # "4 servings" of a sauce: about a spoonful each
 }
 SERVING_WORDS = {"serving", "servings", "portion", "portions"}
@@ -133,7 +135,7 @@ def adjust_cups(amount: str, item_name: str, grams: float, servings: int):
     weighed as cooked and its raw nutrition values are scaled down. Returns (grams, nutrition_factor)."""
     text = (amount or "").lower()
     name = (item_name or "").lower()
-    if re.search(r"\d\s*(?:kg|g|oz|lbs?|ml|l)\b", text):          # a weight or volume is written out ("500 g (4 cups)"): trust it
+    if re.search(r"\d\s*(?:kg|kilo(?:gram)?s?|grams?|g|oz|ounces?|lbs?|pounds?|ml|millilit\w+|lit(?:er|re)s?|l)\b", text):          # a weight or volume is written out ("500 g (4 cups)"): trust it
         return grams, 1.0
     if not re.search(r"\bcups?\b", text) or re.search(r"\bcooked\b", name + " " + text):
         return grams, 1.0

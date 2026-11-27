@@ -100,3 +100,10 @@ def test_import_jsonld_converts_and_filters():
     assert r["description"] == "" and r["ingredients"][0] == {"amount": "500 g (1.1 lb)", "item": "beef"}
     assert I.licence_of({"license": "https://creativecommons.org/licenses/by-nc/4.0/"}) == ""      # non-commercial is refused
     assert I.licence_of({"cookmeMeta": {"licenseSpdx": "CC-BY-SA-4.0"}}) == "CC BY-SA 4.0"
+
+
+def test_spelled_out_weights_beat_bracketed_cups():
+    from amounts import adjust_cups
+    assert adjust_cups("225 grams (1 cup)", "all-purpose flour", 225.0, 16) == (225.0, 1.0)
+    assert adjust_cups("1 kilogram (4 cups)", "flour", 1000.0, 4) == (1000.0, 1.0)
+    assert adjust_cups("2 liters (8 cups)", "stock", 2000.0, 4) == (2000.0, 1.0)

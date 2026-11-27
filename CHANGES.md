@@ -321,3 +321,8 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - `scripts/merge_zip_into_staged.py` fills gaps in recipes we already have from the same zip: full author lists (for CC BY-SA credit), licence links, Commons photo details, useful tags, stated servings, cuisine.
 - `amount_fixes.repair` now moves a leading "(1.1 lb)" bracket from the item back into the amount.
 - First run: 6,632 read, 4,825 already ours, 772 new and passing (716 with checked nutrition), 991 held (866 need amounts filled).
+
+## Batch: nutrition fixes for cocktails and spelled-out units
+- Weights written out ("225 grams (1 cup)", "1 kilogram (4 cups)", "2 liters (8 cups)") are trusted over the bracketed cups, which had inflated calories hundreds of times.
+- Bar measures (part, shot, jigger, dash, drop, scoop) now have sizes, and spirits, liqueurs, vermouth, wine, beer and mixers have estimated nutrition values (`_BAR` in `nutrition_lookup.py`), so cocktails get calories.
+- Thin recipes dropped; 866 recipes without amounts kept for the AI amount-fill; 50 recipes with unmatched ingredients listed in `needs_attention.json`.

@@ -9,7 +9,7 @@ _EMPTY_PARENS = re.compile(r"\s*\(\s*\)")
 
 _FRAC = {"¼": .25, "½": .5, "¾": .75, "⅛": .125, "⅜": .375, "⅝": .625, "⅞": .875, "⅓": 1 / 3, "⅔": 2 / 3}
 _SUM = re.compile(r"^\s*([\d¼½¾⅛⅜⅝⅞⅓⅔]+)\s*\+\s*([\d¼½¾⅛⅜⅝⅞⅓⅔]+)\s*(.*)$")
-_ITEM_UNIT = re.compile(r"^(?:(?:heaping|heaped|level|rounded|scant)\s+)?(tsp|teaspoons?|tbsp|tablespoons?|cups?|cloves?|pinch(?:es)?|handfuls?|slices?|sprigs?)\b\s*(?:\([^)]*\))?\s*(?:of\s+)?(.*)$", re.I)
+_ITEM_UNIT = re.compile(r"^(?:(?:heaping|heaped|level|rounded|scant)\s+)?(tsp|teaspoons?|tbsp|tablespoons?|cups?|cloves?|pinch(?:es)?|handfuls?|slices?|sprigs?|parts?|shots?|jiggers?|dashes|drops|measures?|scoops?|glass(?:es)?|mililiters?|bottles?)\b\s*(?:\([^)]*\))?\s*(?:of\s+)?(.*)$", re.I)
 _SIZE = re.compile(r"^(?:small|medium|large|big)\b", re.I)
 
 
@@ -37,6 +37,8 @@ def repair(ing: dict) -> dict:
     if lp and amount:
         amount, item = f"{amount} ({lp.group(1).strip()})", lp.group(2).strip()
     mu = _ITEM_UNIT.match(item)                              # amount '1', item 'heaping tsp of ground coffee' -> '1 tsp', 'ground coffee'
+    if not amount and re.match(r"^(?:parts?|shots?|jiggers?|dashes|drops|measures?|scoops?)\b", item, re.I):   # bar measures with no number: one
+        amount = "1"
     if mu and amount and re.fullmatch(r"[\d.\s½¼¾⅓⅔]+", amount):
         amount, item = f"{amount} {mu.group(1)}".strip(), mu.group(2) or item
     if not amount and _SIZE.match(item):                    # "medium onion" with no number: one

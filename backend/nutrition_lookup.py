@@ -118,8 +118,36 @@ def lookup_usda_local(ingredient_name: str) -> Optional[dict]:
                 if best_score is None or score < best_score:
                     best, best_score = f, score
     if not best:
-        return None
+        return _bar_lookup(ingredient_name)
     return _usda_result(best)
+
+
+# Spirits, liqueurs, wines and mixers that USDA has under other names (per 100 g: kcal, protein, carbs, fat, fibre, sugar, sodium mg). Estimates.
+_BAR = [
+    (r"\b(?:soda water|club soda|tonic water|sparkling water|ice(?: cubes?)?)\b", (0, 0, 0, 0, 0, 0, 5)),
+    (r"\b(?:j[aä]germeister|j[äa]ger)\b", (270, 0, 30, 0, 0, 30, 5)),
+    (r"\b(?:bitters|angostura|peychaud)", (200, 0, 15, 0, 0, 10, 5)),
+    (r"\b(?:campari|aperol|amaro|averna|fernet|cardamaro|cynar|suze)\b", (180, 0, 20, 0, 0, 20, 5)),
+    (r"\b(?:vermouth|dubonnet|lillet|punsch)\b", (140, 0, 14, 0, 0, 12, 5)),
+    (r"\b(?:prosecco|spumante|champagne|cava|sparkling wine)\b", (80, 0, 2.4, 0, 0, 1.5, 5)),
+    (r"\b(?:port|sherry|madeira|wine)\b", (105, 0.1, 4, 0, 0, 2, 5)),
+    (r"\b(?:wkd|alcopop)\b", (65, 0, 8, 0, 0, 8, 10)),
+    (r"\b(?:beer|lager|ale|stout|corona|pilsner)\b", (43, 0.5, 3.6, 0, 0, 0, 4)),
+    (r"\b(?:cola|coke|pepsi|surge|dr\.? pepper|cedrata|julmust|soft drink|red soda|lemonade soda)\b", (42, 0, 10.6, 0, 0, 10.6, 4)),
+    (r"\b(?:liqueur|liquer|kahlua|baileys|amaretto|cointreau|triple sec|cura[cç]ao|schn?apps|sambuca|midori|chartreuse|benedictine|galliano|"
+     r"maraschino|cr[eè]me de|rumchata|grand marnier|umeshu|irish cream|cream liqueur|apertivo)\b", (310, 0, 32, 1, 0, 30, 10)),
+    (r"\b(?:vodka|gin|rum|whisk(?:e)?y|scotch|bourbon|rye|tequila|brandy|cognac|cacha[cç]a|applejack|calvados|mezcal|pisco|absinthe|everclear|everc)\b", (231, 0, 0, 0, 0, 0, 1)),
+    (r"\b(?:espresso|cold brew|coffee)\b", (2, 0.1, 0, 0, 0, 0, 2)),
+]
+
+
+def _bar_lookup(name: str) -> Optional[dict]:
+    n = re.sub(r"\(.*?\)", " ", name or "").lower()
+    for rx, (kcal, p, c, f, fib, sug, na) in _BAR:
+        if re.search(rx, n):
+            return {"calories_per_100g": kcal, "protein_per_100g": p, "carbs_per_100g": c, "fat_per_100g": f, "fiber_per_100g": fib,
+                    "sugar_per_100g": sug, "sodium_per_100g": na, "matched_food": "bar estimate"}
+    return None
 
 
 def _usda_result(best: dict) -> dict:
