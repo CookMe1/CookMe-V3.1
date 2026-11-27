@@ -9,6 +9,7 @@
 - Users' own recipes, meal plans, pantry, shopping lists, cookbooks.
 - Optional public sharing of recipes with a consent record (`recipe_consents`: user, recipe, date).
 - Comments and replies, reports against users/recipes/comments, an admin who can lock, remove or ban accounts.
+- Community posts: members can share a library recipe (link, the recipe's own picture and a short note) and may upload their own photo of a dish (stored in the database, shrunk to 900 px, shown to other members, deletable by the member, reportable, hidden after 3 reports).
 - A "data export" and "delete my account" function in Profile.
 - Crash reports from browsers (error message, page path, browser type; no account id) kept 30 days.
 - Optional email alerts to the operator when something is reported.
@@ -19,7 +20,8 @@
 2. GDPR/UK GDPR: lawful bases, retention periods, international transfers (US hosts and AI providers), rights wording, DPO needed?
 3. Do we need a cookie banner, given only login/preference storage is used?
 4. User-generated content: liability under the EU Digital Services Act and UK Online Safety Act for a small platform; is our report-and-review process enough? Notice-and-action wording?
-5. Licence users grant over shared recipes and comments; are the licence and moderation terms enforceable?
+5. Licence users grant over shared recipes, comments and uploaded photos; are the licence and moderation terms enforceable?
+5a. Terms must say members may only upload photos they took themselves (or have the right to use), that they grant Grubly a licence to display them, and that photos can be removed. Please supply the wording.
 6. Master recipes come from Wikibooks (CC BY-SA) and other sources: is our attribution adequate, and what are the obligations if we sell a Pro plan?
 7. Governing law and jurisdiction (`REACT_APP_GOVERNING_LAW`) for UK and EU consumers.
 8. Age: minimum age to use the app and any parental-consent wording.
