@@ -61,7 +61,7 @@ def test_daily_number_is_10_to_20_and_steady_through_the_day(monkeypatch):
 
 def test_new_releases_wait_in_latest_then_graduate(monkeypatch):
     from datetime import datetime, timedelta, timezone
-    monkeypatch.setenv("RELEASE_PER_DAY", "10"); monkeypatch.setenv("HOLD_DAYS", "14")
+    monkeypatch.setenv("RELEASE_PER_DAY", "10"); monkeypatch.delenv("HOLD_DAYS", raising=False)   # default: 2 days
     db = make_db(12)
     async def run():
         assert await rq.release_due(db, today="2026-11-18") == 10
@@ -69,7 +69,8 @@ def test_new_releases_wait_in_latest_then_graduate(monkeypatch):
         assert r["in_latest"] is True and r["released_at"]
         assert await db.recipes.count_documents({"in_latest": True}) == 10
         assert await rq.graduate(db) == 0                                    # too soon
-        later = datetime.now(timezone.utc) + timedelta(days=15)
-        assert await rq.graduate(db, now=later) == 10                         # after two weeks they join the library
+        assert await rq.graduate(db, now=datetime.now(timezone.utc) + timedelta(days=1)) == 0       # still in Latest after a day
+        later = datetime.now(timezone.utc) + timedelta(days=3)
+        assert await rq.graduate(db, now=later) == 10                         # after two days they join the library
         assert await db.recipes.count_documents({"in_latest": True}) == 0
     asyncio.run(run())

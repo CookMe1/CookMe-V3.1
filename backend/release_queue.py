@@ -24,13 +24,13 @@ def per_day(today=None) -> int:
 
 def hold_days() -> int:
     try:
-        return max(0, int(os.environ.get("HOLD_DAYS", "14")))
+        return max(0, int(os.environ.get("HOLD_DAYS", "2")))
     except ValueError:
-        return 14
+        return 2
 
 
 async def graduate(db, now=None) -> int:
-    """After HOLD_DAYS in "Latest additions" a recipe joins the main library lists."""
+    """After HOLD_DAYS (default 2) in "Latest additions" a recipe joins the main library lists."""
     cutoff = ((now or datetime.now(timezone.utc)) - timedelta(days=hold_days())).isoformat()
     res = await db.recipes.update_many({"in_latest": True, "released_at": {"$lte": cutoff}}, {"$set": {"in_latest": False}})
     return res.modified_count

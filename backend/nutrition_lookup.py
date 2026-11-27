@@ -382,5 +382,5 @@ async def calculate_recipe_nutrition_free(
         "sugar":    round(totals["sugar"]    / servings, 1),
         "sodium":   round(totals["sodium"]   / servings),
         "source":   "usda" if _USDA else "api",
-        "calc_v":   3,
+        "calc_v":   4,
     }

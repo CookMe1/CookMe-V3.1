@@ -59,3 +59,28 @@ def test_library_style_ingredients():
     assert g("1 Handfull", "Pork") == 30
     assert fry_factor("Sunflower Oil", 1000, 4) == 0.12
     assert fry_factor("Olive Oil", 30, 4) == 1.0
+
+
+def test_dual_unit_amounts_use_the_right_weight():
+    from amounts import parse_amount_to_grams as p
+    assert p("500 g (4 cups)", "flour") == 500 and p("250 ml (1 cup)", "water") == 250
+    assert p("1 packet (7 g)", "yeast") == 7 and p("2 x 400g", "tomatoes") == 800 and p("1 (400g) can", "beans") == 400
+    assert p("2 cups (300 g)", "almond flour") == 300 and p("16 Tbsp (8 oz / 227 g)", "butter") == 227
+    assert p("1 kg (2 1/2 lbs)", "beef") == 1000 and p("¼ cup (62 1/2 mL)", "sugar") == 60 and p("1 tbsp (15 mL)", "paprika") == 15
+
+
+def test_wikibooks_ingredient_lines_are_repaired():
+    from amount_fixes import repair
+    assert repair({"amount": "5½+⅛ tsp", "item": "baking powder"})["amount"] == "5.625 tsp"
+    assert repair({"amount": "", "item": "⅜ cup () white wine"}) == {"amount": "⅜ cup", "item": "white wine"}
+    assert repair({"amount": "1", "item": "heaping tsp (6.66 mL) of ground coffee beans"}) == {"amount": "1 tsp", "item": "ground coffee beans"}
+    assert repair({"amount": "", "item": "medium acorn squash"})["amount"] == "1"
+    assert repair({"amount": "2 tbsp", "item": "olive oil"}) == {"amount": "2 tbsp", "item": "olive oil"}
+
+
+def test_cups_in_brackets_do_not_override_the_weight():
+    from amounts import adjust_cups
+    assert adjust_cups("500 g (4 cups)", "all-purpose flour", 500.0, 4) == (500.0, 1.0)
+    assert adjust_cups("2 cups (300 g)", "almond flour", 300.0, 4) == (300.0, 1.0)
+    g, f = adjust_cups("2 cups", "flour", 250.0, 4)
+    assert g > 0 and f == 1.0

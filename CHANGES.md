@@ -308,3 +308,10 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - **Release rate**: 10 to 20 a day, the same number all day (`RELEASE_MIN`/`RELEASE_MAX`; `RELEASE_PER_DAY` fixes it).
 - Ingredient lines with the quantity stuck in the name are repaired (e.g. "⅜ cup () white wine"), and salt, pepper, oil and water no longer count as "missing amount".
 - `scripts/ai_fill_amounts.py`: estimates quantities for recipes that truly have none (needs the AI key); those recipes are flagged and go through admin review.
+
+## Batch: 2-day hold, amount fixes, photo launcher
+- **Latest additions** now hold new recipes for **2 days** (`HOLD_DAYS`, default 2) before they join the main library.
+- **Nutrition bug fixed**: amounts with two units, e.g. `500 g (4 cups)`, `2 cups (300 g)`, `1 kg (2 1/2 lbs)`, were read wrongly (hundreds of thousands of kcal, or 0). `amounts.py` now uses the weight that is written out; `calc_v` is 4 and the nutrition cache key is `v4`, so older stored values are recalculated.
+- **Ingredient repair** (`amount_fixes.py`): sums like `5½+⅛ tsp`, `ea.`, a leading `(300 g)`, and unit words stuck to the item.
+- **Servings**: when a page's own serving number does not fit the food, servings are worked out from the calories and flagged `servings_estimated`.
+- `photos.command` (double-click on the Mac) loads Pexels photos, asking for the key at the start; max 199 searches an hour.

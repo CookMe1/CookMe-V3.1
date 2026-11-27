@@ -64,11 +64,23 @@ async def enrich(rows):
             tgt, lo, hi = target_kcal(r)
             r["servings"] = max(lo, min(hi, round(total["calories"] / tgt)))
             r["servings_estimated"] = True; st["srv_est"] += 1
-        n = max(1, int(r["servings"]))
-        per = {k: (round(v / n) if k in ("calories", "sodium") else round(v / n, 1)) for k, v in total.items() if isinstance(v, (int, float)) and k != "calc_v"}
-        per.update({"source": total.get("source", "usda"), "calc_v": total.get("calc_v", 3)})
         special = bool({str(x).lower() for x in r.get("tags") or []} & (SPECIAL_SAUCE | {"drink"}))
-        if (0 if special else 30) <= per["calories"] <= 1400:
+        lo_kcal = 0 if special else 30
+
+        def per_serving(n):
+            n = max(1, int(n))
+            per = {k: (round(v / n) if k in ("calories", "sodium") else round(v / n, 1)) for k, v in total.items() if isinstance(v, (int, float)) and k != "calc_v"}
+            per.update({"source": total.get("source", "usda"), "calc_v": total.get("calc_v", 4)})
+            return per
+        per = per_serving(r["servings"])
+        if not (lo_kcal <= per["calories"] <= 1400) and r.get("servings_stated"):
+            # the page's own serving number does not fit the food (e.g. "serves 1" on a whole cake): work it out from the calories instead
+            tgt, lo, hi = target_kcal(r)
+            guess = max(lo, min(hi, round(total["calories"] / tgt)))
+            alt = per_serving(guess)
+            if lo_kcal <= alt["calories"] <= 1400:
+                r["servings_page_said"] = r["servings"]; r["servings"] = guess; r["servings_estimated"] = True; per = alt; st["srv_est"] += 1
+        if lo_kcal <= per["calories"] <= 1400:
             r["nutrition"] = per; st["nutr"] += 1
         else:
             r["needs_review"] = True; st["review"] += 1

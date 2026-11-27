@@ -77,7 +77,7 @@ def ai_image(title):
 
 if __name__ == "__main__":
     data = json.load(open(F, encoding="utf-8")); OUT.mkdir(parents=True, exist_ok=True)
-    todo = [r for r in data if not r.get("image")]; lim = int(arg("--limit", len(todo)))
+    todo = [r for r in data if not r.get("image") and not r.get("needs_review")]; lim = int(arg("--limit", len(todo)))
     done = 0; extra = []
     def save():
         if "--dry" not in sys.argv: json.dump(data, open(F, "w", encoding="utf-8"), ensure_ascii=False)

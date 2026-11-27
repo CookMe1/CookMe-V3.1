@@ -16,6 +16,8 @@ apply = "--apply" in sys.argv
 start = (db.recipe_queue.find_one(sort=[("queue_order", -1)]) or {}).get("queue_order", 0)
 added = skipped = 0
 for r in data:
+    if r.get("needs_review") or not r.get("image"):      # only finished recipes (nutrition checked, photo added) join the queue
+        skipped += 1; continue
     if db.recipes.find_one({"recipe_id": r["recipe_id"]}, {"_id": 1}) or db.recipe_queue.find_one({"recipe_id": r["recipe_id"]}, {"_id": 1}):
         skipped += 1; continue
     added += 1

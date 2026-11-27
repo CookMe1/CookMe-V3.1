@@ -78,10 +78,19 @@ def parse_amount_to_grams(amount: str, item_name: str = "") -> float:
     text = (amount or "").strip().lower()
     if not text:
         return 5.0                                   # no amount given: a seasoning-sized default, not 100 g
-    pack = re.search(r"(\d+(?:\.\d+)?)\s*x?\s*\(?\s*(\d+(?:\.\d+)?)\s*(g|ml|oz)\b", text)   # "2 x 400g", "1 (400g) can"
-    if pack and re.search(r"\(|x", text):
+    # "2 x 400g", "1 (400g) can", "1 packet (7 g)": a count followed by the size of each. The number must start at a number
+    # boundary, so "500 g (4 cups)" is never read as "5 x 00 g".
+    pack = re.search(r"(?<![\d./])(\d+(?:\.\d+)?)\s*(?:x\s*\(?|\(|(?:cans?|tins?|jars?|packets?|packs?|packages?|bottles?|cartons?|bags?|boxes|box|sachets?|tubs?|blocks?|sticks?)\s*\()\s*(\d+(?:\.\d+)?)\s*(g|ml|oz)\b", text)
+    if pack and not re.match(r"\s*\d+(?:\.\d+)?\s*(?:g|ml|oz|kg|l)\b", text):
         n, size, u = float(pack.group(1)), float(pack.group(2)), pack.group(3)
         return n * size * (28 if u == "oz" else 1)
+    # "2 cups (300 g)", "16 Tbsp (8 oz / 227 g)": when a weight in grams is given in brackets, trust it over the cup/spoon guess
+    paren = re.search(r"\([^)]*?(\d+(?:\.\d+)?)\s*(kg|g)\b[^)]*\)", text)
+    if paren and not re.match(r"\s*\d+(?:\.\d+)?\s*(?:g|kg)\b", text):
+        return float(paren.group(1)) * (1000 if paren.group(2) == "kg" else 1)
+    bare = re.sub(r"\s*\([^)]*\)", "", text).strip()          # "1 kg (2 1/2 lbs)" -> "1 kg": the bracket repeats the amount in other units
+    if re.search(r"[\d¼½¾⅐-⅞]", bare):
+        text = bare
     qty, text, end = _number(text)
     words = re.findall(r"[a-z]+(?:\s?oz)?", text[end:] if qty is not None else text)
     unit_g = None
@@ -124,6 +133,8 @@ def adjust_cups(amount: str, item_name: str, grams: float, servings: int):
     weighed as cooked and its raw nutrition values are scaled down. Returns (grams, nutrition_factor)."""
     text = (amount or "").lower()
     name = (item_name or "").lower()
+    if re.search(r"\d\s*(?:kg|g|oz|lbs?|ml|l)\b", text):          # a weight or volume is written out ("500 g (4 cups)"): trust it
+        return grams, 1.0
     if not re.search(r"\bcups?\b", text) or re.search(r"\bcooked\b", name + " " + text):
         return grams, 1.0
     qty, _, _ = _number(text)

@@ -7,10 +7,41 @@ _QTY_START = re.compile(r"^\s*(?:\d|[¼½¾⅐⅑⅒⅓⅔⅕⅖⅗⅘⅙⅚⅛�
 _EMPTY_PARENS = re.compile(r"\s*\(\s*\)")
 
 
+_FRAC = {"¼": .25, "½": .5, "¾": .75, "⅛": .125, "⅜": .375, "⅝": .625, "⅞": .875, "⅓": 1 / 3, "⅔": 2 / 3}
+_SUM = re.compile(r"^\s*([\d¼½¾⅛⅜⅝⅞⅓⅔]+)\s*\+\s*([\d¼½¾⅛⅜⅝⅞⅓⅔]+)\s*(.*)$")
+_ITEM_UNIT = re.compile(r"^(?:(?:heaping|heaped|level|rounded|scant)\s+)?(tsp|teaspoons?|tbsp|tablespoons?|cups?|cloves?|pinch(?:es)?|handfuls?|slices?|sprigs?)\b\s*(?:\([^)]*\))?\s*(?:of\s+)?(.*)$", re.I)
+_SIZE = re.compile(r"^(?:small|medium|large|big)\b", re.I)
+
+
+def _val(tok: str) -> float:
+    total = 0.0
+    for ch in tok:
+        total += _FRAC[ch] if ch in _FRAC else 0
+    digits = re.sub(r"[^\d]", "", tok)
+    return total + (float(digits) if digits else 0)
+
+
 def repair(ing: dict) -> dict:
     """{'amount': '', 'item': '⅜ cup () white wine'} -> {'amount': '⅜ cup', 'item': 'white wine'}; leaves good lines alone."""
     amount, item = str(ing.get("amount") or "").strip(), str(ing.get("item") or "").strip()
     item = _EMPTY_PARENS.sub("", item).strip()
+    m = _SUM.match(amount)                                  # "5½+⅛ tsp" -> "5.625 tsp"
+    if m:
+        amount = f"{_val(m.group(1)) + _val(m.group(2)):g} {m.group(3)}".strip()
+    item = re.sub(r"^(?:ea\.?|each)\s+", "", item, flags=re.I)         # "ea. (300 g) eggs"
+    lead = re.match(r"^\(\s*(\d+(?:\.\d+)?\s*(?:g|kg|ml|l|oz))\s*\)\s*(.+)$", item, re.I)   # "(300 g) white sugar"
+    if lead:
+        amount = f"{lead.group(1)}" if not amount or re.fullmatch(r"[\d.\s½¼¾]+(?:cups?|tbsp|tsp)?", amount, re.I) else amount
+        item = lead.group(2)
+    mu = _ITEM_UNIT.match(item)                              # amount '1', item 'heaping tsp of ground coffee' -> '1 tsp', 'ground coffee'
+    if mu and amount and re.fullmatch(r"[\d.\s½¼¾⅓⅔]+", amount):
+        amount, item = f"{amount} {mu.group(1)}".strip(), mu.group(2) or item
+    if not amount and _SIZE.match(item):                    # "medium onion" with no number: one
+        amount = "1"
+    if not amount and re.match(r"^[\d¼½¾⅛⅜⅝⅞⅓⅔]", item):
+        mq = re.match(r"^([\d.\s/¼½¾⅛⅜⅝⅞⅓⅔]+?)\s*((?:cups?|tbsp|tsp|tablespoons?|teaspoons?|kg|g|ml|l|oz|lbs?)\b)?\s+(.+)$", item, re.I)
+        if mq and mq.group(3):
+            amount, item = f"{mq.group(1).strip()} {mq.group(2) or ''}".strip(), mq.group(3).strip()
     if not amount and _QTY_START.match(item):
         a, i = split_ingredient(item)
         if a and i:
