@@ -3,14 +3,14 @@
 # Runs by itself, hour after hour, until every recipe has a photo or no match. Safe to stop and start again.
 cd "$(dirname "$0")"
 clear
-echo "Grubly photo loader (Pexels)"
+echo "Grubly photo loader (Pexels, then Wikimedia Commons for the ones Pexels misses)"
 echo "----------------------------"
 echo "Paste your Pexels API key and press Enter (nothing will show as you paste):"
 read -s PEXELS_API_KEY
 export PEXELS_API_KEY
 unset PIXABAY_API_KEY
 if [ -z "$PEXELS_API_KEY" ]; then echo "No key entered. Close this window and try again."; exit 1; fi
-pip3 install -q requests 2>&1 | tail -1
+pip3 install -q requests pillow 2>&1 | tail -1
 echo
 echo "Starting. At most 199 Pexels searches an hour; it waits by itself at the limit and retries after any error."
 echo "Leave this window open, the Mac plugged in and the lid open (a closed lid sends the Mac to sleep)."
@@ -21,5 +21,6 @@ for pass in $(seq 1 40); do
   echo "Pass $pass ended with recipes still to do. Trying again in 10 minutes..."; sleep 600
 done
 echo
-echo "Finished. Tell Claude you are done."
+python3 scripts/photo_review.py --sample 300 2>/dev/null
+echo "Finished. Open data/staging/photo_review.html to eyeball a sample, then tell Claude you are done."
 read -n 1 -s -r -p "Press any key to close."

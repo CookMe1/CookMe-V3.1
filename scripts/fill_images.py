@@ -6,7 +6,7 @@
  Images are saved to frontend/public/recipe-images/<recipe_id>.jpg and recipe['image'] is set to /recipe-images/<id>.jpg
  Usage:  python scripts/fill_images.py [--file data/staging/a.json,data/staging/b.json] [--limit 50] [--ai] [--dry] [--retry-misses] [--priority drink,sauce,snack]
 Photo choice is a best match for the dish name, so spot-check a few. AI ones are labelled 'AI-generated illustration'."""
-import json, os, sys, time
+import json, os, re, sys, time
 from pathlib import Path
 import requests
 ROOT = Path(__file__).resolve().parent.parent
@@ -111,6 +111,62 @@ def pixabay_strict(title):
         if found: return found[:1]
     return []
 
+# ---------- Wikimedia Commons (openly licensed photos, credit + licence stored) ----------
+COMMONS_ON = "--no-commons" not in sys.argv
+COMMONS_UA = {"User-Agent": "GrublyPhotoLoader/1.0 (https://grublyworld.com; mail.cookme@gmail.com) python-requests"}
+_commons_last = [0.0]; _commons_src = {}
+OK_LICENCE = re.compile(r"^(cc0|cc[ -]by(?![ -](nc|nd))|cc[ -]by[ -]sa|public domain|pd)", re.I)
+BAD_WORDS = re.compile(r"\b(diagram|map|logo|flag|menu|drawing|illustration|painting|stamp|label|poster|packaging|vending|restaurant|market|street|shop|stall|cartoon|sketch|cover|advert|advertisement|sign|manuscript|book|page|screenshot|infographic|chart|svg|can|bottle|factory|machine|museum|exhibit|kitchen|chef|people|person|crowd|child|children|woman|women|man|men|girl|boy)\b", re.I)
+# quality bar = the weakest 5% of the Pexels photos already in the app (measured on 300 of them)
+MIN_SHARP, MIN_BRIGHT, MAX_BRIGHT, MIN_CONTRAST = 294, 55, 200, 41
+
+def commons_get(params):
+    wait = 1.2 - (time.time() - _commons_last[0])          # polite: one request about every 1.2 s
+    if wait > 0: time.sleep(wait)
+    r = requests.get("https://commons.wikimedia.org/w/api.php", params={**params, "format": "json"}, headers=COMMONS_UA, timeout=30)
+    _commons_last[0] = time.time()
+    if r.status_code == 429: time.sleep(60); r = requests.get("https://commons.wikimedia.org/w/api.php", params={**params, "format": "json"}, headers=COMMONS_UA, timeout=30)
+    r.raise_for_status()
+    return r
+
+def commons(title):
+    """Up to 4 candidate photos: licence ok, landscape, big, JPEG, not a diagram/logo/people shot, and the file name, description or categories
+    contain the dish's words. The picture itself is quality-checked after download (quality_ok)."""
+    keep = _stem(words(title)); need = len(keep) if len(keep) <= 2 else -(-len(keep) * 7 // 10)
+    out = []
+    for q in (f"{title} filetype:bitmap", " ".join(words(title)[:3]) + " food filetype:bitmap"):
+        pages = (commons_get({"action": "query", "generator": "search", "gsrsearch": q, "gsrnamespace": 6, "gsrlimit": 15, "prop": "imageinfo",
+                              "iiprop": "url|size|mime|extmetadata", "iiurlwidth": 1280}).json().get("query") or {}).get("pages", {})
+        for pg in sorted(pages.values(), key=lambda x: x.get("index", 99)):
+            ii = (pg.get("imageinfo") or [{}])[0]; em = ii.get("extmetadata") or {}
+            if ii.get("mime") != "image/jpeg" or ii.get("width", 0) < 1200 or ii.get("height", 0) < 700: continue
+            ratio = ii["width"] / ii["height"]
+            if not 1.15 <= ratio <= 2.2: continue
+            lic = (em.get("LicenseShortName") or {}).get("value", "")
+            if not OK_LICENCE.match(lic.strip()): continue
+            text = " ".join(re.sub(r"<[^>]+>", " ", (em.get(k) or {}).get("value", "")) for k in ("ImageDescription", "Categories", "ObjectName")) + " " + pg.get("title", "").replace("_", " ")
+            if BAD_WORDS.search(text): continue
+            if len(keep & _stem(words(text))) < need: continue
+            artist = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", (em.get("Artist") or {}).get("value", ""))).strip()[:80] or "unknown author"
+            url = ii.get("thumburl") or ii.get("url")
+            _commons_src[url] = ii.get("descriptionurl", "")
+            out.append((url, f"Photo by {artist}, {lic.strip()}, via Wikimedia Commons"))
+        if out: return out[:4]
+    return []
+
+def quality_ok(data):
+    """Reject soft, dark, washed-out or tiny pictures. Needs Pillow."""
+    try:
+        from PIL import Image, ImageFilter, ImageStat
+        import io
+        im = Image.open(io.BytesIO(data)).convert("RGB"); w, h = im.size
+        if w < 1000 or h < 560: return False
+        im = im.resize((800, max(1, int(h * 800 / w)))); g = im.convert("L")
+        sharp = ImageStat.Stat(g.filter(ImageFilter.FIND_EDGES)).var[0]; st = ImageStat.Stat(g)
+        return sharp >= MIN_SHARP and MIN_BRIGHT <= st.mean[0] <= MAX_BRIGHT and st.stddev[0] >= MIN_CONTRAST
+    except Exception:
+        return False
+
 def ai_image(title):
     import asyncio, base64
     from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -123,7 +179,7 @@ if __name__ == "__main__":
     # --file may list several staged files separated by commas; they share one hourly limit and one priority order
     files = [ROOT/Path(x) for x in arg("--file", "data/master_recipes.json").split(",")]
     sets = [(f, json.load(open(f, encoding="utf-8"))) for f in files]; OUT.mkdir(parents=True, exist_ok=True)
-    PROVIDERS = ([("pixabay", pixabay)] if PIX_KEY else []) + ([("pexels", pexels)] if KEY else [])
+    PROVIDERS = ([("pixabay", pixabay)] if PIX_KEY else []) + ([("pexels", pexels)] if KEY else []) + ([("commons", commons)] if COMMONS_ON else [])
     names = [n for n, _ in PROVIDERS]
     for _, data in sets:
         for r in data:
@@ -136,7 +192,7 @@ if __name__ == "__main__":
         order = {c: n for n, c in enumerate(arg("--priority").split(","))}
         todo.sort(key=lambda r: order.get(r.get("category"), len(order)))
     done = 0; extra = []
-    PHOTO_KEYS = ("upgrade_checked", "tried", "image", "image_attribution", "image_source", "image_no_match", "gallery_images")
+    PHOTO_KEYS = ("image_source_url", "upgrade_checked", "tried", "image", "image_attribution", "image_source", "image_no_match", "gallery_images")
     def save():
         """Re-read each file from disk and copy in only the photo fields, so edits made to the file meanwhile are never overwritten. Atomic write."""
         if "--dry" in sys.argv: return
@@ -183,7 +239,12 @@ if __name__ == "__main__":
                     if name in r.setdefault("tried", []): continue
                     try: found = fn(r["title"])
                     except PexelsBusy: continue             # Pexels full for this hour: leave it untried for this recipe, carry on
-                    if found:
+                    if found and name == "commons":                 # try each candidate until one passes the picture-quality check
+                        for url, credit in found:
+                            data_ = requests.get(url, timeout=30, headers=COMMONS_UA).content
+                            if quality_ok(data_): img = data_; r["image_source_url"] = _commons_src.get(url, ""); r["image_source"] = "wikimedia-commons"; break
+                        if img: extra = []; break
+                    elif found:
                         url, credit = found[0]
                         img = requests.get(url, timeout=30).content
                         extra = found[1:]

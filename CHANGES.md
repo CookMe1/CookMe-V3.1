@@ -355,3 +355,10 @@ Applied on top of CookMe-feature-updates (March 2026 snapshot).
 - 41 of them are kept out of the app for now because the amount of bread or pastry is not given, so calories can't be worked out honestly (flagged needs_review).
 - 51 stay held: no method, or a main ingredient never given. Nothing is invented.
 - Stray italic markers (_like this_) removed from all open_new2 text; "bain marie" -> "water bath".
+
+## Photos: Wikimedia Commons fallback + quality checks
+- Pexels stays first. Recipes it misses go to Wikimedia Commons (openly licensed, credit + licence + source page stored, one request every ~1.2 s).
+- Commons photos must be JPEG, at least 1200x700, landscape, CC0/public domain/CC BY/CC BY-SA, name words found in the file name/description/categories, and not a diagram, logo, menu or people shot.
+- After download each picture must be sharp, not too dark or washed out (bar = the weakest 5% of the Pexels photos already in the app).
+- scripts/photo_review.py makes a tick-sheet to eyeball photos; scripts/remove_photos.py takes off the bad ones for good.
+- Pixabay code stays dormant (no key = never used) until Pixabay gives written permission.
