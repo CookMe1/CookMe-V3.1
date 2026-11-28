@@ -15,7 +15,7 @@ echo
 echo "Starting. At most 199 Pexels searches an hour; it waits by itself at the limit and retries after any error."
 echo "Leave this window open, the Mac plugged in and the lid open (a closed lid sends the Mac to sleep)."
 echo
-for pass in $(seq 1 40); do
+for pass in $(seq 1 200); do
   caffeinate -i python3 scripts/fill_images.py --file data/staging/open_new.json,data/staging/open_new2.json,data/staging/wikibooks_approved.json --priority drink,sauce,snack 2>&1 | tee /tmp/grubly_photos_last.log
   if grep -q " 0 recipes still have no image" /tmp/grubly_photos_last.log; then echo "All done."; break; fi
   echo "Pass $pass ended with recipes still to do. Trying again in 10 minutes..."; sleep 600

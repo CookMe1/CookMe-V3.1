@@ -47,7 +47,7 @@ def pexels_get(params):
         now = time.time()
         while _sent and now - _sent[0] > 3600: _sent.popleft()
         if len(_sent) < HOURLY_MAX: break
-        if PIX_KEY: raise PexelsBusy()          # Pixabay is the main source: never sit waiting for Pexels, just skip it until its hour has room
+        if PIX_KEY or COMMONS_ON: raise PexelsBusy()          # Pixabay is the main source: never sit waiting for Pexels, just skip it until its hour has room
         wait = int(3600 - (now - _sent[0])) + 5
         print(f"  at the hourly limit ({HOURLY_MAX}); waiting {wait // 60} min. Keep this window open.", flush=True)
         save_hook and save_hook()
