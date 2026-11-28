@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 F = ROOT/Path(sys.argv[sys.argv.index("--file") + 1]) if "--file" in sys.argv else ROOT/"data"/"master_recipes.json"
 OUT = ROOT/"frontend"/"public"/"recipe-images"
 KEY = os.environ.get("PEXELS_API_KEY", "")
+PIX_KEY = os.environ.get("PIXABAY_API_KEY", "")
 
 def arg(name, default=None):
     return sys.argv[sys.argv.index(name)+1] if name in sys.argv else default
@@ -71,6 +72,33 @@ def pexels(title):
         time.sleep(0.4)
     return []
 
+_pix = collections.deque()
+
+def pix_get(params):
+    """One Pixabay search. Pixabay allows 100 a minute; we stay at 80 or fewer and wait out any 429."""
+    while True:
+        now = time.time()
+        while _pix and now - _pix[0] > 60: _pix.popleft()
+        if len(_pix) < 80: break
+        time.sleep(max(1, 61 - (now - _pix[0])))
+    _pix.append(time.time())
+    r = requests.get("https://pixabay.com/api/", params={**params, "key": PIX_KEY}, timeout=20)
+    if r.status_code == 429:
+        time.sleep(65); r = requests.get("https://pixabay.com/api/", params={**params, "key": PIX_KEY}, timeout=20)
+    r.raise_for_status()
+    return r
+
+def _stem(ws): return {w[:-1] if w.endswith("s") else w for w in ws}
+
+def pixabay(title):
+    """Pixabay (free for commercial use, no credit needed; we store one anyway). Keep photos only if their tags share a word with the dish name."""
+    keep = _stem(words(title))
+    for q in queries(title):
+        hits = pix_get({"q": q[:100], "image_type": "photo", "category": "food", "orientation": "horizontal", "per_page": 20, "safesearch": "true"}).json().get("hits", [])
+        found = [(h["largeImageURL"], f"Photo by {h.get('user', 'a contributor')} on Pixabay") for h in hits if keep & _stem(words((h.get("tags") or "").replace(",", " ")))]
+        if found: return found[:3]
+    return []
+
 def ai_image(title):
     import asyncio, base64
     from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -83,13 +111,20 @@ if __name__ == "__main__":
     # --file may list several staged files separated by commas; they share one hourly limit and one priority order
     files = [ROOT/Path(x) for x in arg("--file", "data/master_recipes.json").split(",")]
     sets = [(f, json.load(open(f, encoding="utf-8"))) for f in files]; OUT.mkdir(parents=True, exist_ok=True)
-    todo = [r for _, data in sets for r in data if not r.get("image") and not r.get("needs_review") and (not r.get("image_no_match") or "--retry-misses" in sys.argv)]
+    PROVIDERS = ([("pixabay", pixabay)] if PIX_KEY else []) + ([("pexels", pexels)] if KEY else [])
+    names = [n for n, _ in PROVIDERS]
+    for _, data in sets:
+        for r in data:
+            if r.get("image_no_match") and "tried" not in r: r["tried"] = ["pexels"]       # misses from earlier runs were Pexels misses
+            if "--retry-misses" in sys.argv: r["tried"] = []; r.pop("image_no_match", None)
+    def pending(r): return not r.get("image") and not r.get("needs_review") and any(n not in r.get("tried", []) for n in names)
+    todo = [r for _, data in sets for r in data if pending(r)]
     lim = int(arg("--limit", len(todo)))
     if arg("--priority"):                                   # e.g. --priority drink,sauce,snack : those sections get their photos first
         order = {c: n for n, c in enumerate(arg("--priority").split(","))}
         todo.sort(key=lambda r: order.get(r.get("category"), len(order)))
     done = 0; extra = []
-    PHOTO_KEYS = ("image", "image_attribution", "image_source", "image_no_match", "gallery_images")
+    PHOTO_KEYS = ("tried", "image", "image_attribution", "image_source", "image_no_match", "gallery_images")
     def save():
         """Re-read each file from disk and copy in only the photo fields, so edits made to the file meanwhile are never overwritten. Atomic write."""
         if "--dry" in sys.argv: return
@@ -102,6 +137,7 @@ if __name__ == "__main__":
                 if r:
                     for k in PHOTO_KEYS:
                         if k in r: d[k] = r[k]
+                        else: d.pop(k, None)
             tmp = f.with_suffix(".tmp"); json.dump(disk, open(tmp, "w", encoding="utf-8"), ensure_ascii=False); os.replace(tmp, f)
     save_hook = save
     for r in todo[:lim]:
@@ -111,12 +147,15 @@ if __name__ == "__main__":
         failed = False
         for attempt in range(6):                     # temporary problems (busy, offline, Mac woke from sleep) are retried, never end the run
             try:
-                if KEY:
-                    found = pexels(r["title"])
+                for name, fn in PROVIDERS:                     # each source is tried once per recipe; misses are remembered per source
+                    if name in r.setdefault("tried", []): continue
+                    found = fn(r["title"])
                     if found:
                         url, credit = found[0]
                         img = requests.get(url, timeout=30).content
                         extra = found[1:]
+                        break
+                    r["tried"].append(name)
                 if img is None and "--ai" in sys.argv and os.environ.get("ENABLE_AI_IMAGES") == "1":
                     img = ai_image(r["title"]); credit = "AI-generated illustration"
                     r["image_source"] = "ai-generated"
@@ -132,11 +171,11 @@ if __name__ == "__main__":
         if failed: continue                           # gave up on this one for now; NOT marked no-match, so a later pass tries it again
         if not img:
             print("  no match:", r["title"])
-            if KEY and "--dry" not in sys.argv: r["image_no_match"] = True     # remembered, so the next run skips it (use --retry-misses to try again)
+            if PROVIDERS and "--dry" not in sys.argv and all(n in r.get("tried", []) for n in names): r["image_no_match"] = True     # remembered, so the next run skips it (use --retry-misses to try again)
             continue
         print("  ok:", r["title"], "-", credit)
         if "--dry" not in sys.argv:
-            dest.write_bytes(img); r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r["image_attribution"] = credit
+            dest.write_bytes(img); r["image"] = f"/recipe-images/{r['recipe_id']}.jpg"; r["image_attribution"] = credit; r.pop("image_no_match", None)
             for n, (u2, c2) in enumerate(extra, start=2):      # more matching photos become the recipe's extra pictures
                 try:
                     d2 = OUT/f"{r['recipe_id']}_{n}.jpg"; d2.write_bytes(requests.get(u2, timeout=30).content)
@@ -146,5 +185,5 @@ if __name__ == "__main__":
         done += 1; time.sleep(0.4)
         if done % 10 == 0: save()
     save()
-    left = sum(1 for _, data in sets for r in data if not r.get("image") and not r.get("needs_review") and not r.get("image_no_match"))
+    left = sum(1 for _, data in sets for r in data if pending(r))
     print(f"filled {done} this run; {left} recipes still have no image")
