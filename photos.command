@@ -21,6 +21,11 @@ for pass in $(seq 1 40); do
   if grep -q " 0 recipes still have no image" /tmp/grubly_photos_last.log; then echo "All done."; break; fi
   echo "Pass $pass ended with recipes still to do. Trying again in 10 minutes..."; sleep 600
 done
+if [ -n "$PIXABAY_API_KEY" ]; then
+  echo
+  echo "Second look: checking the photos we already have against Pixabay for a better match (the old photo is kept as an extra picture)..."
+  caffeinate -i python3 scripts/fill_images.py --file data/staging/open_new.json,data/staging/open_new2.json,data/staging/wikibooks_approved.json --upgrade
+fi
 echo
 echo "Finished. Tell Claude you are done."
 read -n 1 -s -r -p "Press any key to close."

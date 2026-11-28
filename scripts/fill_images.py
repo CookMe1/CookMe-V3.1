@@ -99,6 +99,16 @@ def pixabay(title):
         if found: return found[:3]
     return []
 
+def pixabay_strict(title):
+    """Only photos whose tags contain EVERY word of the dish name (needs 2+ words). Used to look for better pictures than the ones we have."""
+    keep = _stem(words(title))
+    if len(keep) < 2: return []
+    for q in queries(title)[:2]:
+        hits = pix_get({"q": q[:100], "image_type": "photo", "category": "food", "orientation": "horizontal", "per_page": 20, "safesearch": "true"}).json().get("hits", [])
+        found = [(h["largeImageURL"], f"Photo by {h.get('user', 'a contributor')} on Pixabay") for h in hits if keep <= _stem(words((h.get("tags") or "").replace(",", " ")))]
+        if found: return found[:1]
+    return []
+
 def ai_image(title):
     import asyncio, base64
     from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -124,7 +134,7 @@ if __name__ == "__main__":
         order = {c: n for n, c in enumerate(arg("--priority").split(","))}
         todo.sort(key=lambda r: order.get(r.get("category"), len(order)))
     done = 0; extra = []
-    PHOTO_KEYS = ("tried", "image", "image_attribution", "image_source", "image_no_match", "gallery_images")
+    PHOTO_KEYS = ("upgrade_checked", "tried", "image", "image_attribution", "image_source", "image_no_match", "gallery_images")
     def save():
         """Re-read each file from disk and copy in only the photo fields, so edits made to the file meanwhile are never overwritten. Atomic write."""
         if "--dry" in sys.argv: return
@@ -140,6 +150,26 @@ if __name__ == "__main__":
                         else: d.pop(k, None)
             tmp = f.with_suffix(".tmp"); json.dump(disk, open(tmp, "w", encoding="utf-8"), ensure_ascii=False); os.replace(tmp, f)
     save_hook = save
+    if "--upgrade" in sys.argv:        # second look at photos we already have: swap in a Pixabay photo only if its tags match EVERY word of the dish name
+        if not PIX_KEY: sys.exit("--upgrade needs PIXABAY_API_KEY")
+        cand = [r for _, data in sets for r in data if r.get("image") and not r.get("needs_review") and not r.get("upgrade_checked") and "Pixabay" not in (r.get("image_attribution") or "")]
+        print(f"{len(cand)} photos to take a second look at", flush=True); swapped = 0
+        for r in cand:
+            for attempt in range(6):
+                try:
+                    found = pixabay_strict(r["title"])
+                    if found:
+                        url, credit = found[0]; data_ = requests.get(url, timeout=30).content
+                        newp = OUT/f"{r['recipe_id']}_px.jpg"; newp.write_bytes(data_)
+                        old = {"user_id": "system_seeder", "image_url": r["image"], "attribution": r.get("image_attribution") or "Photo from Pexels", "uploaded_at": "2026-11-28T00:00:00+00:00"}
+                        r.setdefault("gallery_images", []).insert(0, old)       # the earlier picture stays as an extra photo
+                        r["image"] = f"/recipe-images/{r['recipe_id']}_px.jpg"; r["image_attribution"] = credit; swapped += 1
+                        print("  better photo:", r["title"], flush=True)
+                    r["upgrade_checked"] = True; break
+                except Exception as e:
+                    print(f"  {r['title']}: {e}; waiting then trying again", flush=True); time.sleep(30 * (attempt + 1))
+            if sum(1 for x in cand if x.get("upgrade_checked")) % 25 == 0: save()
+        save(); print(f"swapped {swapped} photos; second look finished, 0 recipes still have no image"); sys.exit(0)
     for r in todo[:lim]:
         dest = OUT/f"{r['recipe_id']}.jpg"; img = None; credit = None; extra = []
         if dest.exists():   # already downloaded earlier: just link it, no search needed
