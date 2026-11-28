@@ -35,6 +35,7 @@ def queries(title):
     return qs[:3]                         # each search counts against the 199-an-hour limit, so no more than 3 per recipe
 
 import collections
+class PexelsBusy(Exception): pass
 HOURLY_MAX = 199                      # never more than 199 Pexels requests in any rolling hour (the free key allows 200)
 LOG = ROOT/"data"/"staging"/".pexels_requests.json"          # request times survive a restart, so the 199-an-hour limit holds across runs
 try: _sent = collections.deque(t for t in json.load(open(LOG)) if time.time() - t < 3600)
@@ -46,6 +47,7 @@ def pexels_get(params):
         now = time.time()
         while _sent and now - _sent[0] > 3600: _sent.popleft()
         if len(_sent) < HOURLY_MAX: break
+        if PIX_KEY: raise PexelsBusy()          # Pixabay is the main source: never sit waiting for Pexels, just skip it until its hour has room
         wait = int(3600 - (now - _sent[0])) + 5
         print(f"  at the hourly limit ({HOURLY_MAX}); waiting {wait // 60} min. Keep this window open.", flush=True)
         save_hook and save_hook()
@@ -179,7 +181,8 @@ if __name__ == "__main__":
             try:
                 for name, fn in PROVIDERS:                     # each source is tried once per recipe; misses are remembered per source
                     if name in r.setdefault("tried", []): continue
-                    found = fn(r["title"])
+                    try: found = fn(r["title"])
+                    except PexelsBusy: continue             # Pexels full for this hour: leave it untried for this recipe, carry on
                     if found:
                         url, credit = found[0]
                         img = requests.get(url, timeout=30).content
